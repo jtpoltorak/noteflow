@@ -1,0 +1,32 @@
+CREATE TABLE IF NOT EXISTS User (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  email        TEXT UNIQUE NOT NULL,
+  passwordHash TEXT NOT NULL,
+  createdAt    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Notebook (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  userId       INTEGER NOT NULL REFERENCES User(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  createdAt    TEXT NOT NULL,
+  updatedAt    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Section (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  notebookId   INTEGER NOT NULL REFERENCES Notebook(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  "order"      INTEGER NOT NULL DEFAULT 0,
+  createdAt    TEXT NOT NULL,
+  updatedAt    TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Note (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  sectionId    INTEGER NOT NULL REFERENCES Section(id) ON DELETE CASCADE,
+  title        TEXT NOT NULL,
+  content      TEXT NOT NULL DEFAULT '',
+  createdAt    TEXT NOT NULL,
+  updatedAt    TEXT NOT NULL
+);

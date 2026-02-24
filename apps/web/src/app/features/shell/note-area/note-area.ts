@@ -1,0 +1,162 @@
+import { Component, inject, signal, effect } from '@angular/core';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import { faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { ShellStateService } from '../shell-state.service';
+import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+
+@Component({
+  selector: 'app-note-area',
+  imports: [FaIconComponent, ConfirmDialog],
+  template: `
+    @if (!state.selectedSectionId()) {
+      <div class="flex flex-1 items-center justify-center">
+        <p class="text-gray-400">Select a section to see notes</p>
+      </div>
+    } @else {
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Note list strip -->
+        <div class="flex w-48 flex-col border-r border-gray-200">
+          <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Notes</span>
+            <button
+              (click)="createNote()"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+              title="New note"
+            >
+              <fa-icon [icon]="faPlus" size="sm" />
+            </button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-1">
+            @for (note of state.notes(); track note.id) {
+              <div
+                class="cursor-pointer rounded px-2 py-1.5 text-sm"
+                [class.bg-blue-100]="note.id === state.selectedNoteId()"
+                [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
+                (click)="state.selectNote(note.id)"
+              >
+                <div class="flex items-center">
+                  <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
+                  <span class="truncate">{{ note.title || 'Untitled' }}</span>
+                </div>
+              </div>
+            } @empty {
+              <p class="px-2 py-4 text-center text-sm text-gray-400">
+                No notes yet. Click + to create one.
+              </p>
+            }
+          </div>
+        </div>
+
+        <!-- Editor area -->
+        <div class="flex flex-1 flex-col">
+          @if (state.selectedNote()) {
+            <!-- Editor header -->
+            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2">
+              <input
+                type="text"
+                [value]="editedTitle()"
+                (input)="editedTitle.set($any($event.target).value)"
+                (blur)="saveNote()"
+                class="flex-1 text-lg font-semibold text-gray-800 focus:outline-none"
+                placeholder="Note title"
+              />
+              <button
+                (click)="startDeleting()"
+                class="ml-2 rounded p-1 text-gray-400 hover:text-red-600"
+                title="Delete note"
+              >
+                <fa-icon [icon]="faTrash" size="sm" />
+              </button>
+            </div>
+
+            @if (deleting()) {
+              <div class="px-4">
+                <app-confirm-dialog
+                  message="Delete this note?"
+                  (confirmed)="confirmDelete()"
+                  (cancelled)="deleting.set(false)"
+                ></app-confirm-dialog>
+              </div>
+            }
+
+            <!-- Content area -->
+            <textarea
+              class="flex-1 resize-none p-4 text-gray-700 focus:outline-none"
+              [value]="editedContent()"
+              (input)="editedContent.set($any($event.target).value)"
+              (blur)="saveNote()"
+              placeholder="Start typing..."
+            ></textarea>
+          } @else {
+            <div class="flex flex-1 items-center justify-center">
+              <p class="text-gray-400">Select a note to edit</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  `,
+})
+export class NoteArea {
+  protected state = inject(ShellStateService);
+
+  protected faStickyNote = faStickyNote;
+  protected faPlus = faPlus;
+  protected faTrash = faTrash;
+
+  protected editedTitle = signal('');
+  protected editedContent = signal('');
+  protected deleting = signal(false);
+
+  // Track which note the local editor fields belong to
+  private syncedNoteId: number | null = null;
+
+  constructor() {
+    // Sync local editor state when selected note changes
+    effect(() => {
+      const note = this.state.selectedNote();
+      if (note && note.id !== this.syncedNoteId) {
+        this.syncedNoteId = note.id;
+        this.editedTitle.set(note.title);
+        this.editedContent.set(note.content);
+        this.deleting.set(false);
+      } else if (!note) {
+        this.syncedNoteId = null;
+        this.editedTitle.set('');
+        this.editedContent.set('');
+        this.deleting.set(false);
+      }
+    });
+  }
+
+  protected createNote(): void {
+    this.state.createNote('Untitled note');
+  }
+
+  protected saveNote(): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+
+    const title = this.editedTitle().trim();
+    const content = this.editedContent();
+
+    if (title === note.title && content === note.content) return;
+
+    this.state.updateNote(note.id, {
+      title: title || note.title, // Don't save empty title
+      content,
+    });
+  }
+
+  protected startDeleting(): void {
+    this.deleting.set(true);
+  }
+
+  protected confirmDelete(): void {
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.deleteNote(note.id);
+    }
+    this.deleting.set(false);
+  }
+}

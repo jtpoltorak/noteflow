@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow && npm install 2>&1)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow && npm run build --workspace=packages/shared-types 2>&1)",
+      "Bash(python:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(rm -rf /c/dev/claud-code-projects/noteflow/node_modules /c/dev/claud-code-projects/noteflow/package-lock.json && cd /c/dev/claud-code-projects/noteflow && npm install 2>&1)",
+      "Bash(sleep 1:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)",
+      "Bash(xargs -I{} taskkill //F //PID {})",
+      "Bash(echo === Create Notebook ===:*)",
+      "Bash(head:*)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow && npx @angular/cli@latest new web --directory=apps/web --routing --style=css --ssr=false --skip-git --skip-install --standalone 2>&1)",
+      "Bash(tail:*)",
+      "Bash(npm view:*)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow/apps/web && npx ng build --configuration=development 2>&1)",
+      "Bash(curl:*)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow/apps/web && npm ls @tailwindcss/postcss tailwindcss 2>&1)",
+      "Bash(npx kill-port:*)",
+      "Bash(cd /c/dev/claud-code-projects/noteflow && npm run start --workspace=apps/web 2>&1)",
+      "WebSearch"
+    ]
+  }
+}
