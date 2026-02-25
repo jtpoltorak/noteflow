@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCommentDots, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCommentDots, faMoon, faSun, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ShellStateService } from './shell-state.service';
@@ -40,18 +40,42 @@ import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
       <!-- Three-panel layout -->
       <div class="flex flex-1 overflow-hidden">
         <!-- Left panel: Notebooks -->
-        <aside class="flex w-56 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-          <app-notebook-list />
-        </aside>
+        @if (notebooksCollapsed()) {
+          <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+            <button
+              (click)="notebooksCollapsed.set(false)"
+              class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Expand notebooks"
+            >
+              <fa-icon [icon]="faChevronRight" size="xs" />
+            </button>
+          </div>
+        } @else {
+          <aside class="flex w-56 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+            <app-notebook-list (collapse)="notebooksCollapsed.set(true)" />
+          </aside>
+        }
 
         <!-- Middle panel: Sections -->
-        <aside class="flex w-52 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-          <app-section-list />
-        </aside>
+        @if (sectionsCollapsed()) {
+          <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <button
+              (click)="sectionsCollapsed.set(false)"
+              class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Expand sections"
+            >
+              <fa-icon [icon]="faChevronRight" size="xs" />
+            </button>
+          </div>
+        } @else {
+          <aside class="flex w-52 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <app-section-list (collapse)="sectionsCollapsed.set(true)" />
+          </aside>
+        }
 
         <!-- Main area: Notes + Editor -->
         <main class="flex flex-1 flex-col bg-white dark:bg-gray-800">
-          <app-note-area />
+          <app-note-area [collapsed]="notesCollapsed()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" />
         </main>
       </div>
 
@@ -84,7 +108,11 @@ export class Shell implements OnInit {
   protected faSun = faSun;
   protected faCircleInfo = faCircleInfo;
   protected faCommentDots = faCommentDots;
+  protected faChevronRight = faChevronRight;
 
+  protected notebooksCollapsed = signal(false);
+  protected sectionsCollapsed = signal(false);
+  protected notesCollapsed = signal(false);
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
   protected currentYear = new Date().getFullYear();

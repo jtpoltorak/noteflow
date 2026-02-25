@@ -1,7 +1,7 @@
-import { Component, inject, signal, effect } from '@angular/core';
+import { Component, inject, signal, effect, input, output } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import type { NoteDto } from '@noteflow/shared-types';
@@ -17,41 +17,62 @@ import type { NoteDto } from '@noteflow/shared-types';
       </div>
     } @else {
       <div class="flex flex-1 overflow-hidden">
-        <!-- Note list strip -->
-        <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
+        <!-- Note list: collapsed strip or full panel -->
+        @if (collapsed()) {
+          <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <button
-              (click)="createNote()"
-              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              title="New note"
+              (click)="toggleCollapsed.emit()"
+              class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Expand notes"
             >
-              <fa-icon [icon]="faPlus" size="sm" />
+              <fa-icon [icon]="faChevronRight" size="xs" />
             </button>
           </div>
-          <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
-            @for (note of state.notes(); track note.id) {
-              <div
-                cdkDrag
-                class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
-                [class.bg-blue-100]="note.id === state.selectedNoteId()"
-                [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
-                [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
-                [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
-                (click)="onItemClick(note.id)"
-              >
-                <div class="flex items-center">
-                  <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
-                  <span class="truncate">{{ note.title || 'Untitled' }}</span>
-                </div>
+        } @else {
+          <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
+            <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+              <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
+              <div class="flex items-center gap-1">
+                <button
+                  (click)="toggleCollapsed.emit()"
+                  class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Collapse panel"
+                >
+                  <fa-icon [icon]="faChevronLeft" size="xs" />
+                </button>
+                <button
+                  (click)="createNote()"
+                  class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="New note"
+                >
+                  <fa-icon [icon]="faPlus" size="sm" />
+                </button>
               </div>
-            } @empty {
-              <p class="px-2 py-4 text-center text-sm text-gray-400">
-                No notes yet. Click + to create one.
-              </p>
-            }
+            </div>
+            <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
+              @for (note of state.notes(); track note.id) {
+                <div
+                  cdkDrag
+                  class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
+                  [class.bg-blue-100]="note.id === state.selectedNoteId()"
+                  [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
+                  [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
+                  [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
+                  (click)="onItemClick(note.id)"
+                >
+                  <div class="flex items-center">
+                    <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
+                    <span class="truncate">{{ note.title || 'Untitled' }}</span>
+                  </div>
+                </div>
+              } @empty {
+                <p class="px-2 py-4 text-center text-sm text-gray-400">
+                  No notes yet. Click + to create one.
+                </p>
+              }
+            </div>
           </div>
-        </div>
+        }
 
         <!-- Editor area -->
         <div class="flex flex-1 flex-col">
@@ -106,9 +127,14 @@ import type { NoteDto } from '@noteflow/shared-types';
 export class NoteArea {
   protected state = inject(ShellStateService);
 
+  collapsed = input(false);
+  toggleCollapsed = output();
+
   protected faStickyNote = faStickyNote;
   protected faPlus = faPlus;
   protected faTrash = faTrash;
+  protected faChevronLeft = faChevronLeft;
+  protected faChevronRight = faChevronRight;
 
   protected editedTitle = signal('');
   protected editedContent = signal('');

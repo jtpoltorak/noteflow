@@ -1,7 +1,7 @@
-import { Component, inject, signal, ElementRef, viewChild } from '@angular/core';
+import { Component, inject, signal, ElementRef, viewChild, output } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBook, faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faPlus, faPen, faTrash, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import type { NotebookDto } from '@noteflow/shared-types';
@@ -12,13 +12,22 @@ import type { NotebookDto } from '@noteflow/shared-types';
   template: `
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notebooks</span>
-      <button
-        (click)="startCreating()"
-        class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-        title="New notebook"
-      >
-        <fa-icon [icon]="faPlus" size="sm" />
-      </button>
+      <div class="flex items-center gap-1">
+        <button
+          (click)="collapse.emit()"
+          class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+          title="Collapse panel"
+        >
+          <fa-icon [icon]="faChevronLeft" size="xs" />
+        </button>
+        <button
+          (click)="startCreating()"
+          class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+          title="New notebook"
+        >
+          <fa-icon [icon]="faPlus" size="sm" />
+        </button>
+      </div>
     </div>
 
     <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
@@ -100,10 +109,13 @@ import type { NotebookDto } from '@noteflow/shared-types';
 export class NotebookList {
   protected state = inject(ShellStateService);
 
+  collapse = output();
+
   protected faBook = faBook;
   protected faPlus = faPlus;
   protected faPen = faPen;
   protected faTrash = faTrash;
+  protected faChevronLeft = faChevronLeft;
 
   protected creating = signal(false);
   protected editingId = signal<number | null>(null);
