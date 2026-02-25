@@ -3,12 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { ThemeService } from './theme.service';
 import type { ApiSuccessResponse, UserDto } from '@noteflow/shared-types';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private theme = inject(ThemeService);
 
   private currentUser = signal<UserDto | null>(null);
   readonly user = this.currentUser.asReadonly();
@@ -18,19 +20,28 @@ export class AuthService {
   loadUser(): Observable<ApiSuccessResponse<UserDto>> {
     return this.http
       .get<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/me`)
-      .pipe(tap((res) => this.currentUser.set(res.data)));
+      .pipe(tap((res) => {
+        this.currentUser.set(res.data);
+        this.theme.init(res.data.darkMode);
+      }));
   }
 
   register(email: string, password: string): Observable<ApiSuccessResponse<UserDto>> {
     return this.http
       .post<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/register`, { email, password })
-      .pipe(tap((res) => this.currentUser.set(res.data)));
+      .pipe(tap((res) => {
+        this.currentUser.set(res.data);
+        this.theme.init(res.data.darkMode);
+      }));
   }
 
   login(email: string, password: string): Observable<ApiSuccessResponse<UserDto>> {
     return this.http
       .post<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/login`, { email, password })
-      .pipe(tap((res) => this.currentUser.set(res.data)));
+      .pipe(tap((res) => {
+        this.currentUser.set(res.data);
+        this.theme.init(res.data.darkMode);
+      }));
   }
 
   logout(): Observable<unknown> {

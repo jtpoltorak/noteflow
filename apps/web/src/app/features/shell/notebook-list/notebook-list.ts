@@ -10,11 +10,11 @@ import type { NotebookDto } from '@noteflow/shared-types';
   selector: 'app-notebook-list',
   imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag],
   template: `
-    <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2">
-      <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Notebooks</span>
+    <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+      <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notebooks</span>
       <button
         (click)="startCreating()"
-        class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+        class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
         title="New notebook"
       >
         <fa-icon [icon]="faPlus" size="sm" />
@@ -28,7 +28,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
             #createInput
             type="text"
             placeholder="Notebook name"
-            class="w-full rounded border border-blue-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+            class="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
             (keydown.enter)="confirmCreate(createInput.value)"
             (keydown.escape)="creating.set(false)"
             (blur)="confirmCreate(createInput.value)"
@@ -39,9 +39,11 @@ import type { NotebookDto } from '@noteflow/shared-types';
       @for (nb of state.notebooks(); track nb.id) {
         <div
           cdkDrag
-          class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer"
+          class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer dark:text-gray-200"
           [class.bg-blue-100]="nb.id === state.selectedNotebookId()"
+          [class.dark:bg-blue-900]="nb.id === state.selectedNotebookId()"
           [class.hover:bg-gray-100]="nb.id !== state.selectedNotebookId()"
+          [class.dark:hover:bg-gray-700]="nb.id !== state.selectedNotebookId()"
           (click)="onItemClick(nb.id)"
         >
           <fa-icon [icon]="faBook" class="mr-2 text-gray-400" size="sm" />
@@ -51,7 +53,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
               #renameInput
               type="text"
               [value]="nb.title"
-              class="min-w-0 flex-1 rounded border border-blue-300 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400"
+              class="min-w-0 flex-1 rounded border border-blue-300 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
               (keydown.enter)="confirmRename(nb.id, renameInput.value)"
               (keydown.escape)="editingId.set(null)"
               (blur)="confirmRename(nb.id, renameInput.value)"
@@ -62,7 +64,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
             <div class="flex gap-1 opacity-0 group-hover:opacity-100">
               <button
                 (click)="startRenaming(nb.id, $event)"
-                class="rounded p-0.5 text-gray-400 hover:text-gray-600"
+                class="rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 title="Rename"
               >
                 <fa-icon [icon]="faPen" size="xs" />

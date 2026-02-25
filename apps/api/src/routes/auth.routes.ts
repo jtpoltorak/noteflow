@@ -6,6 +6,7 @@ import {
   register,
   login,
   getUserById,
+  updatePreferences,
   generateAccessToken,
   generateRefreshToken,
 } from "../services/auth.service.js";
@@ -22,6 +23,10 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+});
+
+const preferencesSchema = z.object({
+  darkMode: z.boolean().optional(),
 });
 
 // ── Cookie helpers ────────────────────────────────────────────
@@ -75,6 +80,12 @@ router.post("/logout", (_req: Request, res: Response) => {
 
 router.get("/me", requireAuth, (req: Request, res: Response) => {
   const user = getUserById(req.user!.id);
+  res.json({ data: user });
+});
+
+router.put("/preferences", requireAuth, validate(preferencesSchema), (req: Request, res: Response) => {
+  const prefs = req.body as z.infer<typeof preferencesSchema>;
+  const user = updatePreferences(req.user!.id, prefs);
   res.json({ data: user });
 });
 

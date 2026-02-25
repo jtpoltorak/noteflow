@@ -7,37 +7,38 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-login',
   imports: [FormsModule, RouterLink],
   template: `
-    <div class="flex min-h-screen items-center justify-center bg-gray-100">
-      <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h1 class="mb-6 text-center text-2xl font-bold text-gray-800">Sign in to NoteFlow</h1>
+    <div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+        <h1 class="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">Sign in to NoteFlow</h1>
 
         @if (error()) {
-          <div class="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">{{ error() }}</div>
+          <div class="mb-4 rounded bg-red-100 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{{ error() }}</div>
         }
 
         <form (ngSubmit)="onSubmit()" class="space-y-4">
           <div>
-            <label for="email" class="mb-1 block text-sm font-medium text-gray-700">Email</label>
+            <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
             <input
               id="email"
               type="email"
               [(ngModel)]="email"
               name="email"
               required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label for="password" class="mb-1 block text-sm font-medium text-gray-700">Password</label>
+            <label for="password" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
             <input
               id="password"
               type="password"
               [(ngModel)]="password"
               name="password"
               required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              autocomplete="current-password"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="••••••••"
             />
           </div>
@@ -51,9 +52,9 @@ import { AuthService } from '../../../core/services/auth.service';
           </button>
         </form>
 
-        <p class="mt-4 text-center text-sm text-gray-600">
+        <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?
-          <a routerLink="/register" class="font-medium text-blue-600 hover:underline">Register</a>
+          <a routerLink="/register" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Register</a>
         </p>
       </div>
     </div>

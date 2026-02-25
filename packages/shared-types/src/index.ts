@@ -39,11 +39,16 @@ export interface UpdateNoteDto {
   order?: number;
 }
 
+export interface UpdatePreferencesDto {
+  darkMode?: boolean;
+}
+
 // ── Response DTOs ─────────────────────────────────────────────
 
 export interface UserDto {
   id: number;
   email: string;
+  darkMode: boolean;
 }
 
 export interface NotebookDto {

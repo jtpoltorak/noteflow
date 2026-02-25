@@ -18,12 +18,12 @@ import type { NoteDto } from '@noteflow/shared-types';
     } @else {
       <div class="flex flex-1 overflow-hidden">
         <!-- Note list strip -->
-        <div class="flex w-48 flex-col border-r border-gray-200">
-          <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2">
-            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Notes</span>
+        <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
+          <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
             <button
               (click)="createNote()"
-              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="New note"
             >
               <fa-icon [icon]="faPlus" size="sm" />
@@ -33,9 +33,11 @@ import type { NoteDto } from '@noteflow/shared-types';
             @for (note of state.notes(); track note.id) {
               <div
                 cdkDrag
-                class="cursor-pointer rounded px-2 py-1.5 text-sm"
+                class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
                 [class.bg-blue-100]="note.id === state.selectedNoteId()"
+                [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
                 [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
+                [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
                 (click)="onItemClick(note.id)"
               >
                 <div class="flex items-center">
@@ -55,13 +57,13 @@ import type { NoteDto } from '@noteflow/shared-types';
         <div class="flex flex-1 flex-col">
           @if (state.selectedNote()) {
             <!-- Editor header -->
-            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2">
+            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
               <input
                 type="text"
                 [value]="editedTitle()"
                 (input)="editedTitle.set($any($event.target).value)"
                 (blur)="saveNote()"
-                class="flex-1 text-lg font-semibold text-gray-800 focus:outline-none"
+                class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
                 placeholder="Note title"
               />
               <button
@@ -85,7 +87,7 @@ import type { NoteDto } from '@noteflow/shared-types';
 
             <!-- Content area -->
             <textarea
-              class="flex-1 resize-none p-4 text-gray-700 focus:outline-none"
+              class="flex-1 resize-none bg-transparent p-4 text-gray-700 focus:outline-none dark:text-gray-200"
               [value]="editedContent()"
               (input)="editedContent.set($any($event.target).value)"
               (blur)="saveNote()"

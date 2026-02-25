@@ -48,17 +48,18 @@ export function register(email: string, password: string): UserDto {
   ]);
   saveDb();
 
-  const result = db.exec("SELECT id FROM User WHERE email = ?", [email]);
+  const result = db.exec("SELECT id, darkMode FROM User WHERE email = ?", [email]);
   const id = result[0].values[0][0] as number;
+  const darkMode = (result[0].values[0][1] as number) === 1;
 
-  return { id, email };
+  return { id, email, darkMode };
 }
 
 export function login(email: string, password: string): UserDto {
   const db = getDb();
 
   const result = db.exec(
-    "SELECT id, email, passwordHash FROM User WHERE email = ?",
+    "SELECT id, email, passwordHash, darkMode FROM User WHERE email = ?",
     [email]
   );
 
@@ -70,24 +71,36 @@ export function login(email: string, password: string): UserDto {
   const id = row[0] as number;
   const userEmail = row[1] as string;
   const passwordHash = row[2] as string;
+  const darkMode = (row[3] as number) === 1;
 
   const valid = bcrypt.compareSync(password, passwordHash);
   if (!valid) {
     throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
   }
 
-  return { id, email: userEmail };
+  return { id, email: userEmail, darkMode };
 }
 
 export function getUserById(id: number): UserDto {
   const db = getDb();
 
-  const result = db.exec("SELECT id, email FROM User WHERE id = ?", [id]);
+  const result = db.exec("SELECT id, email, darkMode FROM User WHERE id = ?", [id]);
 
   if (result.length === 0 || result[0].values.length === 0) {
     throw new AppError(404, "User not found", "NOT_FOUND");
   }
 
   const row = result[0].values[0];
-  return { id: row[0] as number, email: row[1] as string };
+  return { id: row[0] as number, email: row[1] as string, darkMode: (row[2] as number) === 1 };
+}
+
+export function updatePreferences(userId: number, prefs: { darkMode?: boolean }): UserDto {
+  const db = getDb();
+
+  if (prefs.darkMode !== undefined) {
+    db.run("UPDATE User SET darkMode = ? WHERE id = ?", [prefs.darkMode ? 1 : 0, userId]);
+    saveDb();
+  }
+
+  return getUserById(userId);
 }

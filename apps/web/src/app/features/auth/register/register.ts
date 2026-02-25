@@ -7,30 +7,30 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-register',
   imports: [FormsModule, RouterLink],
   template: `
-    <div class="flex min-h-screen items-center justify-center bg-gray-100">
-      <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h1 class="mb-6 text-center text-2xl font-bold text-gray-800">Create your NoteFlow account</h1>
+    <div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+        <h1 class="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">Create your NoteFlow account</h1>
 
         @if (error()) {
-          <div class="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">{{ error() }}</div>
+          <div class="mb-4 rounded bg-red-100 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{{ error() }}</div>
         }
 
         <form (ngSubmit)="onSubmit()" class="space-y-4">
           <div>
-            <label for="email" class="mb-1 block text-sm font-medium text-gray-700">Email</label>
+            <label for="email" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
             <input
               id="email"
               type="email"
               [(ngModel)]="email"
               name="email"
               required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="you@example.com"
             />
           </div>
 
           <div>
-            <label for="password" class="mb-1 block text-sm font-medium text-gray-700">Password</label>
+            <label for="password" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
             <input
               id="password"
               type="password"
@@ -38,10 +38,29 @@ import { AuthService } from '../../../core/services/auth.service';
               name="password"
               required
               minlength="8"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              autocomplete="new-password"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="At least 8 characters"
             />
           </div>
+
+          <div>
+            <label for="confirmPassword" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              required
+              autocomplete="new-password"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              placeholder="Re-enter your password"
+            />
+          </div>
+
+          @if (passwordMismatch()) {
+            <div class="rounded bg-amber-100 p-3 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">Passwords do not match.</div>
+          }
 
           <button
             type="submit"
@@ -52,9 +71,9 @@ import { AuthService } from '../../../core/services/auth.service';
           </button>
         </form>
 
-        <p class="mt-4 text-center text-sm text-gray-600">
+        <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?
-          <a routerLink="/login" class="font-medium text-blue-600 hover:underline">Sign in</a>
+          <a routerLink="/login" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Sign in</a>
         </p>
       </div>
     </div>
@@ -66,10 +85,19 @@ export class Register {
 
   email = '';
   password = '';
+  confirmPassword = '';
   error = signal('');
   loading = signal(false);
+  passwordMismatch(): boolean {
+    return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
+  }
 
   onSubmit(): void {
+    if (this.password !== this.confirmPassword) {
+      this.error.set('Passwords do not match.');
+      return;
+    }
+
     this.error.set('');
     this.loading.set(true);
 
