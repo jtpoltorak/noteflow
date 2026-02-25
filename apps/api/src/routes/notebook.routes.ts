@@ -16,7 +16,8 @@ const createSchema = z.object({
 });
 
 const updateSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
+  title: z.string().min(1, "Title is required").max(200).optional(),
+  order: z.number().int().min(0).optional(),
 });
 
 router.get("/", (req: Request, res: Response) => {
@@ -36,8 +37,8 @@ router.get("/:id", (req: Request, res: Response) => {
 });
 
 router.put("/:id", validate(updateSchema), (req: Request, res: Response) => {
-  const { title } = req.body as z.infer<typeof updateSchema>;
-  const notebook = updateNotebook(Number(req.params.id), req.user!.id, title);
+  const updates = req.body as z.infer<typeof updateSchema>;
+  const notebook = updateNotebook(Number(req.params.id), req.user!.id, updates);
   res.json({ data: notebook });
 });
 

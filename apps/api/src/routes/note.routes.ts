@@ -19,6 +19,7 @@ const createSchema = z.object({
 const updateSchema = z.object({
   title: z.string().min(1).max(500).optional(),
   content: z.string().optional(),
+  order: z.number().int().min(0).optional(),
 });
 
 // GET /sections/:sectionId/notes

@@ -21,8 +21,8 @@ export class NotebookService {
     return this.http.post<ApiSuccessResponse<NotebookDto>>(this.base, { title }).pipe(map((r) => r.data));
   }
 
-  update(id: number, title: string): Observable<NotebookDto> {
-    return this.http.put<ApiSuccessResponse<NotebookDto>>(`${this.base}/${id}`, { title }).pipe(map((r) => r.data));
+  update(id: number, updates: { title?: string; order?: number }): Observable<NotebookDto> {
+    return this.http.put<ApiSuccessResponse<NotebookDto>>(`${this.base}/${id}`, updates).pipe(map((r) => r.data));
   }
 
   delete(id: number): Observable<void> {

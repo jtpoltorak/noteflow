@@ -1,12 +1,15 @@
 import { Component, inject, signal, effect } from '@angular/core';
+import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import type { NoteDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag],
+  host: { class: 'flex flex-1 flex-col' },
   template: `
     @if (!state.selectedSectionId()) {
       <div class="flex flex-1 items-center justify-center">
@@ -26,13 +29,14 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
               <fa-icon [icon]="faPlus" size="sm" />
             </button>
           </div>
-          <div class="flex-1 overflow-y-auto p-1">
+          <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
             @for (note of state.notes(); track note.id) {
               <div
+                cdkDrag
                 class="cursor-pointer rounded px-2 py-1.5 text-sm"
                 [class.bg-blue-100]="note.id === state.selectedNoteId()"
                 [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
-                (click)="state.selectNote(note.id)"
+                (click)="onItemClick(note.id)"
               >
                 <div class="flex items-center">
                   <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
@@ -107,6 +111,7 @@ export class NoteArea {
   protected editedTitle = signal('');
   protected editedContent = signal('');
   protected deleting = signal(false);
+  private dragged = false;
 
   // Track which note the local editor fields belong to
   private syncedNoteId: number | null = null;
@@ -158,5 +163,21 @@ export class NoteArea {
       this.state.deleteNote(note.id);
     }
     this.deleting.set(false);
+  }
+
+  protected onDrop(event: CdkDragDrop<NoteDto[]>): void {
+    this.dragged = true;
+    if (event.previousIndex === event.currentIndex) return;
+    const list = [...this.state.notes()];
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.state.reorderNotes(list);
+  }
+
+  protected onItemClick(id: number): void {
+    if (this.dragged) {
+      this.dragged = false;
+      return;
+    }
+    this.state.selectNote(id);
   }
 }

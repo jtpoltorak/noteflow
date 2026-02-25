@@ -15,7 +15,8 @@ export interface CreateNotebookDto {
 }
 
 export interface UpdateNotebookDto {
-  title: string;
+  title?: string;
+  order?: number;
 }
 
 export interface CreateSectionDto {
@@ -35,6 +36,7 @@ export interface CreateNoteDto {
 export interface UpdateNoteDto {
   title?: string;
   content?: string;
+  order?: number;
 }
 
 // ── Response DTOs ─────────────────────────────────────────────
@@ -47,6 +49,7 @@ export interface UserDto {
 export interface NotebookDto {
   id: number;
   title: string;
+  order: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -65,6 +68,7 @@ export interface NoteDto {
   sectionId: number;
   title: string;
   content: string;
+  order: number;
   createdAt: string;
   updatedAt: string;
 }

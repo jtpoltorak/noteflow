@@ -117,7 +117,7 @@ export class ShellStateService {
   }
 
   renameNotebook(id: number, title: string): void {
-    this.notebookSvc.update(id, title).subscribe((updated) => {
+    this.notebookSvc.update(id, { title }).subscribe((updated) => {
       this.notebooks.update((list) => list.map((n) => (n.id === id ? updated : n)));
     });
   }
@@ -185,6 +185,35 @@ export class ShellStateService {
       this.notes.update((list) => list.filter((n) => n.id !== id));
       if (this.selectedNoteId() === id) {
         this.selectedNoteId.set(null);
+      }
+    });
+  }
+
+  // ── Reorder (drag-and-drop) ───────────────────────────────────
+
+  reorderNotebooks(reordered: NotebookDto[]): void {
+    this.notebooks.set(reordered);
+    reordered.forEach((nb, i) => {
+      if (nb.order !== i) {
+        this.notebookSvc.update(nb.id, { order: i }).subscribe();
+      }
+    });
+  }
+
+  reorderSections(reordered: SectionDto[]): void {
+    this.sections.set(reordered);
+    reordered.forEach((sec, i) => {
+      if (sec.order !== i) {
+        this.sectionSvc.update(sec.id, { order: i }).subscribe();
+      }
+    });
+  }
+
+  reorderNotes(reordered: NoteDto[]): void {
+    this.notes.set(reordered);
+    reordered.forEach((note, i) => {
+      if (note.order !== i) {
+        this.noteSvc.update(note.id, { order: i }).subscribe();
       }
     });
   }

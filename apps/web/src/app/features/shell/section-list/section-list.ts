@@ -1,12 +1,14 @@
 import { Component, inject, signal, ElementRef, viewChild } from '@angular/core';
+import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLayerGroup, faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import type { SectionDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-section-list',
-  imports: [FaIconComponent, ConfirmDialog],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag],
   template: `
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Sections</span>
@@ -21,7 +23,7 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
       }
     </div>
 
-    <div class="flex-1 overflow-y-auto p-1">
+    <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
       @if (!state.selectedNotebookId()) {
         <p class="px-2 py-4 text-center text-sm text-gray-400">Select a notebook</p>
       } @else {
@@ -41,10 +43,11 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
         @for (sec of state.sections(); track sec.id) {
           <div
+            cdkDrag
             class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer"
             [class.bg-blue-100]="sec.id === state.selectedSectionId()"
             [class.hover:bg-gray-100]="sec.id !== state.selectedSectionId()"
-            (click)="state.selectSection(sec.id)"
+            (click)="onItemClick(sec.id)"
           >
             <fa-icon [icon]="faLayerGroup" class="mr-2 text-gray-400" size="sm" />
 
@@ -109,6 +112,7 @@ export class SectionList {
   protected creating = signal(false);
   protected editingId = signal<number | null>(null);
   protected deletingId = signal<number | null>(null);
+  private dragged = false;
 
   private createInputRef = viewChild<ElementRef<HTMLInputElement>>('createInput');
 
@@ -118,6 +122,7 @@ export class SectionList {
   }
 
   protected confirmCreate(title: string): void {
+    if (!this.creating()) return;
     this.creating.set(false);
     const trimmed = title.trim();
     if (trimmed) {
@@ -131,6 +136,7 @@ export class SectionList {
   }
 
   protected confirmRename(id: number, title: string): void {
+    if (this.editingId() !== id) return;
     this.editingId.set(null);
     const trimmed = title.trim();
     if (trimmed) {
@@ -146,5 +152,21 @@ export class SectionList {
   protected confirmDelete(id: number): void {
     this.deletingId.set(null);
     this.state.deleteSection(id);
+  }
+
+  protected onDrop(event: CdkDragDrop<SectionDto[]>): void {
+    this.dragged = true;
+    if (event.previousIndex === event.currentIndex) return;
+    const list = [...this.state.sections()];
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.state.reorderSections(list);
+  }
+
+  protected onItemClick(id: number): void {
+    if (this.dragged) {
+      this.dragged = false;
+      return;
+    }
+    this.state.selectSection(id);
   }
 }

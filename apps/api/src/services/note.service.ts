@@ -9,8 +9,9 @@ function rowToNote(row: unknown[]): NoteDto {
     sectionId: row[1] as number,
     title: row[2] as string,
     content: row[3] as string,
-    createdAt: row[4] as string,
-    updatedAt: row[5] as string,
+    order: row[4] as number,
+    createdAt: row[5] as string,
+    updatedAt: row[6] as string,
   };
 }
 
@@ -19,7 +20,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 
   const db = getDb();
   const result = db.exec(
-    "SELECT id, sectionId, title, content, createdAt, updatedAt FROM Note WHERE sectionId = ? ORDER BY updatedAt DESC",
+    'SELECT id, sectionId, title, content, "order", createdAt, updatedAt FROM Note WHERE sectionId = ? ORDER BY "order" ASC, id ASC',
     [sectionId]
   );
   if (result.length === 0) return [];
@@ -29,7 +30,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 export function getNoteById(id: number, userId: number): NoteDto {
   const db = getDb();
   const result = db.exec(
-    "SELECT id, sectionId, title, content, createdAt, updatedAt FROM Note WHERE id = ?",
+    'SELECT id, sectionId, title, content, "order", createdAt, updatedAt FROM Note WHERE id = ?',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -54,22 +55,28 @@ export function createNote(
   const db = getDb();
   const now = new Date().toISOString();
 
+  const maxResult = db.exec(
+    'SELECT COALESCE(MAX("order"), -1) FROM Note WHERE sectionId = ?',
+    [sectionId]
+  );
+  const nextOrder = (maxResult[0].values[0][0] as number) + 1;
+
   db.run(
-    "INSERT INTO Note (sectionId, title, content, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)",
-    [sectionId, title, content, now, now]
+    'INSERT INTO Note (sectionId, title, content, "order", createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
+    [sectionId, title, content, nextOrder, now, now]
   );
 
   const idResult = db.exec("SELECT last_insert_rowid() as id");
   const id = idResult[0].values[0][0] as number;
   saveDb();
 
-  return { id, sectionId, title, content, createdAt: now, updatedAt: now };
+  return { id, sectionId, title, content, order: nextOrder, createdAt: now, updatedAt: now };
 }
 
 export function updateNote(
   id: number,
   userId: number,
-  updates: { title?: string; content?: string }
+  updates: { title?: string; content?: string; order?: number }
 ): NoteDto {
   const existing = getNoteById(id, userId); // verifies ownership
 
@@ -77,16 +84,15 @@ export function updateNote(
   const now = new Date().toISOString();
   const title = updates.title ?? existing.title;
   const content = updates.content ?? existing.content;
+  const order = updates.order ?? existing.order;
 
-  db.run("UPDATE Note SET title = ?, content = ?, updatedAt = ? WHERE id = ?", [
-    title,
-    content,
-    now,
-    id,
-  ]);
+  db.run(
+    'UPDATE Note SET title = ?, content = ?, "order" = ?, updatedAt = ? WHERE id = ?',
+    [title, content, order, now, id]
+  );
   saveDb();
 
-  return { ...existing, title, content, updatedAt: now };
+  return { ...existing, title, content, order, updatedAt: now };
 }
 
 export function deleteNote(id: number, userId: number): void {

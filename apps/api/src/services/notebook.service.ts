@@ -6,15 +6,16 @@ function rowToNotebook(row: unknown[]): NotebookDto {
   return {
     id: row[0] as number,
     title: row[1] as string,
-    createdAt: row[2] as string,
-    updatedAt: row[3] as string,
+    order: row[2] as number,
+    createdAt: row[3] as string,
+    updatedAt: row[4] as string,
   };
 }
 
 export function getAllNotebooks(userId: number): NotebookDto[] {
   const db = getDb();
   const result = db.exec(
-    "SELECT id, title, createdAt, updatedAt FROM Notebook WHERE userId = ? ORDER BY updatedAt DESC",
+    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE userId = ? ORDER BY "order" ASC, id ASC',
     [userId]
   );
   if (result.length === 0) return [];
@@ -24,7 +25,7 @@ export function getAllNotebooks(userId: number): NotebookDto[] {
 export function getNotebookById(id: number, userId: number): NotebookDto {
   const db = getDb();
   const result = db.exec(
-    "SELECT id, title, createdAt, updatedAt FROM Notebook WHERE id = ? AND userId = ?",
+    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE id = ? AND userId = ?',
     [id, userId]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -37,29 +38,43 @@ export function createNotebook(userId: number, title: string): NotebookDto {
   const db = getDb();
   const now = new Date().toISOString();
 
+  const maxResult = db.exec(
+    'SELECT COALESCE(MAX("order"), -1) FROM Notebook WHERE userId = ?',
+    [userId]
+  );
+  const nextOrder = (maxResult[0].values[0][0] as number) + 1;
+
   db.run(
-    "INSERT INTO Notebook (userId, title, createdAt, updatedAt) VALUES (?, ?, ?, ?)",
-    [userId, title, now, now]
+    'INSERT INTO Notebook (userId, title, "order", createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)',
+    [userId, title, nextOrder, now, now]
   );
 
   const result = db.exec("SELECT last_insert_rowid() as id");
   const id = result[0].values[0][0] as number;
   saveDb();
 
-  return { id, title, createdAt: now, updatedAt: now };
+  return { id, title, order: nextOrder, createdAt: now, updatedAt: now };
 }
 
-export function updateNotebook(id: number, userId: number, title: string): NotebookDto {
-  // Verify ownership
-  getNotebookById(id, userId);
+export function updateNotebook(
+  id: number,
+  userId: number,
+  updates: { title?: string; order?: number }
+): NotebookDto {
+  const existing = getNotebookById(id, userId);
 
   const db = getDb();
   const now = new Date().toISOString();
+  const title = updates.title ?? existing.title;
+  const order = updates.order ?? existing.order;
 
-  db.run("UPDATE Notebook SET title = ?, updatedAt = ? WHERE id = ?", [title, now, id]);
+  db.run(
+    'UPDATE Notebook SET title = ?, "order" = ?, updatedAt = ? WHERE id = ?',
+    [title, order, now, id]
+  );
   saveDb();
 
-  return getNotebookById(id, userId);
+  return { ...existing, title, order, updatedAt: now };
 }
 
 export function deleteNotebook(id: number, userId: number): void {

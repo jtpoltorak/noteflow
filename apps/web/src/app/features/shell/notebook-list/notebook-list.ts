@@ -1,12 +1,14 @@
 import { Component, inject, signal, ElementRef, viewChild } from '@angular/core';
+import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBook, faPlus, faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import type { NotebookDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-notebook-list',
-  imports: [FaIconComponent, ConfirmDialog],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag],
   template: `
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Notebooks</span>
@@ -19,7 +21,7 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
       </button>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-1">
+    <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
       @if (creating()) {
         <div class="px-2 py-1">
           <input
@@ -36,10 +38,11 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 
       @for (nb of state.notebooks(); track nb.id) {
         <div
+          cdkDrag
           class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer"
           [class.bg-blue-100]="nb.id === state.selectedNotebookId()"
           [class.hover:bg-gray-100]="nb.id !== state.selectedNotebookId()"
-          (click)="state.selectNotebook(nb.id)"
+          (click)="onItemClick(nb.id)"
         >
           <fa-icon [icon]="faBook" class="mr-2 text-gray-400" size="sm" />
 
@@ -103,6 +106,7 @@ export class NotebookList {
   protected creating = signal(false);
   protected editingId = signal<number | null>(null);
   protected deletingId = signal<number | null>(null);
+  private dragged = false;
 
   private createInputRef = viewChild<ElementRef<HTMLInputElement>>('createInput');
 
@@ -113,6 +117,7 @@ export class NotebookList {
   }
 
   protected confirmCreate(title: string): void {
+    if (!this.creating()) return;
     this.creating.set(false);
     const trimmed = title.trim();
     if (trimmed) {
@@ -131,6 +136,7 @@ export class NotebookList {
   }
 
   protected confirmRename(id: number, title: string): void {
+    if (this.editingId() !== id) return;
     this.editingId.set(null);
     const trimmed = title.trim();
     if (trimmed) {
@@ -146,5 +152,21 @@ export class NotebookList {
   protected confirmDelete(id: number): void {
     this.deletingId.set(null);
     this.state.deleteNotebook(id);
+  }
+
+  protected onDrop(event: CdkDragDrop<NotebookDto[]>): void {
+    this.dragged = true;
+    if (event.previousIndex === event.currentIndex) return;
+    const list = [...this.state.notebooks()];
+    moveItemInArray(list, event.previousIndex, event.currentIndex);
+    this.state.reorderNotebooks(list);
+  }
+
+  protected onItemClick(id: number): void {
+    if (this.dragged) {
+      this.dragged = false;
+      return;
+    }
+    this.state.selectNotebook(id);
   }
 }
