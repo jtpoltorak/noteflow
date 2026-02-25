@@ -1,16 +1,18 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCommentDots, faMoon, faSun } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ShellStateService } from './shell-state.service';
 import { NotebookList } from './notebook-list/notebook-list';
 import { SectionList } from './section-list/section-list';
 import { NoteArea } from './note-area/note-area';
+import { AboutDialog } from '../../shared/about-dialog/about-dialog';
+import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -52,7 +54,25 @@ import { NoteArea } from './note-area/note-area';
           <app-note-area />
         </main>
       </div>
+
+      <!-- Footer -->
+      <footer class="flex h-8 items-center gap-3 border-t border-gray-200 bg-white px-4 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+        <span>&copy; {{ currentYear }} jtpoltorak</span>
+        <span class="text-gray-300 dark:text-gray-600">|</span>
+        <button (click)="showAbout.set(true)" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
+          <fa-icon [icon]="faCircleInfo" size="xs" />
+          About
+        </button>
+        <span class="text-gray-300 dark:text-gray-600">|</span>
+        <button (click)="showFeedback.set(true)" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
+          <fa-icon [icon]="faCommentDots" size="xs" />
+          Send Feedback
+        </button>
+      </footer>
     </div>
+
+    <app-about-dialog [open]="showAbout()" (closed)="showAbout.set(false)" />
+    <app-feedback-dialog [open]="showFeedback()" (closed)="showFeedback.set(false)" />
   `,
 })
 export class Shell implements OnInit {
@@ -62,6 +82,12 @@ export class Shell implements OnInit {
 
   protected faMoon = faMoon;
   protected faSun = faSun;
+  protected faCircleInfo = faCircleInfo;
+  protected faCommentDots = faCommentDots;
+
+  protected showAbout = signal(false);
+  protected showFeedback = signal(false);
+  protected currentYear = new Date().getFullYear();
 
   ngOnInit(): void {
     this.state.loadNotebooks();
