@@ -6,7 +6,9 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "noUnusedLocals": false,
-    "noUnusedParameters": false
+    "noUnusedParameters": false,
+    "strictNullChecks": false,
+    "noUncheckedIndexedAccess": false,
   },
   "include": ["src"]
 }
