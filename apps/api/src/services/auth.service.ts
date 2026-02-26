@@ -1,10 +1,13 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import type { AuthPayload } from "../middleware/auth.middleware.js";
 import type { UserDto } from "@noteflow/shared-types";
 
+const options: SignOptions = {
+  expiresIn: process.env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
+};
 const BCRYPT_ROUNDS = 12;
 
 function getJwtSecret(): string {
@@ -21,12 +24,12 @@ function getRefreshSecret(): string {
 
 export function generateAccessToken(payload: AuthPayload): string {
   const expiresIn = process.env.JWT_EXPIRES_IN || "15m";
-  return jwt.sign(payload, getJwtSecret(), { expiresIn });
+  return jwt.sign(payload, getJwtSecret(), options);
 }
 
 export function generateRefreshToken(payload: AuthPayload): string {
   const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
-  return jwt.sign(payload, getRefreshSecret(), { expiresIn });
+  return jwt.sign(payload, getRefreshSecret(), options);
 }
 
 export function register(email: string, password: string): UserDto {
