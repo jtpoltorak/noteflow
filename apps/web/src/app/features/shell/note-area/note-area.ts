@@ -395,7 +395,7 @@ export class NoteArea {
     while (current && current !== editorEl) {
       if (current.nodeType === Node.ELEMENT_NODE) {
         const tag = (current as HTMLElement).tagName.toLowerCase();
-        if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote', 'li'].includes(tag)) {
+        if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote', 'li', 'pre', 'code'].includes(tag)) {
           return current as HTMLElement;
         }
       }
@@ -414,7 +414,7 @@ export class NoteArea {
     while (node && node !== editorEl) {
       if (node.nodeType === Node.ELEMENT_NODE) {
         const tag = (node as HTMLElement).tagName.toLowerCase();
-        if (['p', 'h1', 'h2', 'h3', 'div', 'blockquote', 'li'].includes(tag)) {
+        if (['p', 'h1', 'h2', 'h3', 'div', 'blockquote', 'li', 'pre', 'code'].includes(tag)) {
           return; // Already in a block context
         }
       }
@@ -466,10 +466,39 @@ export class NoteArea {
       case 'quote':
         document.execCommand('formatBlock', false, 'blockquote');
         break;
+      case 'code':
+        this.insertCodeBlock();
+        break;
       case 'divider':
         this.insertDivider();
         break;
     }
+  }
+
+  private insertCodeBlock(): void {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const pre = document.createElement('pre');
+    const code = document.createElement('code');
+    code.appendChild(document.createElement('br'));
+    pre.appendChild(code);
+
+    const p = document.createElement('p');
+    p.appendChild(document.createElement('br'));
+
+    range.insertNode(p);
+    range.insertNode(pre);
+
+    // Place cursor inside the code element
+    const newRange = document.createRange();
+    newRange.setStart(code, 0);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
   }
 
   private insertDivider(): void {
