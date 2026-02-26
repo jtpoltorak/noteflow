@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCommentDots, faMoon, faSun, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ShellStateService } from './shell-state.service';
@@ -9,10 +9,11 @@ import { SectionList } from './section-list/section-list';
 import { NoteArea } from './note-area/note-area';
 import { AboutDialog } from '../../shared/about-dialog/about-dialog';
 import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
+import { HelpPanel } from './help-panel/help-panel';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -27,6 +28,15 @@ import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
             title="Toggle dark mode"
           >
             <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
+          </button>
+          <button
+            (click)="helpOpen.set(!helpOpen())"
+            class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+            [class.text-blue-500]="helpOpen()"
+            [class.dark:text-blue-400]="helpOpen()"
+            title="Toggle help"
+          >
+            <fa-icon [icon]="faCircleQuestion" size="sm" />
           </button>
           <button
             (click)="onLogout()"
@@ -77,6 +87,12 @@ import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
         <main class="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-gray-800">
           <app-note-area [collapsed]="notesCollapsed()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" />
         </main>
+
+        @if (helpOpen()) {
+          <aside class="flex w-72 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <app-help-panel (close)="helpOpen.set(false)" />
+          </aside>
+        }
       </div>
 
       <!-- Footer -->
@@ -109,10 +125,12 @@ export class Shell implements OnInit {
   protected faCircleInfo = faCircleInfo;
   protected faCommentDots = faCommentDots;
   protected faChevronRight = faChevronRight;
+  protected faCircleQuestion = faCircleQuestion;
 
   protected notebooksCollapsed = signal(false);
   protected sectionsCollapsed = signal(false);
   protected notesCollapsed = signal(false);
+  protected helpOpen = signal(false);
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
   protected currentYear = new Date().getFullYear();
