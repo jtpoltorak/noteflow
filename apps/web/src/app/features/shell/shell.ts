@@ -74,7 +74,7 @@ import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
         }
 
         <!-- Main area: Notes + Editor -->
-        <main class="flex flex-1 flex-col bg-white dark:bg-gray-800">
+        <main class="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-gray-800">
           <app-note-area [collapsed]="notesCollapsed()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" />
         </main>
       </div>
@@ -83,12 +83,12 @@ import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
       <footer class="flex h-8 items-center gap-3 border-t border-gray-200 bg-white px-4 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
         <span>&copy; {{ currentYear }} jtpoltorak</span>
         <span class="text-gray-300 dark:text-gray-600">|</span>
-        <button (click)="showAbout.set(true)" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
+        <button (click)="showAbout.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
           <fa-icon [icon]="faCircleInfo" size="xs" />
           About
         </button>
         <span class="text-gray-300 dark:text-gray-600">|</span>
-        <button (click)="showFeedback.set(true)" class="inline-flex items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
+        <button (click)="showFeedback.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
           <fa-icon [icon]="faCommentDots" size="xs" />
           Send Feedback
         </button>

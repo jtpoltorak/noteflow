@@ -39,6 +39,7 @@ html.dark {
 .noteflow-editor {
   outline: none;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .noteflow-editor:empty::before {

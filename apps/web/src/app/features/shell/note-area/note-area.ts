@@ -11,7 +11,7 @@ import type { NoteDto } from '@noteflow/shared-types';
 @Component({
   selector: 'app-note-area',
   imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, SlashCommandMenu],
-  host: { class: 'flex flex-1 flex-col' },
+  host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     @if (!state.selectedSectionId()) {
       <div class="flex flex-1 items-center justify-center">
@@ -77,7 +77,7 @@ import type { NoteDto } from '@noteflow/shared-types';
         }
 
         <!-- Editor area -->
-        <div class="relative flex flex-1 flex-col">
+        <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
           @if (state.selectedNote()) {
             <!-- Editor header -->
             <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
@@ -112,7 +112,7 @@ import type { NoteDto } from '@noteflow/shared-types';
             <div
               #editor
               contenteditable="true"
-              class="noteflow-editor flex-1 overflow-y-auto p-4 text-gray-700 focus:outline-none dark:text-gray-200"
+              class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
               (blur)="saveNote()"
               (keydown)="onEditorKeydown($event)"
               (input)="onEditorInput()"
