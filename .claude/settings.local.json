@@ -29,7 +29,8 @@
       "WebFetch(domain:github.com)",
       "Bash(cd /c/dev/claud-code-projects/noteflow/apps/api && node -e \"\nconst initSqlJs = require\\('sql.js'\\);\nconst fs = require\\('fs'\\);\nconst path = require\\('path'\\);\nconst dbPath = path.resolve\\('./data/noteflow.db'\\);\nconst buf = fs.readFileSync\\(dbPath\\);\ninitSqlJs\\(\\).then\\(SQL => {\n  const db = new SQL.Database\\(buf\\);\n  const res = db.exec\\(\\\\\"SELECT id, email FROM User WHERE email = 'jtpoltorak@gmail.com'\\\\\"\\);\n  console.log\\(JSON.stringify\\(res\\)\\);\n  db.run\\(\\\\\"DELETE FROM User WHERE email = 'jtpoltorak@gmail.com'\\\\\"\\);\n  const data = db.export\\(\\);\n  fs.writeFileSync\\(dbPath, Buffer.from\\(data\\)\\);\n  console.log\\('Deleted successfully'\\);\n  db.close\\(\\);\n}\\);\n\" 2>&1)",
       "Bash(cd /c/dev/claud-code-projects/noteflow && npx tsc --noEmit --project apps/api/tsconfig.json 2>&1)",
-      "Bash(cd /c/dev/claud-code-projects/noteflow && npm run dev --workspace=apps/api 2>&1)"
+      "Bash(cd /c/dev/claud-code-projects/noteflow && npm run dev --workspace=apps/api 2>&1)",
+      "Bash(tasklist:*)"
     ]
   }
 }
