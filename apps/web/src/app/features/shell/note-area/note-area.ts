@@ -1,4 +1,4 @@
-import { Component, inject, signal, effect, input, output, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, inject, signal, effect, input, output, viewChild, ElementRef } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
@@ -89,6 +89,7 @@ import type { NoteDto } from '@noteflow/shared-types';
                 class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
                 placeholder="Note title"
               />
+              <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
               <button
                 (click)="startDeleting()"
                 class="ml-2 rounded p-1 text-gray-400 hover:text-red-600"
@@ -150,6 +151,15 @@ export class NoteArea {
 
   protected editedTitle = signal('');
   protected deleting = signal(false);
+
+  protected noteTimestamp = computed(() => {
+    const note = this.state.selectedNote();
+    if (!note) return '';
+    const isNew = note.createdAt === note.updatedAt;
+    const date = new Date(isNew ? note.createdAt : note.updatedAt);
+    const label = isNew ? 'Created' : 'Updated';
+    return `${label} ${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  });
   private dragged = false;
 
   // Contenteditable editor ref
