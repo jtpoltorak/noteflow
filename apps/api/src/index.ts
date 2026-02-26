@@ -16,7 +16,10 @@ const PORT = process.env.PORT || 3000;
 // ── Global middleware ─────────────────────────────────────────
 app.use(
   cors({
-    origin: "http://localhost:4200",
+    origin: [
+      "https://web-production-ea3c8.up.railway.app",
+      "http://localhost:4200",
+    ],
     credentials: true,
   })
 );
