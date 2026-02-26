@@ -50,45 +50,49 @@ import { HelpPanel } from './help-panel/help-panel';
       <!-- Three-panel layout -->
       <div class="flex flex-1 overflow-hidden">
         <!-- Left panel: Notebooks -->
-        @if (notebooksCollapsed()) {
-          <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-            <button
-              (click)="notebooksCollapsed.set(false)"
-              class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              title="Expand notebooks"
-            >
-              <fa-icon [icon]="faChevronRight" size="xs" />
-            </button>
-          </div>
-        } @else {
-          <aside class="flex w-56 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-            <app-notebook-list (collapse)="notebooksCollapsed.set(true)" />
-          </aside>
+        @if (!editorFullscreen()) {
+          @if (notebooksCollapsed()) {
+            <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <button
+                (click)="notebooksCollapsed.set(false)"
+                class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                title="Expand notebooks"
+              >
+                <fa-icon [icon]="faChevronRight" size="xs" />
+              </button>
+            </div>
+          } @else {
+            <aside class="flex w-56 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <app-notebook-list (collapse)="notebooksCollapsed.set(true)" />
+            </aside>
+          }
         }
 
         <!-- Middle panel: Sections -->
-        @if (sectionsCollapsed()) {
-          <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <button
-              (click)="sectionsCollapsed.set(false)"
-              class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              title="Expand sections"
-            >
-              <fa-icon [icon]="faChevronRight" size="xs" />
-            </button>
-          </div>
-        } @else {
-          <aside class="flex w-52 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-            <app-section-list (collapse)="sectionsCollapsed.set(true)" />
-          </aside>
+        @if (!editorFullscreen()) {
+          @if (sectionsCollapsed()) {
+            <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+              <button
+                (click)="sectionsCollapsed.set(false)"
+                class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                title="Expand sections"
+              >
+                <fa-icon [icon]="faChevronRight" size="xs" />
+              </button>
+            </div>
+          } @else {
+            <aside class="flex w-52 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+              <app-section-list (collapse)="sectionsCollapsed.set(true)" />
+            </aside>
+          }
         }
 
         <!-- Main area: Notes + Editor -->
         <main class="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-gray-800">
-          <app-note-area [collapsed]="notesCollapsed()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" />
+          <app-note-area [collapsed]="notesCollapsed()" [fullscreen]="editorFullscreen()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" (toggleFullscreen)="editorFullscreen.set(!editorFullscreen())" />
         </main>
 
-        @if (helpOpen()) {
+        @if (helpOpen() && !editorFullscreen()) {
           <aside class="flex w-72 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
             <app-help-panel (close)="helpOpen.set(false)" />
           </aside>
@@ -130,6 +134,7 @@ export class Shell implements OnInit {
   protected notebooksCollapsed = signal(false);
   protected sectionsCollapsed = signal(false);
   protected notesCollapsed = signal(false);
+  protected editorFullscreen = signal(false);
   protected helpOpen = signal(false);
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
