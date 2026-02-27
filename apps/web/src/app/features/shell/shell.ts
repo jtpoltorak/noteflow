@@ -55,11 +55,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor';
       } @else {
         <!-- Compact header -->
         <header class="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-800">
-          <div class="flex items-center gap-2">
+          <div class="flex min-w-0 flex-1 items-center gap-2">
             @if (mobilePanel() !== 'notebooks') {
               <button
                 (click)="goBack()"
-                class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                class="shrink-0 rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 title="Go back"
               >
                 <fa-icon [icon]="faChevronLeft" size="sm" />
@@ -67,7 +67,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor';
             }
             <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100">{{ mobileBreadcrumb() }}</h1>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex shrink-0 items-center gap-2">
             <button
               (click)="theme.toggle()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
