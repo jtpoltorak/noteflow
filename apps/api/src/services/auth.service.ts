@@ -5,9 +5,6 @@ import { AppError } from "../middleware/error.middleware.js";
 import type { AuthPayload } from "../middleware/auth.middleware.js";
 import type { UserDto } from "@noteflow/shared-types";
 
-const options: SignOptions = {
-  expiresIn: process.env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
-};
 const BCRYPT_ROUNDS = 12;
 
 function getJwtSecret(): string {
@@ -23,13 +20,22 @@ function getRefreshSecret(): string {
 }
 
 export function generateAccessToken(payload: AuthPayload): string {
-  const expiresIn = process.env.JWT_EXPIRES_IN || "15m";
-  return jwt.sign(payload, getJwtSecret(), options);
+  const expiresIn = (process.env.JWT_EXPIRES_IN || "15m") as SignOptions['expiresIn'];
+  return jwt.sign(payload, getJwtSecret(), { expiresIn });
 }
 
 export function generateRefreshToken(payload: AuthPayload): string {
-  const expiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || "7d";
-  return jwt.sign(payload, getRefreshSecret(), options);
+  const expiresIn = (process.env.REFRESH_TOKEN_EXPIRES_IN || "7d") as SignOptions['expiresIn'];
+  return jwt.sign(payload, getRefreshSecret(), { expiresIn });
+}
+
+export function verifyRefreshToken(token: string): AuthPayload {
+  try {
+    const decoded = jwt.verify(token, getRefreshSecret()) as AuthPayload & { iat?: number; exp?: number };
+    return { id: decoded.id, email: decoded.email };
+  } catch {
+    throw new AppError(401, "Invalid or expired refresh token", "REFRESH_INVALID");
+  }
 }
 
 export function register(email: string, password: string): UserDto {

@@ -9,6 +9,7 @@ import {
   updatePreferences,
   generateAccessToken,
   generateRefreshToken,
+  verifyRefreshToken,
 } from "../services/auth.service.js";
 
 const router = Router();
@@ -76,6 +77,24 @@ router.post("/login", validate(loginSchema), (req: Request, res: Response) => {
 router.post("/logout", (_req: Request, res: Response) => {
   clearAuthCookies(res);
   res.json({ data: null, message: "Logged out successfully" });
+});
+
+router.post("/refresh", (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken as string | undefined;
+  if (!token) {
+    clearAuthCookies(res);
+    res.status(401).json({ error: { message: "No refresh token", code: "REFRESH_MISSING" } });
+    return;
+  }
+
+  try {
+    const payload = verifyRefreshToken(token);
+    setAuthCookies(res, payload);
+    res.json({ data: null, message: "Tokens refreshed" });
+  } catch {
+    clearAuthCookies(res);
+    res.status(401).json({ error: { message: "Invalid or expired refresh token", code: "REFRESH_INVALID" } });
+  }
 });
 
 router.get("/me", requireAuth, (req: Request, res: Response) => {

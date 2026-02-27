@@ -52,4 +52,10 @@ export class AuthService {
       }),
     );
   }
+
+  /** Clear local state and redirect to login without making an HTTP call. */
+  clearAndRedirect(): void {
+    this.currentUser.set(null);
+    this.router.navigate(['/login']);
+  }
 }
