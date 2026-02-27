@@ -98,6 +98,7 @@ import type { NoteDto } from '@noteflow/shared-types';
             (blur)="saveNote()"
             (keydown)="onEditorKeydown($event)"
             (input)="onEditorInput()"
+            (click)="onEditorClick($event)"
           ></div>
 
           @if (slashMenuOpen()) {
@@ -231,6 +232,7 @@ import type { NoteDto } from '@noteflow/shared-types';
                 (blur)="saveNote()"
                 (keydown)="onEditorKeydown($event)"
                 (input)="onEditorInput()"
+                (click)="onEditorClick($event)"
               ></div>
 
               @if (slashMenuOpen()) {
@@ -398,6 +400,19 @@ export class NoteArea {
       return;
     }
 
+    // Handle Enter inside a todo-list item
+    if (event.key === 'Enter') {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0) {
+        const todoLi = this.findParentTodoLi(sel.getRangeAt(0).startContainer);
+        if (todoLi) {
+          event.preventDefault();
+          this.handleTodoEnter(todoLi);
+          return;
+        }
+      }
+    }
+
     if (event.key === '/') {
       // Let the character be typed, then capture position on next tick
       setTimeout(() => this.openSlashMenu(), 0);
@@ -454,6 +469,18 @@ export class NoteArea {
     this.executeCommand(command);
     this.closeSlashMenu();
     this.saveNote();
+  }
+
+  protected onEditorClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') {
+      const checkbox = target as HTMLInputElement;
+      const li = checkbox.closest('li');
+      if (li) {
+        li.setAttribute('data-checked', checkbox.checked ? 'true' : 'false');
+        this.saveNote();
+      }
+    }
   }
 
   private openSlashMenu(): void {
@@ -607,6 +634,9 @@ export class NoteArea {
       case 'divider':
         this.insertDivider();
         break;
+      case 'todo-list':
+        this.insertTodoList();
+        break;
     }
   }
 
@@ -656,5 +686,120 @@ export class NoteArea {
     newRange.collapse(true);
     sel.removeAllRanges();
     sel.addRange(newRange);
+  }
+
+  private insertTodoList(): void {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    const range = sel.getRangeAt(0);
+    range.deleteContents();
+
+    const ul = document.createElement('ul');
+    ul.className = 'todo-list';
+
+    const li = document.createElement('li');
+    li.setAttribute('data-checked', 'false');
+
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.contentEditable = 'false';
+
+    const span = document.createElement('span');
+    span.appendChild(document.createElement('br'));
+
+    li.appendChild(checkbox);
+    li.appendChild(span);
+    ul.appendChild(li);
+
+    const p = document.createElement('p');
+    p.appendChild(document.createElement('br'));
+
+    range.insertNode(p);
+    range.insertNode(ul);
+
+    // Place cursor inside the span
+    const newRange = document.createRange();
+    newRange.setStart(span, 0);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+  }
+
+  private findParentTodoLi(node: Node): HTMLElement | null {
+    const editorEl = this.editorRef()?.nativeElement as HTMLElement;
+    let current: Node | null = node;
+    while (current && current !== editorEl) {
+      if (current.nodeType === Node.ELEMENT_NODE) {
+        const el = current as HTMLElement;
+        if (el.tagName === 'LI' && el.closest('ul.todo-list')) {
+          return el;
+        }
+      }
+      current = current.parentNode;
+    }
+    return null;
+  }
+
+  private handleTodoEnter(li: HTMLElement): void {
+    const span = li.querySelector(':scope > span');
+    const text = span?.textContent ?? '';
+
+    // If empty item, break out of the list into a paragraph
+    if (!text.trim()) {
+      const ul = li.closest('ul.todo-list');
+      if (!ul) return;
+
+      li.remove();
+
+      // If list is now empty, remove it
+      const listEmpty = ul.children.length === 0;
+
+      const p = document.createElement('p');
+      p.appendChild(document.createElement('br'));
+
+      if (listEmpty) {
+        ul.parentNode?.replaceChild(p, ul);
+      } else {
+        ul.parentNode?.insertBefore(p, ul.nextSibling);
+      }
+
+      const sel = window.getSelection();
+      if (sel) {
+        const newRange = document.createRange();
+        newRange.setStart(p, 0);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+      }
+      this.saveNote();
+      return;
+    }
+
+    // Create a new todo item after the current one
+    const newLi = document.createElement('li');
+    newLi.setAttribute('data-checked', 'false');
+
+    const newCheckbox = document.createElement('input');
+    newCheckbox.type = 'checkbox';
+    newCheckbox.contentEditable = 'false';
+
+    const newSpan = document.createElement('span');
+    newSpan.appendChild(document.createElement('br'));
+
+    newLi.appendChild(newCheckbox);
+    newLi.appendChild(newSpan);
+
+    li.parentNode?.insertBefore(newLi, li.nextSibling);
+
+    // Place cursor in the new span
+    const sel = window.getSelection();
+    if (sel) {
+      const newRange = document.createRange();
+      newRange.setStart(newSpan, 0);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    }
   }
 }

@@ -18,6 +18,26 @@ body {
 
 html.dark {
   background-color: #111827; /* gray-900 */
+  color-scheme: dark;
+}
+
+/* ── Scrollbar dark mode ──────────────────────────────────────── */
+.dark ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937; /* gray-800 */
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563; /* gray-600 */
+  border-radius: 5px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280; /* gray-500 */
 }
 
 /* ── CDK Drag-and-Drop ────────────────────────────────────────── */
@@ -146,4 +166,42 @@ html.dark {
 
 .dark .noteflow-editor hr {
   border-top-color: #374151;
+}
+
+/* ── Todo / Checklist ──────────────────────────────────────── */
+.noteflow-editor ul.todo-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0.5rem;
+}
+
+.noteflow-editor ul.todo-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.noteflow-editor ul.todo-list li input[type="checkbox"] {
+  margin-top: 0.35rem;
+  flex-shrink: 0;
+  cursor: pointer;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #3b82f6; /* blue-500 */
+}
+
+.noteflow-editor ul.todo-list li span {
+  flex: 1;
+  min-width: 0;
+  outline: none;
+}
+
+.noteflow-editor ul.todo-list li[data-checked="true"] span {
+  text-decoration: line-through;
+  color: #9ca3af; /* gray-400 */
+}
+
+.dark .noteflow-editor ul.todo-list li[data-checked="true"] span {
+  color: #6b7280; /* gray-500 */
 }
