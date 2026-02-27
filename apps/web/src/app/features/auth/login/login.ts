@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [FormsModule, RouterLink],
   template: `
     <div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div class="w-full max-w-md rounded-lg bg-white p-8 shadow-md dark:bg-gray-800">
+      <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-md sm:p-8 dark:bg-gray-800">
         <h1 class="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">Sign in to NoteFlow</h1>
 
         @if (error()) {

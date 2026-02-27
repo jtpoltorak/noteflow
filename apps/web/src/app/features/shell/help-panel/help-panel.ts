@@ -1,4 +1,4 @@
-import { Component, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
@@ -6,16 +6,18 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
   selector: 'app-help-panel',
   imports: [FaIconComponent],
   template: `
-    <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-      <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Help</span>
-      <button
-        (click)="close.emit()"
-        class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-        title="Close help"
-      >
-        <fa-icon [icon]="faXmark" size="sm" />
-      </button>
-    </div>
+    @if (!asContent()) {
+      <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Help</span>
+        <button
+          (click)="close.emit()"
+          class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+          title="Close help"
+        >
+          <fa-icon [icon]="faXmark" size="sm" />
+        </button>
+      </div>
+    }
 
     <div class="flex-1 overflow-y-auto px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
       <section class="mb-5">
@@ -64,6 +66,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
   `,
 })
 export class HelpPanel {
+  asContent = input(false);
   close = output();
 
   protected faXmark = faXmark;

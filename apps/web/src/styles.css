@@ -2,6 +2,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+html {
+  font-size: 18px;
+}
+
+@media (max-width: 639px) {
+  html {
+    font-size: 16px;
+  }
+}
+
 body {
   font-family: 'Noto Serif', serif;
 }

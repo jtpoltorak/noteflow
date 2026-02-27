@@ -1,8 +1,9 @@
-import { Component, inject, signal, ElementRef, viewChild, output } from '@angular/core';
+import { Component, inject, signal, ElementRef, viewChild, output, input } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faLayerGroup, faPlus, faPen, faTrash, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
+import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import type { SectionDto } from '@noteflow/shared-types';
 
@@ -13,13 +14,15 @@ import type { SectionDto } from '@noteflow/shared-types';
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Sections</span>
       <div class="flex items-center gap-1">
-        <button
-          (click)="collapse.emit()"
-          class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-          title="Collapse panel"
-        >
-          <fa-icon [icon]="faChevronLeft" size="xs" />
-        </button>
+        @if (!mobileMode()) {
+          <button
+            (click)="collapse.emit()"
+            class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+            title="Collapse panel"
+          >
+            <fa-icon [icon]="faChevronLeft" size="xs" />
+          </button>
+        }
         @if (state.selectedNotebookId()) {
           <button
             (click)="startCreating()"
@@ -53,6 +56,7 @@ import type { SectionDto } from '@noteflow/shared-types';
         @for (sec of state.sections(); track sec.id) {
           <div
             cdkDrag
+            [cdkDragDisabled]="vp.isCompact()"
             class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer dark:text-gray-200"
             [class.bg-blue-100]="sec.id === state.selectedSectionId()"
             [class.dark:bg-blue-900]="sec.id === state.selectedSectionId()"
@@ -114,7 +118,9 @@ import type { SectionDto } from '@noteflow/shared-types';
 })
 export class SectionList {
   protected state = inject(ShellStateService);
+  protected vp = inject(ViewportService);
 
+  mobileMode = input(false);
   collapse = output();
 
   protected faLayerGroup = faLayerGroup;

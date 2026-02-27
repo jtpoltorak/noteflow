@@ -27,7 +27,7 @@ const COMMANDS: SlashCommand[] = [
   imports: [FaIconComponent],
   template: `
     <div
-      class="fixed z-50 w-64 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+      class="fixed z-50 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800"
       [style.top.px]="position().top"
       [style.left.px]="position().left"
     >

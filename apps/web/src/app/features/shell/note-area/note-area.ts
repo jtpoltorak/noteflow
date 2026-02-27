@@ -3,6 +3,7 @@ import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
+import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { SlashCommandMenu } from './slash-command-menu';
 import type { SlashCommand } from './slash-command-menu';
@@ -13,144 +14,253 @@ import type { NoteDto } from '@noteflow/shared-types';
   imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, SlashCommandMenu],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
-    @if (!state.selectedSectionId()) {
-      <div class="flex flex-1 items-center justify-center">
-        <p class="text-gray-400">Select a section to see notes</p>
-      </div>
-    } @else {
-      <div class="flex flex-1 overflow-hidden">
-        <!-- Note list: collapsed strip or full panel -->
-        @if (!fullscreen()) {
-          @if (collapsed()) {
-            <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-              <button
-                (click)="toggleCollapsed.emit()"
-                class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                title="Expand notes"
-              >
-                <fa-icon [icon]="faChevronRight" size="xs" />
-              </button>
-            </div>
+    <!-- ── Mobile: notes list only ─────────────────────────── -->
+    @if (mobileMode() && !showEditorOnly()) {
+      <div class="flex flex-1 flex-col overflow-hidden">
+        <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
+          <div class="flex items-center gap-1">
+            <button
+              (click)="createNote()"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="New note"
+            >
+              <fa-icon [icon]="faPlus" size="sm" />
+            </button>
+          </div>
+        </div>
+        <div class="flex-1 overflow-y-auto p-1">
+          @if (!state.selectedSectionId()) {
+            <p class="px-2 py-4 text-center text-sm text-gray-400">Select a section to see notes</p>
           } @else {
-            <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
-              <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
-                <div class="flex items-center gap-1">
-                  <button
-                    (click)="toggleCollapsed.emit()"
-                    class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                    title="Collapse panel"
-                  >
-                    <fa-icon [icon]="faChevronLeft" size="xs" />
-                  </button>
-                  <button
-                    (click)="createNote()"
-                    class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                    title="New note"
-                  >
-                    <fa-icon [icon]="faPlus" size="sm" />
-                  </button>
+            @for (note of state.notes(); track note.id) {
+              <div
+                class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
+                [class.bg-blue-100]="note.id === state.selectedNoteId()"
+                [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
+                [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
+                [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
+                (click)="onItemClick(note.id)"
+              >
+                <div class="flex items-center">
+                  <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
+                  <span class="truncate">{{ note.title || 'Untitled' }}</span>
                 </div>
               </div>
-              <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
-                @for (note of state.notes(); track note.id) {
-                  <div
-                    cdkDrag
-                    class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
-                    [class.bg-blue-100]="note.id === state.selectedNoteId()"
-                    [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
-                    [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
-                    [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
-                    (click)="onItemClick(note.id)"
-                  >
-                    <div class="flex items-center">
-                      <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
-                      <span class="truncate">{{ note.title || 'Untitled' }}</span>
-                    </div>
-                  </div>
-                } @empty {
-                  <p class="px-2 py-4 text-center text-sm text-gray-400">
-                    No notes yet. Click + to create one.
-                  </p>
-                }
-              </div>
-            </div>
-          }
-        }
-
-        <!-- Editor area -->
-        <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
-          @if (state.selectedNote()) {
-            <!-- Editor header -->
-            <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
-              <input
-                type="text"
-                [value]="editedTitle()"
-                (input)="editedTitle.set($any($event.target).value)"
-                (blur)="saveNote()"
-                class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
-                placeholder="Note title"
-              />
-              <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
-              <button
-                (click)="toggleFullscreen.emit()"
-                class="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
-              >
-                <fa-icon [icon]="fullscreen() ? faCompress : faExpand" size="sm" />
-              </button>
-              <button
-                (click)="startDeleting()"
-                class="ml-1 rounded p-1 text-gray-400 hover:text-red-600"
-                title="Delete note"
-              >
-                <fa-icon [icon]="faTrash" size="sm" />
-              </button>
-            </div>
-
-            @if (deleting()) {
-              <div class="px-4">
-                <app-confirm-dialog
-                  message="Delete this note?"
-                  (confirmed)="confirmDelete()"
-                  (cancelled)="deleting.set(false)"
-                ></app-confirm-dialog>
-              </div>
+            } @empty {
+              <p class="px-2 py-4 text-center text-sm text-gray-400">
+                No notes yet. Click + to create one.
+              </p>
             }
-
-            <!-- Content area (contenteditable) -->
-            <div
-              #editor
-              contenteditable="true"
-              class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
-              (blur)="saveNote()"
-              (keydown)="onEditorKeydown($event)"
-              (input)="onEditorInput()"
-            ></div>
-
-            @if (slashMenuOpen()) {
-              <app-slash-command-menu
-                [filter]="slashFilter()"
-                [position]="slashMenuPosition()"
-                (selected)="onCommandSelected($event)"
-                (dismissed)="slashMenuOpen.set(false)"
-              />
-            }
-          } @else {
-            <div class="flex flex-1 items-center justify-center">
-              <p class="text-gray-400">Select a note to edit</p>
-            </div>
           }
         </div>
       </div>
+    }
+
+    <!-- ── Mobile: editor only ─────────────────────────────── -->
+    @if (mobileMode() && showEditorOnly()) {
+      <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
+        @if (state.selectedNote()) {
+          <!-- Editor header (no fullscreen toggle — already full-width) -->
+          <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+            <input
+              type="text"
+              [value]="editedTitle()"
+              (input)="editedTitle.set($any($event.target).value)"
+              (blur)="saveNote()"
+              class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
+              placeholder="Note title"
+            />
+            <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
+            <button
+              (click)="startDeleting()"
+              class="ml-1 rounded p-1 text-gray-400 hover:text-red-600"
+              title="Delete note"
+            >
+              <fa-icon [icon]="faTrash" size="sm" />
+            </button>
+          </div>
+
+          @if (deleting()) {
+            <div class="px-4">
+              <app-confirm-dialog
+                message="Delete this note?"
+                (confirmed)="confirmDelete()"
+                (cancelled)="deleting.set(false)"
+              ></app-confirm-dialog>
+            </div>
+          }
+
+          <!-- Content area (contenteditable) -->
+          <div
+            #editor
+            contenteditable="true"
+            class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
+            (blur)="saveNote()"
+            (keydown)="onEditorKeydown($event)"
+            (input)="onEditorInput()"
+          ></div>
+
+          @if (slashMenuOpen()) {
+            <app-slash-command-menu
+              [filter]="slashFilter()"
+              [position]="slashMenuPosition()"
+              (selected)="onCommandSelected($event)"
+              (dismissed)="slashMenuOpen.set(false)"
+            />
+          }
+        } @else {
+          <div class="flex flex-1 items-center justify-center">
+            <p class="text-gray-400">Select a note to edit</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Desktop: original layout (unchanged) ────────────── -->
+    @if (!mobileMode()) {
+      @if (!state.selectedSectionId()) {
+        <div class="flex flex-1 items-center justify-center">
+          <p class="text-gray-400">Select a section to see notes</p>
+        </div>
+      } @else {
+        <div class="flex flex-1 overflow-hidden">
+          <!-- Note list: collapsed strip or full panel -->
+          @if (!fullscreen()) {
+            @if (collapsed()) {
+              <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+                <button
+                  (click)="toggleCollapsed.emit()"
+                  class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Expand notes"
+                >
+                  <fa-icon [icon]="faChevronRight" size="xs" />
+                </button>
+              </div>
+            } @else {
+              <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
+                <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+                  <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
+                  <div class="flex items-center gap-1">
+                    <button
+                      (click)="toggleCollapsed.emit()"
+                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                      title="Collapse panel"
+                    >
+                      <fa-icon [icon]="faChevronLeft" size="xs" />
+                    </button>
+                    <button
+                      (click)="createNote()"
+                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                      title="New note"
+                    >
+                      <fa-icon [icon]="faPlus" size="sm" />
+                    </button>
+                  </div>
+                </div>
+                <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
+                  @for (note of state.notes(); track note.id) {
+                    <div
+                      cdkDrag
+                      class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
+                      [class.bg-blue-100]="note.id === state.selectedNoteId()"
+                      [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
+                      [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
+                      [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
+                      (click)="onItemClick(note.id)"
+                    >
+                      <div class="flex items-center">
+                        <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
+                        <span class="truncate">{{ note.title || 'Untitled' }}</span>
+                      </div>
+                    </div>
+                  } @empty {
+                    <p class="px-2 py-4 text-center text-sm text-gray-400">
+                      No notes yet. Click + to create one.
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <!-- Editor area -->
+          <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
+            @if (state.selectedNote()) {
+              <!-- Editor header -->
+              <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+                <input
+                  type="text"
+                  [value]="editedTitle()"
+                  (input)="editedTitle.set($any($event.target).value)"
+                  (blur)="saveNote()"
+                  class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
+                  placeholder="Note title"
+                />
+                <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
+                <button
+                  (click)="toggleFullscreen.emit()"
+                  class="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
+                >
+                  <fa-icon [icon]="fullscreen() ? faCompress : faExpand" size="sm" />
+                </button>
+                <button
+                  (click)="startDeleting()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:text-red-600"
+                  title="Delete note"
+                >
+                  <fa-icon [icon]="faTrash" size="sm" />
+                </button>
+              </div>
+
+              @if (deleting()) {
+                <div class="px-4">
+                  <app-confirm-dialog
+                    message="Delete this note?"
+                    (confirmed)="confirmDelete()"
+                    (cancelled)="deleting.set(false)"
+                  ></app-confirm-dialog>
+                </div>
+              }
+
+              <!-- Content area (contenteditable) -->
+              <div
+                #editor
+                contenteditable="true"
+                class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
+                (blur)="saveNote()"
+                (keydown)="onEditorKeydown($event)"
+                (input)="onEditorInput()"
+              ></div>
+
+              @if (slashMenuOpen()) {
+                <app-slash-command-menu
+                  [filter]="slashFilter()"
+                  [position]="slashMenuPosition()"
+                  (selected)="onCommandSelected($event)"
+                  (dismissed)="slashMenuOpen.set(false)"
+                />
+              }
+            } @else {
+              <div class="flex flex-1 items-center justify-center">
+                <p class="text-gray-400">Select a note to edit</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
     }
   `,
 })
 export class NoteArea {
   protected state = inject(ShellStateService);
+  protected vp = inject(ViewportService);
 
   collapsed = input(false);
   fullscreen = input(false);
+  mobileMode = input(false);
+  showEditorOnly = input(false);
   toggleCollapsed = output();
   toggleFullscreen = output();
 
@@ -365,7 +475,10 @@ export class NoteArea {
       ? rect.top - menuHeight - gap   // above
       : rect.bottom + gap;            // below
 
-    this.slashMenuPosition.set({ top, left: rect.left });
+    // Clamp left position to stay within viewport on narrow screens
+    const left = Math.min(rect.left, window.innerWidth - 272);
+
+    this.slashMenuPosition.set({ top, left });
     this.slashFilter.set('');
     this.slashMenuOpen.set(true);
   }
