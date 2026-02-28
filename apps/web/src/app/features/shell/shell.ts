@@ -25,7 +25,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor';
       <!-- ── Header ──────────────────────────────────────────── -->
       @if (vp.isDesktop()) {
         <header class="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800">
-          <h1 class="text-lg font-semibold text-gray-800 dark:text-gray-100">NoteFlow</h1>
+          <img src="noteflow-logo.svg" alt="NoteFlow" class="h-7 dark:invert" />
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ auth.user()?.email }}</span>
             <button
@@ -65,7 +65,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor';
                 <fa-icon [icon]="faChevronLeft" size="sm" />
               </button>
             }
-            <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100">{{ mobileBreadcrumb() }}</h1>
+            @if (mobilePanel() === 'notebooks') {
+              <img src="nf-logo.svg" alt="NoteFlow" class="h-6 dark:invert" />
+            } @else {
+              <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100">{{ mobileBreadcrumb() }}</h1>
+            }
           </div>
           <div class="flex shrink-0 items-center gap-2">
             <button
