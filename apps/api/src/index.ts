@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import notebookRoutes from "./routes/notebook.routes.js";
 import sectionRoutes from "./routes/section.routes.js";
 import noteRoutes from "./routes/note.routes.js";
+import searchRoutes from "./routes/search.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 
 const app = express();
@@ -36,6 +37,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
 app.use("/api/v1", requireAuth, noteRoutes);
+app.use("/api/v1/search", requireAuth, searchRoutes);
 
 // ── Error handling (must be last) ─────────────────────────────
 app.use(errorHandler);

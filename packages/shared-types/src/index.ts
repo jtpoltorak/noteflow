@@ -78,6 +78,17 @@ export interface NoteDto {
   updatedAt: string;
 }
 
+export interface SearchResultDto {
+  noteId: number;
+  noteTitle: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  snippet: string;
+  updatedAt: string;
+}
+
 // ── API Response Wrappers ─────────────────────────────────────
 
 export interface ApiSuccessResponse<T> {

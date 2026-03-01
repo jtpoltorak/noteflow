@@ -127,7 +127,7 @@ import type { NoteDto } from '@noteflow/shared-types';
       } @else {
         <div class="flex flex-1 overflow-hidden">
           <!-- Note list: collapsed strip or full panel -->
-          @if (!fullscreen()) {
+          @if (!fullscreen() && !hideNotesList()) {
             @if (collapsed()) {
               <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
                 <button
@@ -262,6 +262,7 @@ export class NoteArea {
 
   collapsed = input(false);
   fullscreen = input(false);
+  hideNotesList = input(false);
   mobileMode = input(false);
   showEditorOnly = input(false);
   toggleCollapsed = output();

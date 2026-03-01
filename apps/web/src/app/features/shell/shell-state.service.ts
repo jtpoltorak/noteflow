@@ -107,6 +107,15 @@ export class ShellStateService {
     this.selectedNoteId.set(id);
   }
 
+  /** Select a note from search results — sets all IDs without cascading clear. */
+  selectNoteFromSearch(notebookId: number, sectionId: number, noteId: number): void {
+    this.selectedNotebookId.set(notebookId);
+    this.selectedSectionId.set(sectionId);
+    this.selectedNoteId.set(noteId);
+    this.loadSections(notebookId);
+    this.loadNotes(sectionId);
+  }
+
   // ── Notebook CRUD ─────────────────────────────────────────────
 
   createNotebook(title: string): void {
