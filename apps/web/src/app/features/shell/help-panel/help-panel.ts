@@ -5,6 +5,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
 @Component({
   selector: 'app-help-panel',
   imports: [FaIconComponent],
+  host: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
   template: `
     @if (!asContent()) {
       <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
@@ -19,7 +20,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
       </div>
     }
 
-    <div class="flex-1 overflow-y-auto px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+    <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Getting Started</h3>
         <p class="mb-1">NoteFlow organises your notes into a three-level hierarchy:</p>
@@ -31,12 +32,18 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Search</h3>
+        <p>Click the magnifying-glass icon in the navigation rail to search across all of your notebooks, sections, and notes. Results show the note title, its location, and a text snippet. Click a result to open it in the editor.</p>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Slash Commands</h3>
         <p class="mb-1">Type <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/</kbd> on a new line in the editor to open the command menu. Available commands:</p>
         <ul class="ml-4 list-disc space-y-0.5">
           <li><strong>Heading 1&ndash;3</strong> &mdash; section headings</li>
           <li><strong>Bullet List</strong> &mdash; unordered list</li>
           <li><strong>Numbered List</strong> &mdash; ordered list</li>
+          <li><strong>Todo List</strong> &mdash; checklist with toggleable items</li>
           <li><strong>Quote</strong> &mdash; blockquote</li>
           <li><strong>Code Block</strong> &mdash; preformatted code</li>
           <li><strong>Divider</strong> &mdash; horizontal rule</li>
@@ -55,7 +62,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Dark Mode</h3>
-        <p>Toggle dark mode using the sun/moon icon in the top-right corner of the header bar.</p>
+        <p>Toggle dark mode using the sun/moon icon in the top-right corner of the header bar. Your preference is saved and persists across sessions.</p>
       </section>
 
       <section>

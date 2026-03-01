@@ -12,11 +12,12 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
         (click)="onBackdropClick($event)"
       >
         <div
-          class="relative mx-4 w-full max-w-md rounded-lg bg-white shadow-xl dark:bg-gray-800"
+          class="relative mx-4 flex w-full max-w-md flex-col rounded-lg bg-white shadow-xl dark:bg-gray-800"
+          style="max-height: calc(100vh - 3rem)"
           (click)="$event.stopPropagation()"
         >
           <!-- Header -->
-          <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-700">
+          <div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-3 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100">{{ title() }}</h2>
             <button
               (click)="closed.emit()"
@@ -27,7 +28,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
           </div>
 
           <!-- Body -->
-          <div class="px-5 py-4">
+          <div class="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             <ng-content />
           </div>
         </div>
