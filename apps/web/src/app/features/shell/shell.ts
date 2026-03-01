@@ -68,7 +68,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor';
             @if (mobilePanel() === 'notebooks') {
               <img src="nf-logo.svg" alt="NoteFlow" class="h-6 dark:invert" />
             } @else {
-              <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100">{{ mobileBreadcrumb() }}</h1>
+              <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100" [title]="mobileBreadcrumb()">{{ mobileBreadcrumb() }}</h1>
             }
           </div>
           <div class="flex shrink-0 items-center gap-2">

@@ -40,6 +40,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
             #createInput
             type="text"
             placeholder="Notebook name"
+            maxlength="50"
             class="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
             (keydown.enter)="confirmCreate(createInput.value)"
             (keydown.escape)="creating.set(false)"
@@ -66,6 +67,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
               #renameInput
               type="text"
               [value]="nb.title"
+              maxlength="50"
               class="min-w-0 flex-1 rounded border border-blue-300 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
               (keydown.enter)="confirmRename(nb.id, renameInput.value)"
               (keydown.escape)="editingId.set(null)"
@@ -73,7 +75,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
               (click)="$event.stopPropagation()"
             />
           } @else {
-            <span class="min-w-0 flex-1 truncate">{{ nb.title }}</span>
+            <span class="min-w-0 flex-1 truncate" [title]="nb.title">{{ nb.title }}</span>
             <div class="flex gap-1 opacity-0 group-hover:opacity-100">
               <button
                 (click)="startRenaming(nb.id, $event)"

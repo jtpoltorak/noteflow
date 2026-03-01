@@ -12,11 +12,11 @@ import {
 const router = Router();
 
 const createSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200),
+  title: z.string().min(1, "Title is required").max(50),
 });
 
 const updateSchema = z.object({
-  title: z.string().min(1, "Title is required").max(200).optional(),
+  title: z.string().min(1, "Title is required").max(50).optional(),
   order: z.number().int().min(0).optional(),
 });
 

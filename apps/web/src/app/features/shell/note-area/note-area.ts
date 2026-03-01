@@ -44,7 +44,7 @@ import type { NoteDto } from '@noteflow/shared-types';
               >
                 <div class="flex items-center">
                   <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
-                  <span class="truncate">{{ note.title || 'Untitled' }}</span>
+                  <span class="truncate" [title]="note.title">{{ note.title || 'Untitled' }}</span>
                 </div>
               </div>
             } @empty {
@@ -66,6 +66,7 @@ import type { NoteDto } from '@noteflow/shared-types';
             <input
               type="text"
               [value]="editedTitle()"
+              maxlength="75"
               (input)="editedTitle.set($any($event.target).value)"
               (blur)="saveNote()"
               class="min-w-0 flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
@@ -171,7 +172,7 @@ import type { NoteDto } from '@noteflow/shared-types';
                     >
                       <div class="flex items-center">
                         <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
-                        <span class="truncate">{{ note.title || 'Untitled' }}</span>
+                        <span class="truncate" [title]="note.title">{{ note.title || 'Untitled' }}</span>
                       </div>
                     </div>
                   } @empty {
@@ -192,6 +193,7 @@ import type { NoteDto } from '@noteflow/shared-types';
                 <input
                   type="text"
                   [value]="editedTitle()"
+                  maxlength="75"
                   (input)="editedTitle.set($any($event.target).value)"
                   (blur)="saveNote()"
                   class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
