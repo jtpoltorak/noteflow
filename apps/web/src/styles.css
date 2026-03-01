@@ -16,6 +16,10 @@ body {
   font-family: 'Rubik', sans-serif;
 }
 
+button {
+  cursor: pointer;
+}
+
 html.dark {
   background-color: #111827; /* gray-900 */
   color-scheme: dark;
