@@ -9,7 +9,10 @@ import { AuthService } from '../../../core/services/auth.service';
   template: `
     <div class="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div class="w-full max-w-md rounded-lg bg-white p-6 shadow-md sm:p-8 dark:bg-gray-800">
-        <h1 class="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">Create your NoteFlow account</h1>
+        <div class="mb-6 text-center">
+          <img src="noteflow-logo.svg" alt="NoteFlow" class="mx-auto h-10 dark:invert" />
+          <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Create your account</p>
+        </div>
 
         @if (error()) {
           <div class="mb-4 rounded bg-red-100 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-300">{{ error() }}</div>
