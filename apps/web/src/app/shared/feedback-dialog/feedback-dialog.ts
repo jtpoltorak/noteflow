@@ -16,6 +16,7 @@ import { Modal } from '../modal/modal';
           <p class="text-xs text-gray-500 dark:text-gray-400">We appreciate you taking the time to share your thoughts.</p>
         </div>
       } @else {
+        <img src="noteflow-logo.svg" alt="NoteFlow" class="mb-4 h-8 dark:invert" />
         <form (ngSubmit)="onSubmit()" class="space-y-4">
           <div>
             <label for="feedback-type" class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label>
