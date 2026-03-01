@@ -7,9 +7,9 @@ import { Modal } from '../modal/modal';
   template: `
     <app-modal [open]="open()" title="About NoteFlow" (closed)="closed.emit()">
       <div class="space-y-3 text-sm text-gray-600 dark:text-gray-300">
+        <img src="noteflow-logo.svg" alt="NoteFlow" class="h-8 dark:invert" />
         <p>
-          <span class="font-semibold text-gray-800 dark:text-gray-100">NoteFlow</span>
-          is a web-based note-taking application inspired by Microsoft OneNote.
+          A web-based note-taking application inspired by Microsoft OneNote.
         </p>
         <p>
           Built as a full-stack TypeScript portfolio project featuring Angular, Express, and SQLite.
