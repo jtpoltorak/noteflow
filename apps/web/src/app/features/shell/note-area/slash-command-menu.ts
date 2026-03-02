@@ -1,4 +1,4 @@
-import { Component, computed, effect, ElementRef, HostListener, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faCode, faHeading, faList, faListOl, faMinus, faParagraph, faQuoteLeft, faSquareCheck } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
@@ -28,13 +28,13 @@ const COMMANDS: SlashCommand[] = [
   imports: [FaIconComponent],
   template: `
     <div
-      class="fixed z-50 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800"
+      class="fixed z-50 w-48 max-w-[calc(100vw-2rem)] overflow-hidden rounded-md border border-gray-200 bg-white py-0.5 shadow-lg dark:border-gray-600 dark:bg-gray-800"
       [style.top.px]="position().top"
       [style.left.px]="position().left"
     >
       @for (cmd of filteredCommands(); track cmd.id; let i = $index) {
         <button
-          class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors"
+          class="flex w-full items-center gap-2 px-2.5 py-1 text-left text-[13px] transition-colors"
           [class.bg-blue-50]="i === selectedIndex()"
           [class.dark:bg-blue-900]="i === selectedIndex()"
           [class.hover:bg-gray-50]="i !== selectedIndex()"
@@ -45,13 +45,10 @@ const COMMANDS: SlashCommand[] = [
         >
           <fa-icon
             [icon]="cmd.icon"
-            class="w-5 text-center text-gray-400 dark:text-gray-500"
-            size="sm"
+            class="w-4 text-center text-gray-400 dark:text-gray-500"
+            size="xs"
           />
-          <div>
-            <div class="font-medium text-gray-800 dark:text-gray-100">{{ cmd.label }}</div>
-            <div class="text-xs text-gray-400 dark:text-gray-500">{{ cmd.description }}</div>
-          </div>
+          <span class="text-gray-800 dark:text-gray-100">{{ cmd.label }}</span>
         </button>
       }
     </div>
@@ -88,14 +85,6 @@ export class SlashCommandMenu {
         this.dismissed.emit();
       }
     });
-  }
-
-  @HostListener('document:click', ['$event'])
-  onDocumentClick(event: MouseEvent): void {
-    const el = (event.target as HTMLElement).closest('app-slash-command-menu');
-    if (!el) {
-      this.dismissed.emit();
-    }
   }
 
   moveDown(): void {

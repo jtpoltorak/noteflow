@@ -1,17 +1,16 @@
-import { Component, computed, inject, signal, effect, input, output, viewChild, ElementRef } from '@angular/core';
+import { Component, computed, inject, signal, effect, input, output, viewChild } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
-import { SlashCommandMenu } from './slash-command-menu';
-import type { SlashCommand } from './slash-command-menu';
+import { TiptapEditor } from './tiptap-editor/tiptap-editor';
 import type { NoteDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, SlashCommandMenu],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -61,7 +60,6 @@ import type { NoteDto } from '@noteflow/shared-types';
     @if (mobileMode() && showEditorOnly()) {
       <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
         @if (state.selectedNote()) {
-          <!-- Editor header (no fullscreen toggle — already full-width) -->
           <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
             <input
               type="text"
@@ -91,25 +89,11 @@ import type { NoteDto } from '@noteflow/shared-types';
             </div>
           }
 
-          <!-- Content area (contenteditable) -->
-          <div
-            #editor
-            contenteditable="true"
-            class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
-            (blur)="saveNote()"
-            (keydown)="onEditorKeydown($event)"
-            (input)="onEditorInput()"
-            (click)="onEditorClick($event)"
-          ></div>
-
-          @if (slashMenuOpen()) {
-            <app-slash-command-menu
-              [filter]="slashFilter()"
-              [position]="slashMenuPosition()"
-              (selected)="onCommandSelected($event)"
-              (dismissed)="slashMenuOpen.set(false)"
-            />
-          }
+          <app-tiptap-editor
+            #tiptapEditor
+            (contentChanged)="onContentChanged($event)"
+            (blurred)="saveNote()"
+          />
         } @else {
           <div class="flex flex-1 items-center justify-center">
             <p class="text-gray-400">Select a note to edit</p>
@@ -118,7 +102,7 @@ import type { NoteDto } from '@noteflow/shared-types';
       </div>
     }
 
-    <!-- ── Desktop: original layout (unchanged) ────────────── -->
+    <!-- ── Desktop: original layout ────────────────────────── -->
     @if (!mobileMode()) {
       @if (!state.selectedSectionId()) {
         <div class="flex flex-1 items-center justify-center">
@@ -226,25 +210,11 @@ import type { NoteDto } from '@noteflow/shared-types';
                 </div>
               }
 
-              <!-- Content area (contenteditable) -->
-              <div
-                #editor
-                contenteditable="true"
-                class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
-                (blur)="saveNote()"
-                (keydown)="onEditorKeydown($event)"
-                (input)="onEditorInput()"
-                (click)="onEditorClick($event)"
-              ></div>
-
-              @if (slashMenuOpen()) {
-                <app-slash-command-menu
-                  [filter]="slashFilter()"
-                  [position]="slashMenuPosition()"
-                  (selected)="onCommandSelected($event)"
-                  (dismissed)="slashMenuOpen.set(false)"
-                />
-              }
+              <app-tiptap-editor
+                #tiptapEditor
+                (contentChanged)="onContentChanged($event)"
+                (blurred)="saveNote()"
+              />
             } @else {
               <div class="flex flex-1 items-center justify-center">
                 <p class="text-gray-400">Select a note to edit</p>
@@ -289,17 +259,11 @@ export class NoteArea {
   });
   private dragged = false;
 
-  // Contenteditable editor ref
-  private editorRef = viewChild<ElementRef>('editor');
+  // TipTap editor ref
+  private tiptapEditor = viewChild<TiptapEditor>('tiptapEditor');
 
-  // Slash command state
-  protected slashMenuOpen = signal(false);
-  protected slashMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
-  protected slashFilter = signal('');
-  private slashAnchorRange: Range | null = null;
-
-  // Slash menu component ref for keyboard forwarding
-  private slashMenu = viewChild(SlashCommandMenu);
+  // Track latest content from TipTap (for saving)
+  private pendingContent: string | null = null;
 
   // Track which note the local editor fields belong to
   private syncedNoteId: number | null = null;
@@ -308,25 +272,23 @@ export class NoteArea {
     // Sync local editor state when selected note changes
     effect(() => {
       const note = this.state.selectedNote();
-      const editorEl = this.editorRef()?.nativeElement;
+      const editor = this.tiptapEditor();
       if (note && note.id !== this.syncedNoteId) {
         this.editedTitle.set(note.title);
         this.deleting.set(false);
-        this.closeSlashMenu();
-        // Only mark as synced once the editor DOM is available
-        // so the effect re-runs when editorRef resolves
-        if (editorEl) {
-          editorEl.innerHTML = note.content;
+        this.pendingContent = null;
+        if (editor) {
+          editor.setContent(note.content);
           this.syncedNoteId = note.id;
         }
       } else if (!note) {
         this.syncedNoteId = null;
         this.editedTitle.set('');
-        if (editorEl) {
-          editorEl.innerHTML = '';
+        this.pendingContent = null;
+        if (editor) {
+          editor.setContent('');
         }
         this.deleting.set(false);
-        this.closeSlashMenu();
       }
     });
   }
@@ -335,16 +297,20 @@ export class NoteArea {
     this.state.createNote('Untitled note');
   }
 
+  protected onContentChanged(html: string): void {
+    this.pendingContent = html;
+  }
+
   protected saveNote(): void {
     const note = this.state.selectedNote();
     if (!note) return;
 
     const title = this.editedTitle().trim();
-    const editorEl = this.editorRef()?.nativeElement;
-    const content = editorEl ? editorEl.innerHTML : '';
+    const editor = this.tiptapEditor();
+    const content = this.pendingContent ?? editor?.getHTML() ?? '';
 
-    // Treat <br> only or empty as empty content
-    const normalizedContent = content === '<br>' ? '' : content;
+    // Treat empty paragraph as empty content
+    const normalizedContent = content === '<p></p>' ? '' : content;
 
     if (title === note.title && normalizedContent === note.content) return;
 
@@ -380,429 +346,5 @@ export class NoteArea {
       return;
     }
     this.state.selectNote(id);
-  }
-
-  // ── Slash command logic ──────────────────────────────────────
-
-  protected onEditorKeydown(event: KeyboardEvent): void {
-    if (this.slashMenuOpen()) {
-      const menu = this.slashMenu();
-      if (event.key === 'ArrowDown') {
-        event.preventDefault();
-        menu?.moveDown();
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        menu?.moveUp();
-      } else if (event.key === 'Enter') {
-        event.preventDefault();
-        menu?.selectCurrent();
-      } else if (event.key === 'Escape') {
-        event.preventDefault();
-        this.closeSlashMenu();
-      }
-      return;
-    }
-
-    // Handle Enter inside a todo-list item
-    if (event.key === 'Enter') {
-      const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const todoLi = this.findParentTodoLi(sel.getRangeAt(0).startContainer);
-        if (todoLi) {
-          event.preventDefault();
-          this.handleTodoEnter(todoLi);
-          return;
-        }
-      }
-    }
-
-    if (event.key === '/') {
-      // Let the character be typed, then capture position on next tick
-      setTimeout(() => this.openSlashMenu(), 0);
-    }
-  }
-
-  protected onEditorInput(): void {
-    if (!this.slashMenuOpen() || !this.slashAnchorRange) return;
-
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) {
-      this.closeSlashMenu();
-      return;
-    }
-
-    const currentRange = sel.getRangeAt(0);
-
-    // Check that cursor is still in the same text node as the anchor
-    if (this.slashAnchorRange.startContainer !== currentRange.startContainer) {
-      this.closeSlashMenu();
-      return;
-    }
-
-    const textNode = this.slashAnchorRange.startContainer;
-    if (textNode.nodeType !== Node.TEXT_NODE) {
-      this.closeSlashMenu();
-      return;
-    }
-
-    const fullText = textNode.textContent ?? '';
-    const anchorOffset = this.slashAnchorRange.startOffset;
-    const cursorOffset = currentRange.startOffset;
-
-    // If user backspaced past the `/`, close the menu
-    if (cursorOffset <= anchorOffset - 1) {
-      this.closeSlashMenu();
-      return;
-    }
-
-    // Check that the `/` is still at the anchor position
-    if (fullText[anchorOffset - 1] !== '/') {
-      this.closeSlashMenu();
-      return;
-    }
-
-    // Extract the text typed after `/`
-    const query = fullText.slice(anchorOffset, cursorOffset);
-    this.slashFilter.set(query);
-  }
-
-  protected onCommandSelected(command: SlashCommand): void {
-    this.removeSlashText();
-    this.ensureBlockContext();
-    this.executeCommand(command);
-    this.closeSlashMenu();
-    this.saveNote();
-  }
-
-  protected onEditorClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (target.tagName === 'INPUT' && (target as HTMLInputElement).type === 'checkbox') {
-      const checkbox = target as HTMLInputElement;
-      const li = checkbox.closest('li');
-      if (li) {
-        li.setAttribute('data-checked', checkbox.checked ? 'true' : 'false');
-        this.saveNote();
-      }
-    }
-  }
-
-  private openSlashMenu(): void {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-
-    const range = sel.getRangeAt(0).cloneRange();
-    this.slashAnchorRange = range;
-
-    // Get caret position in viewport coordinates (menu uses position:fixed)
-    const rect = range.getBoundingClientRect();
-    const menuHeight = 340; // approx height of full command list
-    const gap = 4;
-
-    // Flip above the caret if not enough room below
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const top = spaceBelow < menuHeight + gap
-      ? rect.top - menuHeight - gap   // above
-      : rect.bottom + gap;            // below
-
-    // Clamp left position to stay within viewport on narrow screens
-    const left = Math.min(rect.left, window.innerWidth - 272);
-
-    this.slashMenuPosition.set({ top, left });
-    this.slashFilter.set('');
-    this.slashMenuOpen.set(true);
-  }
-
-  private closeSlashMenu(): void {
-    this.slashMenuOpen.set(false);
-    this.slashAnchorRange = null;
-    this.slashFilter.set('');
-  }
-
-  private removeSlashText(): void {
-    if (!this.slashAnchorRange) return;
-
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-
-    // Find the parent block BEFORE deletion so we can keep it alive
-    const parentBlock = this.findParentBlock(this.slashAnchorRange.startContainer);
-
-    const currentRange = sel.getRangeAt(0);
-    const deleteRange = document.createRange();
-
-    // Select from just before the `/` to the current cursor position
-    deleteRange.setStart(this.slashAnchorRange.startContainer, this.slashAnchorRange.startOffset - 1);
-    deleteRange.setEnd(currentRange.startContainer, currentRange.startOffset);
-    deleteRange.deleteContents();
-
-    // If the block is now empty, insert a <br> to keep it alive
-    if (parentBlock && !parentBlock.textContent && !parentBlock.querySelector('br')) {
-      parentBlock.appendChild(document.createElement('br'));
-    }
-
-    // Place cursor inside the (preserved) block
-    const newRange = document.createRange();
-    if (parentBlock && parentBlock.isConnected) {
-      newRange.setStart(parentBlock, 0);
-      newRange.collapse(true);
-    } else {
-      // Fallback: use the collapsed delete range position
-      newRange.setStart(deleteRange.startContainer, deleteRange.startOffset);
-      newRange.collapse(true);
-    }
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-  }
-
-  private findParentBlock(node: Node): HTMLElement | null {
-    const editorEl = this.editorRef()?.nativeElement as HTMLElement;
-    let current: Node | null = node;
-    while (current && current !== editorEl) {
-      if (current.nodeType === Node.ELEMENT_NODE) {
-        const tag = (current as HTMLElement).tagName.toLowerCase();
-        if (['p', 'div', 'h1', 'h2', 'h3', 'blockquote', 'li', 'pre', 'code'].includes(tag)) {
-          return current as HTMLElement;
-        }
-      }
-      current = current.parentNode;
-    }
-    return null;
-  }
-
-  private ensureBlockContext(): void {
-    const sel = window.getSelection();
-    const editorEl = this.editorRef()?.nativeElement as HTMLElement;
-    if (!sel || sel.rangeCount === 0 || !editorEl) return;
-
-    // Walk up from cursor to see if we're already inside a block element
-    let node: Node | null = sel.getRangeAt(0).startContainer;
-    while (node && node !== editorEl) {
-      if (node.nodeType === Node.ELEMENT_NODE) {
-        const tag = (node as HTMLElement).tagName.toLowerCase();
-        if (['p', 'h1', 'h2', 'h3', 'div', 'blockquote', 'li', 'pre', 'code'].includes(tag)) {
-          return; // Already in a block context
-        }
-      }
-      node = node.parentNode;
-    }
-
-    // Cursor is directly under contenteditable — collect stray children into a <p>
-    const p = document.createElement('p');
-    while (editorEl.firstChild) {
-      p.appendChild(editorEl.firstChild);
-    }
-    if (!p.hasChildNodes()) {
-      p.appendChild(document.createElement('br'));
-    }
-    editorEl.appendChild(p);
-
-    // Place cursor inside the new paragraph
-    const range = document.createRange();
-    range.selectNodeContents(p);
-    range.collapse(false);
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  private executeCommand(command: SlashCommand): void {
-    const editorEl = this.editorRef()?.nativeElement as HTMLElement;
-    if (!editorEl) return;
-    editorEl.focus();
-
-    switch (command.id) {
-      case 'text':
-        document.execCommand('formatBlock', false, 'p');
-        break;
-      case 'heading1':
-        document.execCommand('formatBlock', false, 'h1');
-        break;
-      case 'heading2':
-        document.execCommand('formatBlock', false, 'h2');
-        break;
-      case 'heading3':
-        document.execCommand('formatBlock', false, 'h3');
-        break;
-      case 'bullet-list':
-        document.execCommand('insertUnorderedList');
-        break;
-      case 'number-list':
-        document.execCommand('insertOrderedList');
-        break;
-      case 'quote':
-        document.execCommand('formatBlock', false, 'blockquote');
-        break;
-      case 'code':
-        this.insertCodeBlock();
-        break;
-      case 'divider':
-        this.insertDivider();
-        break;
-      case 'todo-list':
-        this.insertTodoList();
-        break;
-    }
-  }
-
-  private insertCodeBlock(): void {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-
-    const pre = document.createElement('pre');
-    const code = document.createElement('code');
-    code.appendChild(document.createElement('br'));
-    pre.appendChild(code);
-
-    const p = document.createElement('p');
-    p.appendChild(document.createElement('br'));
-
-    range.insertNode(p);
-    range.insertNode(pre);
-
-    // Place cursor inside the code element
-    const newRange = document.createRange();
-    newRange.setStart(code, 0);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-  }
-
-  private insertDivider(): void {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-
-    const hr = document.createElement('hr');
-    const p = document.createElement('p');
-    p.appendChild(document.createElement('br'));
-
-    range.insertNode(p);
-    range.insertNode(hr);
-
-    // Move cursor into the new paragraph after the divider
-    const newRange = document.createRange();
-    newRange.setStart(p, 0);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-  }
-
-  private insertTodoList(): void {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) return;
-
-    const range = sel.getRangeAt(0);
-    range.deleteContents();
-
-    const ul = document.createElement('ul');
-    ul.className = 'todo-list';
-
-    const li = document.createElement('li');
-    li.setAttribute('data-checked', 'false');
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.contentEditable = 'false';
-
-    const span = document.createElement('span');
-    span.appendChild(document.createElement('br'));
-
-    li.appendChild(checkbox);
-    li.appendChild(span);
-    ul.appendChild(li);
-
-    const p = document.createElement('p');
-    p.appendChild(document.createElement('br'));
-
-    range.insertNode(p);
-    range.insertNode(ul);
-
-    // Place cursor inside the span
-    const newRange = document.createRange();
-    newRange.setStart(span, 0);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-  }
-
-  private findParentTodoLi(node: Node): HTMLElement | null {
-    const editorEl = this.editorRef()?.nativeElement as HTMLElement;
-    let current: Node | null = node;
-    while (current && current !== editorEl) {
-      if (current.nodeType === Node.ELEMENT_NODE) {
-        const el = current as HTMLElement;
-        if (el.tagName === 'LI' && el.closest('ul.todo-list')) {
-          return el;
-        }
-      }
-      current = current.parentNode;
-    }
-    return null;
-  }
-
-  private handleTodoEnter(li: HTMLElement): void {
-    const span = li.querySelector(':scope > span');
-    const text = span?.textContent ?? '';
-
-    // If empty item, break out of the list into a paragraph
-    if (!text.trim()) {
-      const ul = li.closest('ul.todo-list');
-      if (!ul) return;
-
-      li.remove();
-
-      // If list is now empty, remove it
-      const listEmpty = ul.children.length === 0;
-
-      const p = document.createElement('p');
-      p.appendChild(document.createElement('br'));
-
-      if (listEmpty) {
-        ul.parentNode?.replaceChild(p, ul);
-      } else {
-        ul.parentNode?.insertBefore(p, ul.nextSibling);
-      }
-
-      const sel = window.getSelection();
-      if (sel) {
-        const newRange = document.createRange();
-        newRange.setStart(p, 0);
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-      }
-      this.saveNote();
-      return;
-    }
-
-    // Create a new todo item after the current one
-    const newLi = document.createElement('li');
-    newLi.setAttribute('data-checked', 'false');
-
-    const newCheckbox = document.createElement('input');
-    newCheckbox.type = 'checkbox';
-    newCheckbox.contentEditable = 'false';
-
-    const newSpan = document.createElement('span');
-    newSpan.appendChild(document.createElement('br'));
-
-    newLi.appendChild(newCheckbox);
-    newLi.appendChild(newSpan);
-
-    li.parentNode?.insertBefore(newLi, li.nextSibling);
-
-    // Place cursor in the new span
-    const sel = window.getSelection();
-    if (sel) {
-      const newRange = document.createRange();
-      newRange.setStart(newSpan, 0);
-      newRange.collapse(true);
-      sel.removeAllRanges();
-      sel.addRange(newRange);
-    }
   }
 }
