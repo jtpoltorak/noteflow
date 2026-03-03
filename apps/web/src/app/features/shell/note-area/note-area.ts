@@ -1,16 +1,17 @@
 import { Component, computed, inject, signal, effect, input, output, viewChild } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { TiptapEditor } from './tiptap-editor/tiptap-editor';
+import { PresentationView } from './presentation-view';
 import type { NoteDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -185,8 +186,15 @@ import type { NoteDto } from '@noteflow/shared-types';
                 />
                 <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
                 <button
-                  (click)="toggleFullscreen.emit()"
+                  (click)="presentationOpen.set(true)"
                   class="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Present"
+                >
+                  <fa-icon [icon]="faDesktop" size="sm" />
+                </button>
+                <button
+                  (click)="toggleFullscreen.emit()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
                 >
                   <fa-icon [icon]="fullscreen() ? faCompress : faExpand" size="sm" />
@@ -224,6 +232,15 @@ import type { NoteDto } from '@noteflow/shared-types';
         </div>
       }
     }
+
+    <!-- ── Presentation mode overlay ──────────────────────────── -->
+    @if (presentationOpen() && state.selectedNote()) {
+      <app-presentation-view
+        [title]="state.selectedNote()!.title"
+        [content]="currentEditorHtml()"
+        (closed)="presentationOpen.set(false)"
+      />
+    }
   `,
 })
 export class NoteArea {
@@ -245,7 +262,9 @@ export class NoteArea {
   protected faChevronRight = faChevronRight;
   protected faExpand = faExpand;
   protected faCompress = faCompress;
+  protected faDesktop = faDesktop;
 
+  protected presentationOpen = signal(false);
   protected editedTitle = signal('');
   protected deleting = signal(false);
 
@@ -267,6 +286,12 @@ export class NoteArea {
 
   // Track which note the local editor fields belong to
   private syncedNoteId: number | null = null;
+
+  protected currentEditorHtml = computed(() => {
+    const editor = this.tiptapEditor();
+    if (editor) return editor.getHTML();
+    return this.state.selectedNote()?.content ?? '';
+  });
 
   constructor() {
     // Sync local editor state when selected note changes

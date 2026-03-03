@@ -322,6 +322,66 @@ html.dark {
   background: rgba(59, 130, 246, 0.2); /* blue-500 at 20% */
 }
 
+/* ── Presentation Mode ───────────────────────────────────────── */
+.noteflow-editor.presentation-mode {
+  font-size: 1.5rem;
+  line-height: 1.8;
+}
+
+.noteflow-editor.presentation-mode h1 {
+  font-size: 3rem;
+  margin: 1rem 0 0.75rem;
+}
+
+.noteflow-editor.presentation-mode h2 {
+  font-size: 2.25rem;
+  margin: 0.875rem 0 0.5rem;
+}
+
+.noteflow-editor.presentation-mode h3 {
+  font-size: 1.875rem;
+  margin: 0.75rem 0 0.375rem;
+}
+
+.noteflow-editor.presentation-mode p {
+  margin-bottom: 0.75rem;
+}
+
+.noteflow-editor.presentation-mode ul,
+.noteflow-editor.presentation-mode ol {
+  padding-left: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.noteflow-editor.presentation-mode li {
+  margin-bottom: 0.25rem;
+}
+
+.noteflow-editor.presentation-mode pre {
+  font-size: 1.125rem;
+  padding: 1rem 1.25rem;
+  margin: 0.75rem 0;
+}
+
+.noteflow-editor.presentation-mode code {
+  font-size: 0.9em;
+}
+
+.noteflow-editor.presentation-mode blockquote {
+  padding: 0.75rem 1.25rem;
+  margin: 0.75rem 0;
+  font-size: 1.5rem;
+}
+
+.noteflow-editor.presentation-mode hr {
+  margin: 1.5rem 0;
+}
+
+.noteflow-editor.presentation-mode th,
+.noteflow-editor.presentation-mode td {
+  padding: 0.5rem 0.875rem;
+}
+
 /* ── Bubble menu ──────────────────────────────────────────────── */
 .bubble-menu button {
   transition: background-color 0.15s ease;
