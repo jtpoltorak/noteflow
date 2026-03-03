@@ -285,8 +285,9 @@ export class NoteArea {
   // Track latest content from TipTap (for saving)
   private pendingContent: string | null = null;
 
-  // Track which note the local editor fields belong to
+  // Track which note & editor instance have been synced
   private syncedNoteId: number | null = null;
+  private syncedEditorRef: TiptapEditor | undefined = undefined;
 
   protected openPresentation(): void {
     const editor = this.tiptapEditor();
@@ -295,20 +296,34 @@ export class NoteArea {
   }
 
   constructor() {
-    // Sync local editor state when selected note changes
+    // Sync local editor state when the selected note OR editor instance changes.
+    // The editor instance changes when toggling between mobile/desktop viewport
+    // because each mode has its own <app-tiptap-editor> in a separate @if branch.
     effect(() => {
       const note = this.state.selectedNote();
       const editor = this.tiptapEditor();
-      if (note && note.id !== this.syncedNoteId) {
-        this.editedTitle.set(note.title);
-        this.deleting.set(false);
+      const editorChanged = editor !== this.syncedEditorRef;
+
+      if (note && (note.id !== this.syncedNoteId || (editorChanged && editor))) {
+        // Editor swapped for the same note (viewport switch) — preserve pending edits
+        const contentForEditor = (editorChanged && note.id === this.syncedNoteId && this.pendingContent !== null)
+          ? this.pendingContent
+          : note.content;
+
+        if (note.id !== this.syncedNoteId) {
+          this.editedTitle.set(note.title);
+          this.deleting.set(false);
+        }
+
         this.pendingContent = null;
         if (editor) {
-          editor.setContent(note.content);
+          editor.setContent(contentForEditor);
           this.syncedNoteId = note.id;
+          this.syncedEditorRef = editor;
         }
       } else if (!note) {
         this.syncedNoteId = null;
+        this.syncedEditorRef = undefined;
         this.editedTitle.set('');
         this.pendingContent = null;
         if (editor) {
