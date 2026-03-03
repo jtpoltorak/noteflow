@@ -176,6 +176,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 export class TiptapEditor implements OnDestroy {
   content = input('');
   contentChanged = output<string>();
+  contentUpdated = output<string>();
   blurred = output<void>();
 
   editor!: Editor;
@@ -222,9 +223,11 @@ export class TiptapEditor implements OnDestroy {
       ],
       content: '',
       onUpdate: ({ editor }) => {
+        const html = editor.getHTML();
+        this.contentUpdated.emit(html);
         if (this.debounceTimer) clearTimeout(this.debounceTimer);
         this.debounceTimer = setTimeout(() => {
-          this.contentChanged.emit(editor.getHTML());
+          this.contentChanged.emit(html);
         }, 300);
       },
       onBlur: () => {

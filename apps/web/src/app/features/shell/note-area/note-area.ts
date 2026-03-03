@@ -92,6 +92,7 @@ import type { NoteDto } from '@noteflow/shared-types';
 
           <app-tiptap-editor
             #tiptapEditor
+            (contentUpdated)="pendingContent = $event"
             (contentChanged)="onContentChanged($event)"
             (blurred)="saveNote()"
           />
@@ -283,7 +284,7 @@ export class NoteArea {
   private tiptapEditor = viewChild<TiptapEditor>('tiptapEditor');
 
   // Track latest content from TipTap (for saving)
-  private pendingContent: string | null = null;
+  protected pendingContent: string | null = null;
 
   // Track which note & editor instance have been synced
   private syncedNoteId: number | null = null;
