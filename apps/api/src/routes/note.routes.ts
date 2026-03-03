@@ -20,6 +20,7 @@ const updateSchema = z.object({
   title: z.string().min(1).max(75).optional(),
   content: z.string().optional(),
   order: z.number().int().min(0).optional(),
+  sectionId: z.number().int().positive().optional(),
 });
 
 // GET /sections/:sectionId/notes

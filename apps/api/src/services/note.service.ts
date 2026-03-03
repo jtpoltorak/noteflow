@@ -76,7 +76,7 @@ export function createNote(
 export function updateNote(
   id: number,
   userId: number,
-  updates: { title?: string; content?: string; order?: number }
+  updates: { title?: string; content?: string; order?: number; sectionId?: number }
 ): NoteDto {
   const existing = getNoteById(id, userId); // verifies ownership
 
@@ -84,15 +84,27 @@ export function updateNote(
   const now = new Date().toISOString();
   const title = updates.title ?? existing.title;
   const content = updates.content ?? existing.content;
-  const order = updates.order ?? existing.order;
+  let order = updates.order ?? existing.order;
+  let sectionId = existing.sectionId;
+
+  // Moving to a different section
+  if (updates.sectionId && updates.sectionId !== existing.sectionId) {
+    getSectionById(updates.sectionId, userId); // verify ownership of target section
+    sectionId = updates.sectionId;
+    const maxResult = db.exec(
+      'SELECT COALESCE(MAX("order"), -1) FROM Note WHERE sectionId = ?',
+      [sectionId]
+    );
+    order = (maxResult[0].values[0][0] as number) + 1;
+  }
 
   db.run(
-    'UPDATE Note SET title = ?, content = ?, "order" = ?, updatedAt = ? WHERE id = ?',
-    [title, content, order, now, id]
+    'UPDATE Note SET sectionId = ?, title = ?, content = ?, "order" = ?, updatedAt = ? WHERE id = ?',
+    [sectionId, title, content, order, now, id]
   );
   saveDb();
 
-  return { ...existing, title, content, order, updatedAt: now };
+  return { ...existing, sectionId, title, content, order, updatedAt: now };
 }
 
 export function deleteNote(id: number, userId: number): void {

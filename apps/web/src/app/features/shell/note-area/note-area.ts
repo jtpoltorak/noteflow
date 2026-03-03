@@ -1,17 +1,18 @@
 import { Component, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { TiptapEditor } from './tiptap-editor/tiptap-editor';
 import { PresentationView } from './presentation-view';
+import { MoveNoteDialog } from './move-note-dialog';
 import type { NoteDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -77,6 +78,13 @@ import type { NoteDto } from '@noteflow/shared-types';
               title="Duplicate note"
             >
               <fa-icon [icon]="faCopy" size="sm" />
+            </button>
+            <button
+              (click)="moving.set(true)"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Move note"
+            >
+              <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
             </button>
             <button
               (click)="startDeleting()"
@@ -208,6 +216,13 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faCopy" size="sm" />
                 </button>
                 <button
+                  (click)="moving.set(true)"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Move note"
+                >
+                  <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
+                </button>
+                <button
                   (click)="toggleFullscreen.emit()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
@@ -248,6 +263,15 @@ import type { NoteDto } from '@noteflow/shared-types';
       }
     }
 
+    <!-- ── Move note dialog ──────────────────────────────────── -->
+    @if (moving() && state.selectedNote()) {
+      <app-move-note-dialog
+        [currentSectionId]="state.selectedNote()!.sectionId"
+        (moved)="onMoved($event)"
+        (cancelled)="moving.set(false)"
+      />
+    }
+
     <!-- ── Presentation mode overlay ──────────────────────────── -->
     @if (presentationOpen() && state.selectedNote()) {
       <app-presentation-view
@@ -279,7 +303,9 @@ export class NoteArea {
   protected faCompress = faCompress;
   protected faDesktop = faDesktop;
   protected faCopy = faCopy;
+  protected faArrowRightArrowLeft = faArrowRightArrowLeft;
 
+  protected moving = signal(false);
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
   protected editedTitle = signal('');
@@ -375,6 +401,15 @@ export class NoteArea {
       title: title || note.title,
       content: normalizedContent,
     });
+  }
+
+  protected onMoved(targetSectionId: number): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.moveNote(note.id, targetSectionId);
+    }
+    this.moving.set(false);
   }
 
   protected copyNote(): void {

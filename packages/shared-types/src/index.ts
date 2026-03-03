@@ -37,6 +37,7 @@ export interface UpdateNoteDto {
   title?: string;
   content?: string;
   order?: number;
+  sectionId?: number;
 }
 
 export interface UpdatePreferencesDto {

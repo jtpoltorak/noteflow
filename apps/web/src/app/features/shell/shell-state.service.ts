@@ -200,6 +200,15 @@ export class ShellStateService {
     });
   }
 
+  moveNote(noteId: number, targetSectionId: number): void {
+    this.noteSvc.update(noteId, { sectionId: targetSectionId }).subscribe(() => {
+      this.notes.update((list) => list.filter((n) => n.id !== noteId));
+      if (this.selectedNoteId() === noteId) {
+        this.selectedNoteId.set(null);
+      }
+    });
+  }
+
   deleteNote(id: number): void {
     this.noteSvc.delete(id).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== id));

@@ -27,7 +27,7 @@ export class NoteService {
       .pipe(map((r) => r.data));
   }
 
-  update(id: number, updates: { title?: string; content?: string; order?: number }): Observable<NoteDto> {
+  update(id: number, updates: { title?: string; content?: string; order?: number; sectionId?: number }): Observable<NoteDto> {
     return this.http
       .put<ApiSuccessResponse<NoteDto>>(`${this.api}/notes/${id}`, updates)
       .pipe(map((r) => r.data));
