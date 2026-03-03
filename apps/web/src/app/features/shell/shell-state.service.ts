@@ -189,6 +189,17 @@ export class ShellStateService {
     });
   }
 
+  duplicateNote(id: number): void {
+    const note = this.notes().find((n) => n.id === id);
+    if (!note) return;
+    const secId = note.sectionId;
+    const title = `Copy of ${note.title}`;
+    this.noteSvc.create(secId, title, note.content).subscribe((copy) => {
+      this.notes.update((list) => [...list, copy]);
+      this.selectNote(copy.id);
+    });
+  }
+
   deleteNote(id: number): void {
     this.noteSvc.delete(id).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== id));

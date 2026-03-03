@@ -1,7 +1,7 @@
 import { Component, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -72,8 +72,15 @@ import type { NoteDto } from '@noteflow/shared-types';
               placeholder="Note title"
             />
             <button
+              (click)="copyNote()"
+              class="ml-2 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Duplicate note"
+            >
+              <fa-icon [icon]="faCopy" size="sm" />
+            </button>
+            <button
               (click)="startDeleting()"
-              class="ml-2 shrink-0 rounded p-1 text-gray-400 hover:text-red-600"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:text-red-600"
               title="Delete note"
             >
               <fa-icon [icon]="faTrash" size="sm" />
@@ -194,6 +201,13 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faDesktop" size="sm" />
                 </button>
                 <button
+                  (click)="copyNote()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Duplicate note"
+                >
+                  <fa-icon [icon]="faCopy" size="sm" />
+                </button>
+                <button
                   (click)="toggleFullscreen.emit()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   [title]="fullscreen() ? 'Exit full screen' : 'Full screen'"
@@ -264,6 +278,7 @@ export class NoteArea {
   protected faExpand = faExpand;
   protected faCompress = faCompress;
   protected faDesktop = faDesktop;
+  protected faCopy = faCopy;
 
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
@@ -360,6 +375,14 @@ export class NoteArea {
       title: title || note.title,
       content: normalizedContent,
     });
+  }
+
+  protected copyNote(): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.duplicateNote(note.id);
+    }
   }
 
   protected startDeleting(): void {
