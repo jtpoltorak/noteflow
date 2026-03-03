@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, effect, input, output, viewChild } from '@angular/core';
+import { Component, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop } from '@fortawesome/free-solid-svg-icons';
@@ -186,7 +186,7 @@ import type { NoteDto } from '@noteflow/shared-types';
                 />
                 <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
                 <button
-                  (click)="presentationOpen.set(true)"
+                  (click)="openPresentation()"
                   class="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Present"
                 >
@@ -237,7 +237,7 @@ import type { NoteDto } from '@noteflow/shared-types';
     @if (presentationOpen() && state.selectedNote()) {
       <app-presentation-view
         [title]="state.selectedNote()!.title"
-        [content]="currentEditorHtml()"
+        [content]="presentationContent()"
         (closed)="presentationOpen.set(false)"
       />
     }
@@ -265,6 +265,7 @@ export class NoteArea {
   protected faDesktop = faDesktop;
 
   protected presentationOpen = signal(false);
+  protected presentationContent = signal('');
   protected editedTitle = signal('');
   protected deleting = signal(false);
 
@@ -287,11 +288,11 @@ export class NoteArea {
   // Track which note the local editor fields belong to
   private syncedNoteId: number | null = null;
 
-  protected currentEditorHtml = computed(() => {
+  protected openPresentation(): void {
     const editor = this.tiptapEditor();
-    if (editor) return editor.getHTML();
-    return this.state.selectedNote()?.content ?? '';
-  });
+    this.presentationContent.set(editor ? editor.getHTML() : this.state.selectedNote()?.content ?? '');
+    this.presentationOpen.set(true);
+  }
 
   constructor() {
     // Sync local editor state when selected note changes
