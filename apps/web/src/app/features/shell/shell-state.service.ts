@@ -174,10 +174,10 @@ export class ShellStateService {
 
   // ── Note CRUD ─────────────────────────────────────────────────
 
-  createNote(title: string): void {
+  createNote(title: string, content?: string): void {
     const secId = this.selectedSectionId();
     if (!secId) return;
-    this.noteSvc.create(secId, title).subscribe((note) => {
+    this.noteSvc.create(secId, title, content).subscribe((note) => {
       this.notes.update((list) => [...list, note]);
       this.selectNote(note.id);
     });

@@ -1,7 +1,7 @@
-import { Component, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
+import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -9,6 +9,7 @@ import { TiptapEditor } from './tiptap-editor/tiptap-editor';
 import { PresentationView } from './presentation-view';
 import { MoveNoteDialog } from './move-note-dialog';
 import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
+import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import type { NoteDto } from '@noteflow/shared-types';
 
 @Component({
@@ -22,6 +23,13 @@ import type { NoteDto } from '@noteflow/shared-types';
         <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
           <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
           <div class="flex items-center gap-1">
+            <button
+              (click)="importNote()"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Import Markdown"
+            >
+              <fa-icon [icon]="faFileImport" size="sm" />
+            </button>
             <button
               (click)="createNote()"
               class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
@@ -160,6 +168,13 @@ import type { NoteDto } from '@noteflow/shared-types';
                       <fa-icon [icon]="faChevronLeft" size="xs" />
                     </button>
                     <button
+                      (click)="importNote()"
+                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                      title="Import Markdown"
+                    >
+                      <fa-icon [icon]="faFileImport" size="sm" />
+                    </button>
+                    <button
                       (click)="createNote()"
                       class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                       title="New note"
@@ -295,6 +310,15 @@ import type { NoteDto } from '@noteflow/shared-types';
         (closed)="presentationOpen.set(false)"
       />
     }
+
+    <!-- Hidden file input for markdown import -->
+    <input
+      #fileInput
+      type="file"
+      accept=".md,.markdown,.txt"
+      class="hidden"
+      (change)="onFileSelected($event)"
+    />
   `,
 })
 export class NoteArea {
@@ -320,6 +344,7 @@ export class NoteArea {
   protected faCopy = faCopy;
   protected faArrowRightArrowLeft = faArrowRightArrowLeft;
   protected faDownload = faDownload;
+  protected faFileImport = faFileImport;
 
   protected moving = signal(false);
   protected presentationOpen = signal(false);
@@ -339,6 +364,7 @@ export class NoteArea {
 
   // TipTap editor ref
   private tiptapEditor = viewChild<TiptapEditor>('tiptapEditor');
+  private fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   // Track latest content from TipTap (for saving)
   protected pendingContent: string | null = null;
@@ -443,6 +469,22 @@ export class NoteArea {
     const editor = this.tiptapEditor();
     const content = editor ? editor.getHTML() : note.content;
     exportNoteAsMarkdown(note.title, content);
+  }
+
+  protected importNote(): void {
+    this.fileInput()?.nativeElement.click();
+  }
+
+  protected async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const { title, html } = await parseMarkdownFile(file);
+    this.state.createNote(title, html);
+
+    // Reset so the same file can be re-imported
+    input.value = '';
   }
 
   protected startDeleting(): void {
