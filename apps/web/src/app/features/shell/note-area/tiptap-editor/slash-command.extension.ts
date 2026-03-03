@@ -45,6 +45,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'quote', label: 'Quote', description: 'Block quote' },
   { id: 'code', label: 'Code Block', description: 'Code snippet' },
   { id: 'divider', label: 'Divider', description: 'Horizontal rule' },
+  { id: 'table', label: 'Table', description: 'Insert a table' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -80,6 +81,9 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
       break;
     case 'divider':
       editor.chain().focus().setHorizontalRule().run();
+      break;
+    case 'table':
+      editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
       break;
   }
 }

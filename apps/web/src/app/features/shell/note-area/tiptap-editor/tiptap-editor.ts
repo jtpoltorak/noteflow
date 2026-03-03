@@ -13,11 +13,16 @@ import Underline from '@tiptap/extension-underline';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { SlashCommandExtension } from './slash-command.extension';
 import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProps } from './slash-command.extension';
 import { SlashCommandMenu } from '../slash-command-menu';
 import type { SlashCommand } from '../slash-command-menu';
+import { TableToolbar } from '../table-toolbar';
 
 /**
  * Transforms old contenteditable todo HTML to TipTap's task list format.
@@ -70,7 +75,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
 @Component({
   selector: 'app-tiptap-editor',
-  imports: [TiptapEditorDirective, SlashCommandMenu],
+  imports: [TiptapEditorDirective, SlashCommandMenu, TableToolbar],
   host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <div
@@ -153,6 +158,19 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
         (dismissed)="closeSlashMenu()"
       />
     }
+
+    <!-- Table toolbar (appears when cursor is inside a table) -->
+    @if (tableToolbarVisible()) {
+      <app-table-toolbar
+        [position]="tableToolbarPosition()"
+        (addRow)="editor.chain().focus().addRowAfter().run()"
+        (deleteRow)="editor.chain().focus().deleteRow().run()"
+        (addColumn)="editor.chain().focus().addColumnAfter().run()"
+        (deleteColumn)="editor.chain().focus().deleteColumn().run()"
+        (toggleHeader)="editor.chain().focus().toggleHeaderRow().run()"
+        (deleteTable)="editor.chain().focus().deleteTable().run()"
+      />
+    }
   `,
 })
 export class TiptapEditor implements OnDestroy {
@@ -165,6 +183,10 @@ export class TiptapEditor implements OnDestroy {
   // Bubble menu state
   protected bubbleMenuVisible = signal(false);
   protected bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  // Table toolbar state
+  protected tableToolbarVisible = signal(false);
+  protected tableToolbarPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
 
   // Slash menu state
   protected slashMenuOpen = signal(false);
@@ -184,6 +206,10 @@ export class TiptapEditor implements OnDestroy {
         Underline,
         TaskList,
         TaskItem.configure({ nested: false }),
+        Table.configure({ resizable: false }),
+        TableRow,
+        TableCell,
+        TableHeader,
         Placeholder.configure({
           placeholder: ({ node, pos }) => {
             if (pos === 0) return "Start typing, or press '/' for commands\u2026";
@@ -204,9 +230,11 @@ export class TiptapEditor implements OnDestroy {
       onBlur: () => {
         this.blurred.emit();
         this.hideBubbleMenu();
+        this.tableToolbarVisible.set(false);
       },
       onSelectionUpdate: ({ editor }) => {
         this.updateBubbleMenu(editor);
+        this.updateTableToolbar(editor);
       },
     });
 
@@ -310,6 +338,44 @@ export class TiptapEditor implements OnDestroy {
 
   private hideBubbleMenu(): void {
     this.bubbleMenuVisible.set(false);
+  }
+
+  // ── Table toolbar ─────────────────────────────────────────────
+
+  private updateTableToolbar(editor: Editor): void {
+    if (!editor.isActive('table')) {
+      this.tableToolbarVisible.set(false);
+      return;
+    }
+
+    // Find the table DOM element closest to the current selection
+    const { $from } = editor.state.selection;
+    let depth = $from.depth;
+    while (depth > 0 && $from.node(depth).type.name !== 'table') {
+      depth--;
+    }
+    if (depth === 0) {
+      this.tableToolbarVisible.set(false);
+      return;
+    }
+
+    const tableStart = $from.start(depth) - 1;
+    const domNode = editor.view.nodeDOM(tableStart);
+    if (!(domNode instanceof HTMLElement)) {
+      this.tableToolbarVisible.set(false);
+      return;
+    }
+
+    const tableRect = domNode.getBoundingClientRect();
+    const toolbarWidth = 380;
+    const left = Math.max(8, Math.min(
+      tableRect.left + tableRect.width / 2 - toolbarWidth / 2,
+      window.innerWidth - toolbarWidth - 8,
+    ));
+    const top = tableRect.top - 36;
+
+    this.tableToolbarPosition.set({ top, left });
+    this.tableToolbarVisible.set(true);
   }
 
   // ── Slash menu ───────────────────────────────────────────────
