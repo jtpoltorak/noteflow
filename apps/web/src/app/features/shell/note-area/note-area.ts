@@ -73,18 +73,18 @@ import type { NoteDto } from '@noteflow/shared-types';
               placeholder="Note title"
             />
             <button
-              (click)="copyNote()"
-              class="ml-2 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              title="Duplicate note"
-            >
-              <fa-icon [icon]="faCopy" size="sm" />
-            </button>
-            <button
               (click)="moving.set(true)"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="ml-2 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
             >
               <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
+            </button>
+            <button
+              (click)="copyNote()"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Duplicate note"
+            >
+              <fa-icon [icon]="faCopy" size="sm" />
             </button>
             <button
               (click)="startDeleting()"
@@ -216,18 +216,18 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="fullscreen() ? faCompress : faExpand" size="sm" />
                 </button>
                 <button
-                  (click)="copyNote()"
-                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                  title="Duplicate note"
-                >
-                  <fa-icon [icon]="faCopy" size="sm" />
-                </button>
-                <button
                   (click)="moving.set(true)"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Move note"
                 >
                   <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
+                </button>
+                <button
+                  (click)="copyNote()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Duplicate note"
+                >
+                  <fa-icon [icon]="faCopy" size="sm" />
                 </button>
                 <button
                   (click)="startDeleting()"
