@@ -7,6 +7,9 @@ import {
   createNote,
   updateNote,
   deleteNote,
+  archiveNote,
+  unarchiveNote,
+  getArchivedNotes,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -37,6 +40,33 @@ router.post(
     const { title, content } = req.body as z.infer<typeof createSchema>;
     const note = createNote(Number(req.params.sectionId), req.user!.id, title, content);
     res.status(201).json({ data: note });
+  }
+);
+
+// GET /notes/archived
+router.get("/notes/archived", (req: Request, res: Response) => {
+  const notes = getArchivedNotes(req.user!.id);
+  res.json({ data: notes });
+});
+
+// POST /notes/:id/archive
+router.post("/notes/:id/archive", (req: Request, res: Response) => {
+  archiveNote(Number(req.params.id), req.user!.id);
+  res.json({ data: null, message: "Note archived" });
+});
+
+const unarchiveSchema = z.object({
+  sectionId: z.number().int().positive(),
+});
+
+// POST /notes/:id/unarchive
+router.post(
+  "/notes/:id/unarchive",
+  validate(unarchiveSchema),
+  (req: Request, res: Response) => {
+    const { sectionId } = req.body as z.infer<typeof unarchiveSchema>;
+    unarchiveNote(Number(req.params.id), req.user!.id, sectionId);
+    res.json({ data: null, message: "Note restored" });
   }
 );
 

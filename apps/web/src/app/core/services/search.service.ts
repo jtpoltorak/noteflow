@@ -9,8 +9,11 @@ export class SearchService {
   private http = inject(HttpClient);
   private api = environment.apiUrl;
 
-  search(query: string): Observable<SearchResultDto[]> {
-    const params = new HttpParams().set('q', query);
+  search(query: string, includeArchived: boolean = false): Observable<SearchResultDto[]> {
+    let params = new HttpParams().set('q', query);
+    if (includeArchived) {
+      params = params.set('includeArchived', 'true');
+    }
     return this.http
       .get<ApiSuccessResponse<SearchResultDto[]>>(`${this.api}/search`, { params })
       .pipe(map((r) => r.data));

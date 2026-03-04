@@ -10,7 +10,7 @@ import { Component, input, output } from '@angular/core';
           (click)="confirmed.emit()"
           class="rounded bg-red-600 px-3 py-1 text-xs font-medium text-white hover:bg-red-700"
         >
-          Delete
+          {{ confirmLabel() }}
         </button>
         <button
           (click)="cancelled.emit()"
@@ -24,6 +24,7 @@ import { Component, input, output } from '@angular/core';
 })
 export class ConfirmDialog {
   message = input('Are you sure you want to delete this?');
+  confirmLabel = input('Delete');
   confirmed = output();
   cancelled = output();
 }

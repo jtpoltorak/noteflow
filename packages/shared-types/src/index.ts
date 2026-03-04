@@ -75,8 +75,24 @@ export interface NoteDto {
   title: string;
   content: string;
   order: number;
+  archivedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ArchivedNoteDto {
+  id: number;
+  title: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  archivedAt: string;
+  updatedAt: string;
+}
+
+export interface UnarchiveNoteDto {
+  sectionId: number;
 }
 
 export interface SearchResultDto {
@@ -87,6 +103,7 @@ export interface SearchResultDto {
   notebookId: number;
   notebookTitle: string;
   snippet: string;
+  archivedAt: string | null;
   updatedAt: string;
 }
 

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -14,13 +14,14 @@ import { HelpPanel } from './help-panel/help-panel';
 import { Modal } from '../../shared/modal/modal';
 import { NavRail, type ShellMode } from './nav-rail/nav-rail';
 import { SearchPanel } from './search-panel/search-panel';
+import { ArchivePanel } from './archive-panel/archive-panel';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
-export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search';
+export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel, Modal, NavRail, SearchPanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -85,6 +86,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <fa-icon [icon]="faMagnifyingGlass" size="sm" />
             </button>
             <button
+              (click)="toggleMobileArchive()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-blue-500]="mobilePanel() === 'archive'"
+              [class.dark:text-blue-400]="mobilePanel() === 'archive'"
+              title="Archive"
+            >
+              <fa-icon [icon]="faBoxArchive" size="sm" />
+            </button>
+            <button
               (click)="theme.toggle()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
               title="Toggle dark mode"
@@ -123,6 +133,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <!-- Search panel (replaces notebook + section panels) -->
             <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <app-search-panel (resultClicked)="onSearchResultClicked($event)" />
+            </aside>
+          } @else if (shellMode() === 'archive' && !editorFullscreen()) {
+            <!-- Archive panel -->
+            <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <app-archive-panel />
             </aside>
           } @else {
             <!-- Left panel: Notebooks -->
@@ -204,6 +219,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <app-search-panel (resultClicked)="onMobileSearchResultClicked($event)" />
               </div>
             }
+            @case ('archive') {
+              <div class="flex min-h-0 w-full flex-col bg-gray-50 dark:bg-gray-900">
+                <app-archive-panel />
+              </div>
+            }
           }
         </div>
 
@@ -249,6 +269,7 @@ export class Shell implements OnInit {
   protected faChevronLeft = faChevronLeft;
   protected faCircleQuestion = faCircleQuestion;
   protected faMagnifyingGlass = faMagnifyingGlass;
+  protected faBoxArchive = faBoxArchive;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
@@ -282,6 +303,8 @@ export class Shell implements OnInit {
         return this.state.selectedNote()?.title ?? 'Editor';
       case 'search':
         return 'Search';
+      case 'archive':
+        return 'Archive';
     }
   });
 
@@ -289,8 +312,8 @@ export class Shell implements OnInit {
     // Auto-advance mobile panel when selections change on compact viewports
     effect(() => {
       if (!this.vp.isCompact()) return;
-      // Skip auto-advance when in search mode — search handles navigation itself
-      if (this.mobilePanel() === 'search') return;
+      // Skip auto-advance when in search/archive mode — they handle navigation themselves
+      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive') return;
       if (this.cameFromSearch) return;
 
       const nbId = this.state.selectedNotebookId();
@@ -321,7 +344,7 @@ export class Shell implements OnInit {
 
   protected onModeChange(mode: ShellMode): void {
     this.shellMode.set(mode);
-    if (mode === 'notes') {
+    if (mode !== 'search') {
       this.searchPanelRef()?.clear();
     }
   }
@@ -338,6 +361,14 @@ export class Shell implements OnInit {
       this.mobilePanel.set('notebooks');
     } else {
       this.mobilePanel.set('search');
+    }
+  }
+
+  protected toggleMobileArchive(): void {
+    if (this.mobilePanel() === 'archive') {
+      this.mobilePanel.set('notebooks');
+    } else {
+      this.mobilePanel.set('archive');
     }
   }
 
@@ -375,6 +406,9 @@ export class Shell implements OnInit {
         this.mobilePanel.set('notebooks');
         break;
       case 'search':
+        this.mobilePanel.set('notebooks');
+        break;
+      case 'archive':
         this.mobilePanel.set('notebooks');
         break;
     }

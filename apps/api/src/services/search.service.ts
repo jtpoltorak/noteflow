@@ -20,19 +20,22 @@ function buildSnippet(text: string, query: string): string {
   return snippet;
 }
 
-export function searchNotes(userId: number, query: string): SearchResultDto[] {
+export function searchNotes(userId: number, query: string, includeArchived: boolean = false): SearchResultDto[] {
   const db = getDb();
   const likePattern = `%${query}%`;
+
+  const archiveFilter = includeArchived ? "" : "AND n.archivedAt IS NULL";
 
   const result = db.exec(
     `SELECT n.id, n.title, n.content, n.sectionId, n.updatedAt,
             s.title AS sectionTitle, s.notebookId,
-            nb.title AS notebookTitle
+            nb.title AS notebookTitle, n.archivedAt
      FROM Note n
      JOIN Section s ON s.id = n.sectionId
      JOIN Notebook nb ON nb.id = s.notebookId
      WHERE nb.userId = ?
        AND (n.title LIKE ? OR n.content LIKE ?)
+       ${archiveFilter}
      ORDER BY n.updatedAt DESC
      LIMIT 50`,
     [userId, likePattern, likePattern]
@@ -56,6 +59,7 @@ export function searchNotes(userId: number, query: string): SearchResultDto[] {
       sectionTitle: row[5] as string,
       notebookId: row[6] as number,
       notebookTitle: row[7] as string,
+      archivedAt: (row[8] as string | null) ?? null,
       snippet,
     };
   });

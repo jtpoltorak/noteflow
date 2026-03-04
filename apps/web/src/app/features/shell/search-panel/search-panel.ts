@@ -42,6 +42,19 @@ import type { SearchResultDto } from '@noteflow/shared-types';
         </div>
       </div>
 
+      <!-- Include archived toggle -->
+      <div class="border-b border-gray-200 px-3 py-1.5 dark:border-gray-700">
+        <label class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+          <input
+            type="checkbox"
+            [checked]="includeArchived()"
+            (change)="onToggleArchived($event)"
+            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+          />
+          Include archived notes
+        </label>
+      </div>
+
       <!-- Results -->
       <div class="min-h-0 flex-1 overflow-y-auto">
         @if (loading()) {
@@ -68,6 +81,9 @@ import type { SearchResultDto } from '@noteflow/shared-types';
                 >
                   <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100" [title]="r.noteTitle">
                     {{ r.noteTitle }}
+                    @if (r.archivedAt) {
+                      <span class="ml-1 rounded bg-gray-200 px-1 py-0.5 text-xs text-gray-500 dark:bg-gray-600 dark:text-gray-400">(archived)</span>
+                    }
                   </p>
                   <p class="truncate text-xs text-gray-500 dark:text-gray-400">
                     {{ r.notebookTitle }} &rsaquo; {{ r.sectionTitle }}
@@ -96,6 +112,7 @@ export class SearchPanel implements OnInit, OnDestroy {
   protected results = signal<SearchResultDto[]>([]);
   protected loading = signal(false);
   protected selectedNoteId = signal<number | null>(null);
+  protected includeArchived = signal(false);
 
   protected resultSummary = computed(() => {
     const r = this.results();
@@ -122,7 +139,7 @@ export class SearchPanel implements OnInit, OnDestroy {
             return of([]);
           }
           this.loading.set(true);
-          return this.searchSvc.search(q);
+          return this.searchSvc.search(q, this.includeArchived());
         }),
       )
       .subscribe({
@@ -150,6 +167,16 @@ export class SearchPanel implements OnInit, OnDestroy {
     this.query$.next(value);
   }
 
+  protected onToggleArchived(event: Event): void {
+    this.includeArchived.set((event.target as HTMLInputElement).checked);
+    // Re-trigger search with current query
+    const q = this.query();
+    if (q.trim()) {
+      this.loading.set(true);
+      this.query$.next(q);
+    }
+  }
+
   protected onResultClick(result: SearchResultDto): void {
     this.selectedNoteId.set(result.noteId);
     this.resultClicked.emit(result);
@@ -160,6 +187,7 @@ export class SearchPanel implements OnInit, OnDestroy {
     this.query.set('');
     this.results.set([]);
     this.selectedNoteId.set(null);
+    this.includeArchived.set(false);
     const input = this.searchInput()?.nativeElement;
     if (input) input.value = '';
   }

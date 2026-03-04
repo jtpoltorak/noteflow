@@ -209,6 +209,18 @@ export class ShellStateService {
     });
   }
 
+  archiveNote(id: number): void {
+    this.noteSvc.archive(id).subscribe({
+      next: () => {
+        this.notes.update((list) => list.filter((n) => n.id !== id));
+        if (this.selectedNoteId() === id) {
+          this.selectedNoteId.set(null);
+        }
+      },
+      error: (err) => console.error('Failed to archive note:', err),
+    });
+  }
+
   deleteNote(id: number): void {
     this.noteSvc.delete(id).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== id));

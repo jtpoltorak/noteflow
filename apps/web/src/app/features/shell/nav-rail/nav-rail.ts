@@ -1,8 +1,8 @@
 import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faMagnifyingGlass, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 
-export type ShellMode = 'notes' | 'search';
+export type ShellMode = 'notes' | 'search' | 'archive';
 
 @Component({
   selector: 'app-nav-rail',
@@ -29,6 +29,17 @@ export type ShellMode = 'notes' | 'search';
       >
         <fa-icon [icon]="faMagnifyingGlass" />
       </button>
+      <div class="flex-1"></div>
+      <button
+        (click)="modeChange.emit('archive')"
+        class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+        [class]="mode() === 'archive'
+          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+        title="Archive"
+      >
+        <fa-icon [icon]="faBoxArchive" />
+      </button>
     </nav>
   `,
 })
@@ -38,4 +49,5 @@ export class NavRail {
 
   protected faStickyNote = faStickyNote;
   protected faMagnifyingGlass = faMagnifyingGlass;
+  protected faBoxArchive = faBoxArchive;
 }

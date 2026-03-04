@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -103,6 +103,13 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faDownload" size="sm" />
             </button>
             <button
+              (click)="startArchiving()"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Archive note"
+            >
+              <fa-icon [icon]="faBoxArchive" size="sm" />
+            </button>
+            <button
               (click)="startDeleting()"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:text-red-600"
               title="Delete note"
@@ -110,6 +117,17 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
           </div>
+
+          @if (archiving()) {
+            <div class="px-4">
+              <app-confirm-dialog
+                message="Archive this note? You can restore it later from the archive."
+                confirmLabel="Archive"
+                (confirmed)="confirmArchive()"
+                (cancelled)="archiving.set(false)"
+              ></app-confirm-dialog>
+            </div>
+          }
 
           @if (deleting()) {
             <div class="px-4">
@@ -260,6 +278,13 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faDownload" size="sm" />
                 </button>
                 <button
+                  (click)="startArchiving()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Archive note"
+                >
+                  <fa-icon [icon]="faBoxArchive" size="sm" />
+                </button>
+                <button
                   (click)="startDeleting()"
                   class="ml-1 rounded p-1 text-gray-400 hover:text-red-600"
                   title="Delete note"
@@ -267,6 +292,17 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faTrash" size="sm" />
                 </button>
               </div>
+
+              @if (archiving()) {
+                <div class="px-4">
+                  <app-confirm-dialog
+                    message="Archive this note? You can restore it later from the archive."
+                    confirmLabel="Archive"
+                    (confirmed)="confirmArchive()"
+                    (cancelled)="archiving.set(false)"
+                  ></app-confirm-dialog>
+                </div>
+              }
 
               @if (deleting()) {
                 <div class="px-4">
@@ -345,8 +381,10 @@ export class NoteArea {
   protected faArrowRightArrowLeft = faArrowRightArrowLeft;
   protected faDownload = faDownload;
   protected faFileImport = faFileImport;
+  protected faBoxArchive = faBoxArchive;
 
   protected moving = signal(false);
+  protected archiving = signal(false);
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
   protected editedTitle = signal('');
@@ -485,6 +523,18 @@ export class NoteArea {
 
     // Reset so the same file can be re-imported
     input.value = '';
+  }
+
+  protected startArchiving(): void {
+    this.archiving.set(true);
+  }
+
+  protected confirmArchive(): void {
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.archiveNote(note.id);
+    }
+    this.archiving.set(false);
   }
 
   protected startDeleting(): void {
