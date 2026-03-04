@@ -209,6 +209,29 @@ export class ShellStateService {
     });
   }
 
+  favoriteNote(id: number): void {
+    this.noteSvc.favorite(id).subscribe({
+      next: () => {
+        const now = new Date().toISOString();
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, favoritedAt: now } : n))
+        );
+      },
+      error: (err) => console.error('Failed to favorite note:', err),
+    });
+  }
+
+  unfavoriteNote(id: number): void {
+    this.noteSvc.unfavorite(id).subscribe({
+      next: () => {
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, favoritedAt: null } : n))
+        );
+      },
+      error: (err) => console.error('Failed to unfavorite note:', err),
+    });
+  }
+
   archiveNote(id: number): void {
     this.noteSvc.archive(id).subscribe({
       next: () => {

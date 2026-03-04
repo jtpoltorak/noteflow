@@ -32,6 +32,16 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Favorites</h3>
+        <p class="mb-1">Mark notes as favorites for quick access:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click the star icon in the editor toolbar to favorite or unfavorite a note</li>
+          <li>Open the Favorites view from the star icon in the navigation rail</li>
+          <li>Click a favorited note to navigate directly to it</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Search</h3>
         <p>Click the magnifying-glass icon in the navigation rail to search across all of your notebooks, sections, and notes. Results show the note title, its location, and a text snippet. Click a result to open it in the editor.</p>
       </section>

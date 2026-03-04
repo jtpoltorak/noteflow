@@ -10,6 +10,9 @@ import {
   archiveNote,
   unarchiveNote,
   getArchivedNotes,
+  favoriteNote,
+  unfavoriteNote,
+  getFavoriteNotes,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -69,6 +72,24 @@ router.post(
     res.json({ data: null, message: "Note restored" });
   }
 );
+
+// GET /notes/favorites
+router.get("/notes/favorites", (req: Request, res: Response) => {
+  const notes = getFavoriteNotes(req.user!.id);
+  res.json({ data: notes });
+});
+
+// POST /notes/:id/favorite
+router.post("/notes/:id/favorite", (req: Request, res: Response) => {
+  favoriteNote(Number(req.params.id), req.user!.id);
+  res.json({ data: null, message: "Note favorited" });
+});
+
+// POST /notes/:id/unfavorite
+router.post("/notes/:id/unfavorite", (req: Request, res: Response) => {
+  unfavoriteNote(Number(req.params.id), req.user!.id);
+  res.json({ data: null, message: "Note unfavorited" });
+});
 
 // GET /notes/:id
 router.get("/notes/:id", (req: Request, res: Response) => {

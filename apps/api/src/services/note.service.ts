@@ -1,7 +1,7 @@
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
-import type { NoteDto, ArchivedNoteDto } from "@noteflow/shared-types";
+import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto } from "@noteflow/shared-types";
 
 function rowToNote(row: unknown[]): NoteDto {
   return {
@@ -11,8 +11,9 @@ function rowToNote(row: unknown[]): NoteDto {
     content: row[3] as string,
     order: row[4] as number,
     archivedAt: (row[5] as string | null) ?? null,
-    createdAt: row[6] as string,
-    updatedAt: row[7] as string,
+    favoritedAt: (row[6] as string | null) ?? null,
+    createdAt: row[7] as string,
+    updatedAt: row[8] as string,
   };
 }
 
@@ -21,7 +22,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
     [sectionId]
   );
   if (result.length === 0) return [];
@@ -31,7 +32,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 export function getNoteById(id: number, userId: number): NoteDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, createdAt, updatedAt FROM Note WHERE id = ?',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, createdAt, updatedAt FROM Note WHERE id = ?',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -71,7 +72,7 @@ export function createNote(
   const id = idResult[0].values[0][0] as number;
   saveDb();
 
-  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, createdAt: now, updatedAt: now };
+  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, createdAt: now, updatedAt: now };
 }
 
 export function updateNote(
@@ -152,6 +153,57 @@ export function unarchiveNote(id: number, userId: number, targetSectionId: numbe
     [targetSectionId, nextOrder, now, id]
   );
   saveDb();
+}
+
+export function favoriteNote(id: number, userId: number): void {
+  const note = getNoteById(id, userId);
+  if (note.favoritedAt) {
+    throw new AppError(400, "Note is already favorited", "ALREADY_FAVORITED");
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET favoritedAt = ?, updatedAt = ? WHERE id = ?", [now, now, id]);
+  saveDb();
+}
+
+export function unfavoriteNote(id: number, userId: number): void {
+  const note = getNoteById(id, userId);
+  if (!note.favoritedAt) {
+    throw new AppError(400, "Note is not favorited", "NOT_FAVORITED");
+  }
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET favoritedAt = NULL, updatedAt = ? WHERE id = ?", [now, id]);
+  saveDb();
+}
+
+export function getFavoriteNotes(userId: number): FavoriteNoteDto[] {
+  const db = getDb();
+  const result = db.exec(
+    `SELECT n.id, n.title, n.sectionId, s.title AS sectionTitle,
+            s.notebookId, nb.title AS notebookTitle, n.favoritedAt, n.updatedAt
+     FROM Note n
+     JOIN Section s ON s.id = n.sectionId
+     JOIN Notebook nb ON nb.id = s.notebookId
+     WHERE nb.userId = ? AND n.favoritedAt IS NOT NULL AND n.archivedAt IS NULL
+     ORDER BY n.favoritedAt DESC`,
+    [userId]
+  );
+
+  if (result.length === 0) return [];
+
+  return result[0].values.map((row) => ({
+    id: row[0] as number,
+    title: row[1] as string,
+    sectionId: row[2] as number,
+    sectionTitle: row[3] as string,
+    notebookId: row[4] as number,
+    notebookTitle: row[5] as string,
+    favoritedAt: row[6] as string,
+    updatedAt: row[7] as string,
+  }));
 }
 
 export function getArchivedNotes(userId: number): ArchivedNoteDto[] {

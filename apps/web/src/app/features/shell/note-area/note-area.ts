@@ -1,7 +1,8 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
@@ -82,8 +83,16 @@ import type { NoteDto } from '@noteflow/shared-types';
               placeholder="Note title"
             />
             <button
+              (click)="toggleFavorite()"
+              class="ml-2 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              [class]="state.selectedNote()?.favoritedAt ? 'text-yellow-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              [title]="state.selectedNote()?.favoritedAt ? 'Remove from favorites' : 'Add to favorites'"
+            >
+              <fa-icon [icon]="state.selectedNote()?.favoritedAt ? faStar : farStar" size="sm" />
+            </button>
+            <button
               (click)="moving.set(true)"
-              class="ml-2 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
             >
               <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
@@ -257,6 +266,14 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="fullscreen() ? faCompress : faExpand" size="sm" />
                 </button>
                 <button
+                  (click)="toggleFavorite()"
+                  class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  [class]="state.selectedNote()?.favoritedAt ? 'text-yellow-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  [title]="state.selectedNote()?.favoritedAt ? 'Remove from favorites' : 'Add to favorites'"
+                >
+                  <fa-icon [icon]="state.selectedNote()?.favoritedAt ? faStar : farStar" size="sm" />
+                </button>
+                <button
                   (click)="moving.set(true)"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Move note"
@@ -382,6 +399,8 @@ export class NoteArea {
   protected faDownload = faDownload;
   protected faFileImport = faFileImport;
   protected faBoxArchive = faBoxArchive;
+  protected faStar = faStar;
+  protected farStar = farStar;
 
   protected moving = signal(false);
   protected archiving = signal(false);
@@ -523,6 +542,16 @@ export class NoteArea {
 
     // Reset so the same file can be re-imported
     input.value = '';
+  }
+
+  protected toggleFavorite(): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    if (note.favoritedAt) {
+      this.state.unfavoriteNote(note.id);
+    } else {
+      this.state.favoriteNote(note.id);
+    }
   }
 
   protected startArchiving(): void {

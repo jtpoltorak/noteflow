@@ -76,6 +76,7 @@ export interface NoteDto {
   content: string;
   order: number;
   archivedAt: string | null;
+  favoritedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -93,6 +94,17 @@ export interface ArchivedNoteDto {
 
 export interface UnarchiveNoteDto {
   sectionId: number;
+}
+
+export interface FavoriteNoteDto {
+  id: number;
+  title: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  favoritedAt: string;
+  updatedAt: string;
 }
 
 export interface SearchResultDto {

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -15,13 +15,14 @@ import { Modal } from '../../shared/modal/modal';
 import { NavRail, type ShellMode } from './nav-rail/nav-rail';
 import { SearchPanel } from './search-panel/search-panel';
 import { ArchivePanel } from './archive-panel/archive-panel';
+import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
-export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive';
+export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -77,6 +78,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
           </div>
           <div class="flex shrink-0 items-center gap-2">
             <button
+              (click)="toggleMobileFavorites()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-blue-500]="mobilePanel() === 'favorites'"
+              [class.dark:text-blue-400]="mobilePanel() === 'favorites'"
+              title="Favorites"
+            >
+              <fa-icon [icon]="faStar" size="sm" />
+            </button>
+            <button
               (click)="toggleMobileSearch()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
               [class.text-blue-500]="mobilePanel() === 'search'"
@@ -129,7 +139,12 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <app-nav-rail [mode]="shellMode()" (modeChange)="onModeChange($event)" />
           }
 
-          @if (shellMode() === 'search' && !editorFullscreen()) {
+          @if (shellMode() === 'favorites' && !editorFullscreen()) {
+            <!-- Favorites panel -->
+            <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <app-favorites-panel (resultClicked)="onFavoriteClicked($event)" />
+            </aside>
+          } @else if (shellMode() === 'search' && !editorFullscreen()) {
             <!-- Search panel (replaces notebook + section panels) -->
             <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <app-search-panel (resultClicked)="onSearchResultClicked($event)" />
@@ -224,6 +239,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <app-archive-panel />
               </div>
             }
+            @case ('favorites') {
+              <div class="flex min-h-0 w-full flex-col bg-gray-50 dark:bg-gray-900">
+                <app-favorites-panel (resultClicked)="onMobileFavoriteClicked($event)" />
+              </div>
+            }
           }
         </div>
 
@@ -270,13 +290,14 @@ export class Shell implements OnInit {
   protected faCircleQuestion = faCircleQuestion;
   protected faMagnifyingGlass = faMagnifyingGlass;
   protected faBoxArchive = faBoxArchive;
+  protected faStar = faStar;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
   protected sectionsCollapsed = signal(false);
   protected notesCollapsed = signal(false);
   protected editorFullscreen = signal(false);
-  protected shellMode = signal<ShellMode>('notes');
+  protected shellMode = signal<ShellMode>('favorites');
 
   // Search panel ref (for clearing on mode switch)
   private searchPanelRef = viewChild(SearchPanel);
@@ -305,6 +326,8 @@ export class Shell implements OnInit {
         return 'Search';
       case 'archive':
         return 'Archive';
+      case 'favorites':
+        return 'Favorites';
     }
   });
 
@@ -312,8 +335,8 @@ export class Shell implements OnInit {
     // Auto-advance mobile panel when selections change on compact viewports
     effect(() => {
       if (!this.vp.isCompact()) return;
-      // Skip auto-advance when in search/archive mode — they handle navigation themselves
-      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive') return;
+      // Skip auto-advance when in search/archive/favorites mode — they handle navigation themselves
+      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive' || this.mobilePanel() === 'favorites') return;
       if (this.cameFromSearch) return;
 
       const nbId = this.state.selectedNotebookId();
@@ -354,6 +377,22 @@ export class Shell implements OnInit {
     this.searchPanelRef()?.setSelectedNoteId(result.noteId);
   }
 
+  // ── Desktop favorites ───────────────────────────────────────────
+
+  protected onFavoriteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
+    this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.shellMode.set('notes');
+  }
+
+  // ── Mobile favorites ──────────────────────────────────────────
+
+  protected onMobileFavoriteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
+    this.cameFromSearch = true;
+    this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.mobilePanel.set('editor');
+    setTimeout(() => (this.cameFromSearch = false));
+  }
+
   // ── Mobile search ───────────────────────────────────────────────
 
   protected toggleMobileSearch(): void {
@@ -361,6 +400,14 @@ export class Shell implements OnInit {
       this.mobilePanel.set('notebooks');
     } else {
       this.mobilePanel.set('search');
+    }
+  }
+
+  protected toggleMobileFavorites(): void {
+    if (this.mobilePanel() === 'favorites') {
+      this.mobilePanel.set('notebooks');
+    } else {
+      this.mobilePanel.set('favorites');
     }
   }
 
@@ -409,6 +456,9 @@ export class Shell implements OnInit {
         this.mobilePanel.set('notebooks');
         break;
       case 'archive':
+        this.mobilePanel.set('notebooks');
+        break;
+      case 'favorites':
         this.mobilePanel.set('notebooks');
         break;
     }
