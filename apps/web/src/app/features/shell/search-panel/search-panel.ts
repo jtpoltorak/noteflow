@@ -125,21 +125,21 @@ export class SearchPanel implements OnInit, OnDestroy {
 
   private searchSvc = inject(SearchService);
   private searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
-  private query$ = new Subject<string>();
+  private query$ = new Subject<{ q: string; includeArchived: boolean }>();
   private sub?: Subscription;
 
   ngOnInit(): void {
     this.sub = this.query$
       .pipe(
         debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((q) => {
+        distinctUntilChanged((a, b) => a.q === b.q && a.includeArchived === b.includeArchived),
+        switchMap(({ q, includeArchived }) => {
           if (!q.trim()) {
             this.loading.set(false);
             return of([]);
           }
           this.loading.set(true);
-          return this.searchSvc.search(q, this.includeArchived());
+          return this.searchSvc.search(q, includeArchived);
         }),
       )
       .subscribe({
@@ -164,16 +164,17 @@ export class SearchPanel implements OnInit, OnDestroy {
     if (value.trim()) {
       this.loading.set(true);
     }
-    this.query$.next(value);
+    this.query$.next({ q: value, includeArchived: this.includeArchived() });
   }
 
   protected onToggleArchived(event: Event): void {
-    this.includeArchived.set((event.target as HTMLInputElement).checked);
+    const checked = (event.target as HTMLInputElement).checked;
+    this.includeArchived.set(checked);
     // Re-trigger search with current query
     const q = this.query();
     if (q.trim()) {
       this.loading.set(true);
-      this.query$.next(q);
+      this.query$.next({ q, includeArchived: checked });
     }
   }
 
