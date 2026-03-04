@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -83,8 +83,17 @@ import type { NoteDto } from '@noteflow/shared-types';
               placeholder="Note title"
             />
             <button
+              (mousedown)="$event.preventDefault()"
+              (click)="toggleEditorToolbar()"
+              class="ml-2 shrink-0 rounded p-1"
+              [class]="isEditorToolbarVisible() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              title="Toggle formatting toolbar"
+            >
+              <fa-icon [icon]="faBars" size="sm" />
+            </button>
+            <button
               (click)="toggleFavorite()"
-              class="ml-2 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
               [class]="state.selectedNote()?.favoritedAt ? 'text-yellow-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               [title]="state.selectedNote()?.favoritedAt ? 'Remove from favorites' : 'Add to favorites'"
             >
@@ -252,6 +261,15 @@ import type { NoteDto } from '@noteflow/shared-types';
                 />
                 <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
                 <button
+                  (mousedown)="$event.preventDefault()"
+                  (click)="toggleEditorToolbar()"
+                  class="ml-2 shrink-0 rounded p-1"
+                  [class]="isEditorToolbarVisible() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  title="Toggle formatting toolbar"
+                >
+                  <fa-icon [icon]="faBars" size="sm" />
+                </button>
+                <button
                   (click)="openPresentation()"
                   class="ml-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Present"
@@ -401,6 +419,7 @@ export class NoteArea {
   protected faBoxArchive = faBoxArchive;
   protected faStar = faStar;
   protected farStar = farStar;
+  protected faBars = faBars;
 
   protected moving = signal(false);
   protected archiving = signal(false);
@@ -420,7 +439,7 @@ export class NoteArea {
   private dragged = false;
 
   // TipTap editor ref
-  private tiptapEditor = viewChild<TiptapEditor>('tiptapEditor');
+  protected tiptapEditor = viewChild<TiptapEditor>('tiptapEditor');
   private fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
 
   // Track latest content from TipTap (for saving)
@@ -429,6 +448,14 @@ export class NoteArea {
   // Track which note & editor instance have been synced
   private syncedNoteId: number | null = null;
   private syncedEditorRef: TiptapEditor | undefined = undefined;
+
+  protected toggleEditorToolbar(): void {
+    this.tiptapEditor()?.toggleToolbar();
+  }
+
+  protected isEditorToolbarVisible(): boolean {
+    return this.tiptapEditor()?.isToolbarVisible() ?? true;
+  }
 
   protected openPresentation(): void {
     const editor = this.tiptapEditor();

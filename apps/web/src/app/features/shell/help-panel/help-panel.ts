@@ -62,7 +62,7 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
 
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Text Formatting</h3>
-        <p>Use the toolbar above the editor to apply bold, italic, underline, strikethrough, and other formatting to selected text.</p>
+        <p>Toggle the formatting toolbar using the toolbar button in the editor header for quick access to text styles, formatting, lists, and block types &mdash; including undo and redo. You can also select text to see a contextual bubble menu with inline formatting options.</p>
       </section>
 
       <section class="mb-5">

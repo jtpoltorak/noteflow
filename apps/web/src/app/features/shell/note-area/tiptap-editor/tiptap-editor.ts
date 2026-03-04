@@ -17,6 +17,23 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import { FaIconComponent } from '@fortawesome/angular-fontawesome';
+import {
+  faRotateLeft,
+  faRotateRight,
+  faBold,
+  faItalic,
+  faUnderline,
+  faStrikethrough,
+  faCode,
+  faList,
+  faListOl,
+  faSquareCheck,
+  faQuoteLeft,
+  faLaptopCode,
+  faMinus,
+  faTableCells,
+} from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { SlashCommandExtension } from './slash-command.extension';
 import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProps } from './slash-command.extension';
@@ -75,9 +92,218 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
 @Component({
   selector: 'app-tiptap-editor',
-  imports: [TiptapEditorDirective, SlashCommandMenu, TableToolbar],
+  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar],
   host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
+    <!-- Formatting toolbar -->
+    @if (showToolbar()) {
+      <div class="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900">
+        <!-- Undo / Redo -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().undo().run()"
+          class="rounded px-1.5 py-1 text-gray-600 dark:text-gray-300"
+          [class.opacity-30]="!editor.can().undo()"
+          [class.cursor-default]="!editor.can().undo()"
+          [class.hover:bg-gray-100]="editor.can().undo()"
+          [class.dark:hover:bg-gray-700]="editor.can().undo()"
+          title="Undo"
+        ><fa-icon [icon]="faRotateLeft" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().redo().run()"
+          class="rounded px-1.5 py-1 text-gray-600 dark:text-gray-300"
+          [class.opacity-30]="!editor.can().redo()"
+          [class.cursor-default]="!editor.can().redo()"
+          [class.hover:bg-gray-100]="editor.can().redo()"
+          [class.dark:hover:bg-gray-700]="editor.can().redo()"
+          title="Redo"
+        ><fa-icon [icon]="faRotateRight" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Text style -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().setParagraph().run()"
+          class="rounded px-1.5 py-1 text-sm"
+          [class.bg-blue-100]="editor.isActive('paragraph') && !editor.isActive('heading')"
+          [class.dark:bg-blue-900]="editor.isActive('paragraph') && !editor.isActive('heading')"
+          [class.text-gray-600]="editor.isActive('heading')"
+          [class.dark:text-gray-300]="editor.isActive('heading')"
+          [class.hover:bg-gray-100]="editor.isActive('heading')"
+          [class.dark:hover:bg-gray-700]="editor.isActive('heading')"
+          title="Paragraph"
+        >&para;</button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleHeading({ level: 1 }).run()"
+          class="rounded px-1.5 py-1 text-sm font-bold"
+          [class.bg-blue-100]="editor.isActive('heading', { level: 1 })"
+          [class.dark:bg-blue-900]="editor.isActive('heading', { level: 1 })"
+          [class.text-gray-600]="!editor.isActive('heading', { level: 1 })"
+          [class.dark:text-gray-300]="!editor.isActive('heading', { level: 1 })"
+          [class.hover:bg-gray-100]="!editor.isActive('heading', { level: 1 })"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('heading', { level: 1 })"
+          title="Heading 1"
+        >H1</button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleHeading({ level: 2 }).run()"
+          class="rounded px-1.5 py-1 text-sm font-bold"
+          [class.bg-blue-100]="editor.isActive('heading', { level: 2 })"
+          [class.dark:bg-blue-900]="editor.isActive('heading', { level: 2 })"
+          [class.text-gray-600]="!editor.isActive('heading', { level: 2 })"
+          [class.dark:text-gray-300]="!editor.isActive('heading', { level: 2 })"
+          [class.hover:bg-gray-100]="!editor.isActive('heading', { level: 2 })"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('heading', { level: 2 })"
+          title="Heading 2"
+        >H2</button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleHeading({ level: 3 }).run()"
+          class="rounded px-1.5 py-1 text-sm font-bold"
+          [class.bg-blue-100]="editor.isActive('heading', { level: 3 })"
+          [class.dark:bg-blue-900]="editor.isActive('heading', { level: 3 })"
+          [class.text-gray-600]="!editor.isActive('heading', { level: 3 })"
+          [class.dark:text-gray-300]="!editor.isActive('heading', { level: 3 })"
+          [class.hover:bg-gray-100]="!editor.isActive('heading', { level: 3 })"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('heading', { level: 3 })"
+          title="Heading 3"
+        >H3</button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Inline formatting -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBold().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('bold')"
+          [class.dark:bg-blue-900]="editor.isActive('bold')"
+          [class.text-gray-600]="!editor.isActive('bold')"
+          [class.dark:text-gray-300]="!editor.isActive('bold')"
+          [class.hover:bg-gray-100]="!editor.isActive('bold')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('bold')"
+          title="Bold"
+        ><fa-icon [icon]="faBold" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleItalic().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('italic')"
+          [class.dark:bg-blue-900]="editor.isActive('italic')"
+          [class.text-gray-600]="!editor.isActive('italic')"
+          [class.dark:text-gray-300]="!editor.isActive('italic')"
+          [class.hover:bg-gray-100]="!editor.isActive('italic')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('italic')"
+          title="Italic"
+        ><fa-icon [icon]="faItalic" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleUnderline().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('underline')"
+          [class.dark:bg-blue-900]="editor.isActive('underline')"
+          [class.text-gray-600]="!editor.isActive('underline')"
+          [class.dark:text-gray-300]="!editor.isActive('underline')"
+          [class.hover:bg-gray-100]="!editor.isActive('underline')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('underline')"
+          title="Underline"
+        ><fa-icon [icon]="faUnderline" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleStrike().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('strike')"
+          [class.dark:bg-blue-900]="editor.isActive('strike')"
+          [class.text-gray-600]="!editor.isActive('strike')"
+          [class.dark:text-gray-300]="!editor.isActive('strike')"
+          [class.hover:bg-gray-100]="!editor.isActive('strike')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('strike')"
+          title="Strikethrough"
+        ><fa-icon [icon]="faStrikethrough" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleCode().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('code')"
+          [class.dark:bg-blue-900]="editor.isActive('code')"
+          [class.text-gray-600]="!editor.isActive('code')"
+          [class.dark:text-gray-300]="!editor.isActive('code')"
+          [class.hover:bg-gray-100]="!editor.isActive('code')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('code')"
+          title="Inline code"
+        ><fa-icon [icon]="faCode" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Lists -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBulletList().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('bulletList')"
+          [class.dark:bg-blue-900]="editor.isActive('bulletList')"
+          [class.text-gray-600]="!editor.isActive('bulletList')"
+          [class.dark:text-gray-300]="!editor.isActive('bulletList')"
+          [class.hover:bg-gray-100]="!editor.isActive('bulletList')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('bulletList')"
+          title="Bullet list"
+        ><fa-icon [icon]="faList" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleOrderedList().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('orderedList')"
+          [class.dark:bg-blue-900]="editor.isActive('orderedList')"
+          [class.text-gray-600]="!editor.isActive('orderedList')"
+          [class.dark:text-gray-300]="!editor.isActive('orderedList')"
+          [class.hover:bg-gray-100]="!editor.isActive('orderedList')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('orderedList')"
+          title="Numbered list"
+        ><fa-icon [icon]="faListOl" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleTaskList().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('taskList')"
+          [class.dark:bg-blue-900]="editor.isActive('taskList')"
+          [class.text-gray-600]="!editor.isActive('taskList')"
+          [class.dark:text-gray-300]="!editor.isActive('taskList')"
+          [class.hover:bg-gray-100]="!editor.isActive('taskList')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('taskList')"
+          title="Todo list"
+        ><fa-icon [icon]="faSquareCheck" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Block types -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBlockquote().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('blockquote')"
+          [class.dark:bg-blue-900]="editor.isActive('blockquote')"
+          [class.text-gray-600]="!editor.isActive('blockquote')"
+          [class.dark:text-gray-300]="!editor.isActive('blockquote')"
+          [class.hover:bg-gray-100]="!editor.isActive('blockquote')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('blockquote')"
+          title="Quote"
+        ><fa-icon [icon]="faQuoteLeft" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleCodeBlock().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('codeBlock')"
+          [class.dark:bg-blue-900]="editor.isActive('codeBlock')"
+          [class.text-gray-600]="!editor.isActive('codeBlock')"
+          [class.dark:text-gray-300]="!editor.isActive('codeBlock')"
+          [class.hover:bg-gray-100]="!editor.isActive('codeBlock')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('codeBlock')"
+          title="Code block"
+        ><fa-icon [icon]="faLaptopCode" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().setHorizontalRule().run()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Divider"
+        ><fa-icon [icon]="faMinus" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Table -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Insert table"
+        ><fa-icon [icon]="faTableCells" size="sm" /></button>
+      </div>
+    }
+
     <div
       class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
       tiptap
@@ -180,6 +406,35 @@ export class TiptapEditor implements OnDestroy {
   blurred = output<void>();
 
   editor!: Editor;
+
+  // Toolbar state (persisted via localStorage)
+  protected showToolbar = signal(localStorage.getItem('noteflow-toolbar') !== 'false');
+
+  // Toolbar icons
+  protected faRotateLeft = faRotateLeft;
+  protected faRotateRight = faRotateRight;
+  protected faBold = faBold;
+  protected faItalic = faItalic;
+  protected faUnderline = faUnderline;
+  protected faStrikethrough = faStrikethrough;
+  protected faCode = faCode;
+  protected faList = faList;
+  protected faListOl = faListOl;
+  protected faSquareCheck = faSquareCheck;
+  protected faQuoteLeft = faQuoteLeft;
+  protected faLaptopCode = faLaptopCode;
+  protected faMinus = faMinus;
+  protected faTableCells = faTableCells;
+
+  toggleToolbar(): void {
+    const next = !this.showToolbar();
+    this.showToolbar.set(next);
+    localStorage.setItem('noteflow-toolbar', String(next));
+  }
+
+  isToolbarVisible(): boolean {
+    return this.showToolbar();
+  }
 
   // Bubble menu state
   protected bubbleMenuVisible = signal(false);
