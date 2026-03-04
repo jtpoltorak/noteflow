@@ -56,8 +56,34 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Move &amp; Duplicate</h3>
+        <p>Use the editor toolbar to move a note to a different section or duplicate it. The move dialog lets you pick any notebook and section as the destination.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Archive</h3>
+        <p class="mb-1">Archive notes you no longer need instead of deleting them. Archived notes are hidden from normal views but can be restored at any time.</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click the archive icon in the editor toolbar to archive a note</li>
+          <li>Open the archive panel from the bottom of the navigation rail</li>
+          <li>Restore a note by choosing a destination notebook and section</li>
+          <li>Toggle "Include archived notes" in search to find archived content</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Import &amp; Export</h3>
+        <p>Export any note as a Markdown file using the download icon in the editor toolbar. Import a Markdown file into the current section using the import icon in the notes list header.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Presentation Mode</h3>
+        <p>Click the monitor icon in the editor toolbar to present your note in a full-screen overlay. Press Escape or click the close button to exit.</p>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Panels</h3>
-        <p>Each panel can be collapsed using the chevron icon in its header. Click the arrow on the collapsed strip to expand it again.</p>
+        <p>Each panel can be collapsed using the chevron icon in its header. Click the arrow on the collapsed strip to expand it again. Use the expand icon to enter full-screen editor mode.</p>
       </section>
 
       <section class="mb-5">
