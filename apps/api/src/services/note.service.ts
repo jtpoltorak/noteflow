@@ -2,7 +2,7 @@ import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
 import crypto from "node:crypto";
-import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto } from "@noteflow/shared-types";
+import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto, SharedNoteListDto } from "@noteflow/shared-types";
 
 function rowToNote(row: unknown[]): NoteDto {
   return {
@@ -279,4 +279,31 @@ export function getNoteByShareToken(token: string): SharedNoteDto {
     content: row[1] as string,
     updatedAt: row[2] as string,
   };
+}
+
+export function getSharedNotes(userId: number): SharedNoteListDto[] {
+  const db = getDb();
+  const result = db.exec(
+    `SELECT n.id, n.title, n.shareToken, n.sectionId, s.title AS sectionTitle,
+            s.notebookId, nb.title AS notebookTitle, n.updatedAt
+     FROM Note n
+     JOIN Section s ON s.id = n.sectionId
+     JOIN Notebook nb ON nb.id = s.notebookId
+     WHERE nb.userId = ? AND n.shareToken IS NOT NULL AND n.archivedAt IS NULL
+     ORDER BY n.updatedAt DESC`,
+    [userId]
+  );
+
+  if (result.length === 0) return [];
+
+  return result[0].values.map((row) => ({
+    id: row[0] as number,
+    title: row[1] as string,
+    shareToken: row[2] as string,
+    sectionId: row[3] as number,
+    sectionTitle: row[4] as string,
+    notebookId: row[5] as number,
+    notebookTitle: row[6] as string,
+    updatedAt: row[7] as string,
+  }));
 }

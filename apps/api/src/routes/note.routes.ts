@@ -15,6 +15,7 @@ import {
   getFavoriteNotes,
   shareNote,
   unshareNote,
+  getSharedNotes,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -74,6 +75,12 @@ router.post(
     res.json({ data: null, message: "Note restored" });
   }
 );
+
+// GET /notes/shared
+router.get("/notes/shared", (req: Request, res: Response) => {
+  const notes = getSharedNotes(req.user!.id);
+  res.json({ data: notes });
+});
 
 // GET /notes/favorites
 router.get("/notes/favorites", (req: Request, res: Response) => {

@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { ApiSuccessResponse, NoteDto, ArchivedNoteDto, FavoriteNoteDto } from '@noteflow/shared-types';
+import type { ApiSuccessResponse, NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteListDto } from '@noteflow/shared-types';
 
 @Injectable({ providedIn: 'root' })
 export class NoteService {
@@ -62,6 +62,12 @@ export class NoteService {
   getFavorites(): Observable<FavoriteNoteDto[]> {
     return this.http
       .get<ApiSuccessResponse<FavoriteNoteDto[]>>(`${this.api}/notes/favorites`)
+      .pipe(map((r) => r.data));
+  }
+
+  getShared(): Observable<SharedNoteListDto[]> {
+    return this.http
+      .get<ApiSuccessResponse<SharedNoteListDto[]>>(`${this.api}/notes/shared`)
       .pipe(map((r) => r.data));
   }
 

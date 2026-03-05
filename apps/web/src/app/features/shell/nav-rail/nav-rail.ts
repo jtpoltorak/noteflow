@@ -1,8 +1,8 @@
 import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStar, faStickyNote, faMagnifyingGlass, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faStickyNote, faMagnifyingGlass, faShareNodes, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
 
-export type ShellMode = 'favorites' | 'notes' | 'search' | 'archive';
+export type ShellMode = 'favorites' | 'notes' | 'shared' | 'search' | 'archive';
 
 @Component({
   selector: 'app-nav-rail',
@@ -28,6 +28,16 @@ export type ShellMode = 'favorites' | 'notes' | 'search' | 'archive';
         title="Notes"
       >
         <fa-icon [icon]="faStickyNote" />
+      </button>
+      <button
+        (click)="modeChange.emit('shared')"
+        class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+        [class]="mode() === 'shared'
+          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+        title="Shared"
+      >
+        <fa-icon [icon]="faShareNodes" />
       </button>
       <button
         (click)="modeChange.emit('search')"
@@ -59,6 +69,7 @@ export class NavRail {
 
   protected faStar = faStar;
   protected faStickyNote = faStickyNote;
+  protected faShareNodes = faShareNodes;
   protected faMagnifyingGlass = faMagnifyingGlass;
   protected faBoxArchive = faBoxArchive;
 }

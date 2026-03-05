@@ -88,6 +88,17 @@ export interface SharedNoteDto {
   updatedAt: string;
 }
 
+export interface SharedNoteListDto {
+  id: number;
+  title: string;
+  shareToken: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  updatedAt: string;
+}
+
 export interface ArchivedNoteDto {
   id: number;
   title: string;
