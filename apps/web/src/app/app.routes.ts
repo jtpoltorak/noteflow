@@ -11,7 +11,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
+    path: 'shared/:token',
+    loadComponent: () => import('./features/shared-note/shared-note').then((m) => m.SharedNote),
+  },
+  {
     path: '',
+    pathMatch: 'full',
     canActivate: [authGuard],
     loadComponent: () => import('./features/shell/shell').then((m) => m.Shell),
   },

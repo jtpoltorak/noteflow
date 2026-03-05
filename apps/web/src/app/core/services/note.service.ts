@@ -64,4 +64,14 @@ export class NoteService {
       .get<ApiSuccessResponse<FavoriteNoteDto[]>>(`${this.api}/notes/favorites`)
       .pipe(map((r) => r.data));
   }
+
+  share(id: number): Observable<{ shareToken: string }> {
+    return this.http
+      .post<ApiSuccessResponse<{ shareToken: string }>>(`${this.api}/notes/${id}/share`, {})
+      .pipe(map((r) => r.data));
+  }
+
+  unshare(id: number): Observable<void> {
+    return this.http.post<void>(`${this.api}/notes/${id}/unshare`, {});
+  }
 }

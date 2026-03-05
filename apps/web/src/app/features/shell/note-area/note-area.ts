@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -100,6 +100,14 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="state.selectedNote()?.favoritedAt ? faStar : farStar" size="sm" />
             </button>
             <button
+              (click)="sharing.set(!sharing())"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              [class]="state.selectedNote()?.shareToken ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Share note"
+            >
+              <fa-icon [icon]="faShareNodes" size="sm" />
+            </button>
+            <button
               (click)="moving.set(true)"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
@@ -135,6 +143,46 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
           </div>
+
+          @if (sharing()) {
+            <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
+              @if (state.selectedNote()?.shareToken) {
+                <div class="flex flex-col gap-2">
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300">This note is shared publicly</p>
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="text"
+                      readonly
+                      [value]="getShareUrl()"
+                      class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                    />
+                    <button
+                      (click)="copyShareLink()"
+                      class="shrink-0 rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
+                    >
+                      {{ linkCopied() ? 'Copied!' : 'Copy link' }}
+                    </button>
+                  </div>
+                  <button
+                    (click)="stopSharing()"
+                    class="self-start text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                  >
+                    Stop sharing
+                  </button>
+                </div>
+              } @else {
+                <div class="flex items-center justify-between">
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Share this note with a public link</p>
+                  <button
+                    (click)="createShareLink()"
+                    class="rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600"
+                  >
+                    Create share link
+                  </button>
+                </div>
+              }
+            </div>
+          }
 
           @if (archiving()) {
             <div class="px-4">
@@ -292,6 +340,14 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="state.selectedNote()?.favoritedAt ? faStar : farStar" size="sm" />
                 </button>
                 <button
+                  (click)="sharing.set(!sharing())"
+                  class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  [class]="state.selectedNote()?.shareToken ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  title="Share note"
+                >
+                  <fa-icon [icon]="faShareNodes" size="sm" />
+                </button>
+                <button
                   (click)="moving.set(true)"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Move note"
@@ -327,6 +383,46 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faTrash" size="sm" />
                 </button>
               </div>
+
+              @if (sharing()) {
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
+                  @if (state.selectedNote()?.shareToken) {
+                    <div class="flex flex-col gap-2">
+                      <p class="text-sm font-medium text-gray-700 dark:text-gray-300">This note is shared publicly</p>
+                      <div class="flex items-center gap-2">
+                        <input
+                          type="text"
+                          readonly
+                          [value]="getShareUrl()"
+                          class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs text-gray-600 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                        />
+                        <button
+                          (click)="copyShareLink()"
+                          class="shrink-0 rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
+                        >
+                          {{ linkCopied() ? 'Copied!' : 'Copy link' }}
+                        </button>
+                      </div>
+                      <button
+                        (click)="stopSharing()"
+                        class="self-start text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                      >
+                        Stop sharing
+                      </button>
+                    </div>
+                  } @else {
+                    <div class="flex items-center justify-between">
+                      <p class="text-sm text-gray-600 dark:text-gray-400">Share this note with a public link</p>
+                      <button
+                        (click)="createShareLink()"
+                        class="rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600"
+                      >
+                        Create share link
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
 
               @if (archiving()) {
                 <div class="px-4">
@@ -420,7 +516,10 @@ export class NoteArea {
   protected faStar = faStar;
   protected farStar = farStar;
   protected faBars = faBars;
+  protected faShareNodes = faShareNodes;
 
+  protected sharing = signal(false);
+  protected linkCopied = signal(false);
   protected moving = signal(false);
   protected archiving = signal(false);
   protected presentationOpen = signal(false);
@@ -481,6 +580,8 @@ export class NoteArea {
         if (note.id !== this.syncedNoteId) {
           this.editedTitle.set(note.title);
           this.deleting.set(false);
+          this.sharing.set(false);
+          this.linkCopied.set(false);
         }
 
         this.pendingContent = null;
@@ -569,6 +670,34 @@ export class NoteArea {
 
     // Reset so the same file can be re-imported
     input.value = '';
+  }
+
+  protected getShareUrl(): string {
+    const token = this.state.selectedNote()?.shareToken;
+    return token ? `${window.location.origin}/shared/${token}` : '';
+  }
+
+  protected createShareLink(): void {
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.shareNote(note.id);
+    }
+  }
+
+  protected async copyShareLink(): Promise<void> {
+    const url = this.getShareUrl();
+    if (url) {
+      await navigator.clipboard.writeText(url);
+      this.linkCopied.set(true);
+      setTimeout(() => this.linkCopied.set(false), 2000);
+    }
+  }
+
+  protected stopSharing(): void {
+    const note = this.state.selectedNote();
+    if (note) {
+      this.state.unshareNote(note.id);
+    }
   }
 
   protected toggleFavorite(): void {

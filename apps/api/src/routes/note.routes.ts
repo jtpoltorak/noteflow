@@ -13,6 +13,8 @@ import {
   favoriteNote,
   unfavoriteNote,
   getFavoriteNotes,
+  shareNote,
+  unshareNote,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -89,6 +91,18 @@ router.post("/notes/:id/favorite", (req: Request, res: Response) => {
 router.post("/notes/:id/unfavorite", (req: Request, res: Response) => {
   unfavoriteNote(Number(req.params.id), req.user!.id);
   res.json({ data: null, message: "Note unfavorited" });
+});
+
+// POST /notes/:id/share
+router.post("/notes/:id/share", (req: Request, res: Response) => {
+  const shareToken = shareNote(Number(req.params.id), req.user!.id);
+  res.json({ data: { shareToken } });
+});
+
+// POST /notes/:id/unshare
+router.post("/notes/:id/unshare", (req: Request, res: Response) => {
+  unshareNote(Number(req.params.id), req.user!.id);
+  res.json({ data: null, message: "Sharing disabled" });
 });
 
 // GET /notes/:id

@@ -77,7 +77,14 @@ export interface NoteDto {
   order: number;
   archivedAt: string | null;
   favoritedAt: string | null;
+  shareToken: string | null;
   createdAt: string;
+  updatedAt: string;
+}
+
+export interface SharedNoteDto {
+  title: string;
+  content: string;
   updatedAt: string;
 }
 

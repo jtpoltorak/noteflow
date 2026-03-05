@@ -232,6 +232,28 @@ export class ShellStateService {
     });
   }
 
+  shareNote(id: number): void {
+    this.noteSvc.share(id).subscribe({
+      next: ({ shareToken }) => {
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, shareToken } : n))
+        );
+      },
+      error: (err) => console.error('Failed to share note:', err),
+    });
+  }
+
+  unshareNote(id: number): void {
+    this.noteSvc.unshare(id).subscribe({
+      next: () => {
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, shareToken: null } : n))
+        );
+      },
+      error: (err) => console.error('Failed to unshare note:', err),
+    });
+  }
+
   archiveNote(id: number): void {
     this.noteSvc.archive(id).subscribe({
       next: () => {

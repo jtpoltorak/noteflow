@@ -9,6 +9,7 @@ import notebookRoutes from "./routes/notebook.routes.js";
 import sectionRoutes from "./routes/section.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import searchRoutes from "./routes/search.routes.js";
+import shareRoutes from "./routes/share.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 
 const app = express();
@@ -33,6 +34,7 @@ app.get("/api/v1/health", (_req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1", shareRoutes);
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);

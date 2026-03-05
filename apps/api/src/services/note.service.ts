@@ -1,7 +1,8 @@
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
-import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto } from "@noteflow/shared-types";
+import crypto from "node:crypto";
+import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto } from "@noteflow/shared-types";
 
 function rowToNote(row: unknown[]): NoteDto {
   return {
@@ -12,8 +13,9 @@ function rowToNote(row: unknown[]): NoteDto {
     order: row[4] as number,
     archivedAt: (row[5] as string | null) ?? null,
     favoritedAt: (row[6] as string | null) ?? null,
-    createdAt: row[7] as string,
-    updatedAt: row[8] as string,
+    shareToken: (row[7] as string | null) ?? null,
+    createdAt: row[8] as string,
+    updatedAt: row[9] as string,
   };
 }
 
@@ -22,7 +24,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
     [sectionId]
   );
   if (result.length === 0) return [];
@@ -32,7 +34,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 export function getNoteById(id: number, userId: number): NoteDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, createdAt, updatedAt FROM Note WHERE id = ?',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, createdAt, updatedAt FROM Note WHERE id = ?',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -72,7 +74,7 @@ export function createNote(
   const id = idResult[0].values[0][0] as number;
   saveDb();
 
-  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, createdAt: now, updatedAt: now };
+  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, shareToken: null, createdAt: now, updatedAt: now };
 }
 
 export function updateNote(
@@ -231,4 +233,50 @@ export function getArchivedNotes(userId: number): ArchivedNoteDto[] {
     archivedAt: row[6] as string,
     updatedAt: row[7] as string,
   }));
+}
+
+export function shareNote(id: number, userId: number): string {
+  getNoteById(id, userId); // verifies ownership
+
+  const token = crypto.randomBytes(16).toString("base64url");
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET shareToken = ?, updatedAt = ? WHERE id = ?", [token, now, id]);
+  saveDb();
+
+  return token;
+}
+
+export function unshareNote(id: number, userId: number): void {
+  getNoteById(id, userId); // verifies ownership
+
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET shareToken = NULL, updatedAt = ? WHERE id = ?", [now, id]);
+  saveDb();
+}
+
+export function getNoteByShareToken(token: string): SharedNoteDto {
+  const db = getDb();
+  const result = db.exec(
+    "SELECT title, content, updatedAt, archivedAt FROM Note WHERE shareToken = ?",
+    [token]
+  );
+
+  if (result.length === 0 || result[0].values.length === 0) {
+    throw new AppError(404, "Shared note not found", "NOT_FOUND");
+  }
+
+  const row = result[0].values[0];
+  const archivedAt = row[3] as string | null;
+
+  if (archivedAt) {
+    throw new AppError(404, "Shared note not found", "NOT_FOUND");
+  }
+
+  return {
+    title: row[0] as string,
+    content: row[1] as string,
+    updatedAt: row[2] as string,
+  };
 }

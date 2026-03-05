@@ -5,7 +5,7 @@ import { catchError, switchMap, throwError, Subject, Observable, filter, take } 
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 
-const AUTH_SKIP_URLS = ['/auth/login', '/auth/register', '/auth/refresh'];
+const AUTH_SKIP_URLS = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/me', '/shared/'];
 
 let isRefreshing = false;
 let refreshResult$ = new Subject<boolean>();
