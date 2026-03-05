@@ -17,6 +17,10 @@ import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { TableHeader } from '@tiptap/extension-table-header';
+import TextAlign from '@tiptap/extension-text-align';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
+import Link from '@tiptap/extension-link';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faRotateLeft,
@@ -33,6 +37,15 @@ import {
   faLaptopCode,
   faMinus,
   faTableCells,
+  faAlignLeft,
+  faAlignCenter,
+  faAlignRight,
+  faIndent,
+  faOutdent,
+  faSuperscript,
+  faSubscript,
+  faLink,
+  faLinkSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { SlashCommandExtension } from './slash-command.extension';
@@ -227,6 +240,69 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
+        <!-- Superscript / Subscript -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleSuperscript().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('superscript')"
+          [class.dark:bg-blue-900]="editor.isActive('superscript')"
+          [class.text-gray-600]="!editor.isActive('superscript')"
+          [class.dark:text-gray-300]="!editor.isActive('superscript')"
+          [class.hover:bg-gray-100]="!editor.isActive('superscript')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('superscript')"
+          title="Superscript"
+        ><fa-icon [icon]="faSuperscript" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().toggleSubscript().run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('subscript')"
+          [class.dark:bg-blue-900]="editor.isActive('subscript')"
+          [class.text-gray-600]="!editor.isActive('subscript')"
+          [class.dark:text-gray-300]="!editor.isActive('subscript')"
+          [class.hover:bg-gray-100]="!editor.isActive('subscript')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('subscript')"
+          title="Subscript"
+        ><fa-icon [icon]="faSubscript" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Alignment -->
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().setTextAlign('left').run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="isAlignActive('left')"
+          [class.dark:bg-blue-900]="isAlignActive('left')"
+          [class.text-gray-600]="!isAlignActive('left')"
+          [class.dark:text-gray-300]="!isAlignActive('left')"
+          [class.hover:bg-gray-100]="!isAlignActive('left')"
+          [class.dark:hover:bg-gray-700]="!isAlignActive('left')"
+          title="Align left"
+        ><fa-icon [icon]="faAlignLeft" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().setTextAlign('center').run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="isAlignActive('center')"
+          [class.dark:bg-blue-900]="isAlignActive('center')"
+          [class.text-gray-600]="!isAlignActive('center')"
+          [class.dark:text-gray-300]="!isAlignActive('center')"
+          [class.hover:bg-gray-100]="!isAlignActive('center')"
+          [class.dark:hover:bg-gray-700]="!isAlignActive('center')"
+          title="Align center"
+        ><fa-icon [icon]="faAlignCenter" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().setTextAlign('right').run()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="isAlignActive('right')"
+          [class.dark:bg-blue-900]="isAlignActive('right')"
+          [class.text-gray-600]="!isAlignActive('right')"
+          [class.dark:text-gray-300]="!isAlignActive('right')"
+          [class.hover:bg-gray-100]="!isAlignActive('right')"
+          [class.dark:hover:bg-gray-700]="!isAlignActive('right')"
+          title="Align right"
+        ><fa-icon [icon]="faAlignRight" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
         <!-- Lists -->
         <button
           (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBulletList().run()"
@@ -264,6 +340,28 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
+        <!-- Indent / Outdent -->
+        <button
+          (mousedown)="$event.preventDefault(); liftListItemSafe()"
+          class="rounded px-1.5 py-1 text-gray-600 dark:text-gray-300"
+          [class.opacity-30]="!canLiftListItem()"
+          [class.cursor-default]="!canLiftListItem()"
+          [class.hover:bg-gray-100]="canLiftListItem()"
+          [class.dark:hover:bg-gray-700]="canLiftListItem()"
+          title="Outdent"
+        ><fa-icon [icon]="faOutdent" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); sinkListItemSafe()"
+          class="rounded px-1.5 py-1 text-gray-600 dark:text-gray-300"
+          [class.opacity-30]="!canSinkListItem()"
+          [class.cursor-default]="!canSinkListItem()"
+          [class.hover:bg-gray-100]="canSinkListItem()"
+          [class.dark:hover:bg-gray-700]="canSinkListItem()"
+          title="Indent"
+        ><fa-icon [icon]="faIndent" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
         <!-- Block types -->
         <button
           (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBlockquote().run()"
@@ -292,6 +390,30 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Divider"
         ><fa-icon [icon]="faMinus" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Link -->
+        <button
+          (mousedown)="$event.preventDefault(); toggleLink()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="editor.isActive('link')"
+          [class.dark:bg-blue-900]="editor.isActive('link')"
+          [class.text-gray-600]="!editor.isActive('link')"
+          [class.dark:text-gray-300]="!editor.isActive('link')"
+          [class.hover:bg-gray-100]="!editor.isActive('link')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('link')"
+          title="Insert/edit link"
+        ><fa-icon [icon]="faLink" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().unsetLink().run()"
+          class="rounded px-1.5 py-1 text-gray-600 dark:text-gray-300"
+          [class.opacity-30]="!editor.isActive('link')"
+          [class.cursor-default]="!editor.isActive('link')"
+          [class.hover:bg-gray-100]="editor.isActive('link')"
+          [class.dark:hover:bg-gray-700]="editor.isActive('link')"
+          title="Remove link"
+        ><fa-icon [icon]="faLinkSlash" size="sm" /></button>
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
@@ -372,6 +494,18 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           [class.dark:hover:bg-gray-700]="!editor.isActive('code')"
           title="Inline code"
         >&lt;/&gt;</button>
+        <div class="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <button
+          (mousedown)="$event.preventDefault(); toggleLink()"
+          class="rounded px-2 py-1 text-sm"
+          [class.bg-blue-100]="editor.isActive('link')"
+          [class.dark:bg-blue-900]="editor.isActive('link')"
+          [class.text-gray-700]="!editor.isActive('link')"
+          [class.dark:text-gray-200]="!editor.isActive('link')"
+          [class.hover:bg-gray-100]="!editor.isActive('link')"
+          [class.dark:hover:bg-gray-700]="!editor.isActive('link')"
+          title="Insert/edit link"
+        ><fa-icon [icon]="faLink" size="sm" /></button>
       </div>
     }
 
@@ -425,6 +559,15 @@ export class TiptapEditor implements OnDestroy {
   protected faLaptopCode = faLaptopCode;
   protected faMinus = faMinus;
   protected faTableCells = faTableCells;
+  protected faAlignLeft = faAlignLeft;
+  protected faAlignCenter = faAlignCenter;
+  protected faAlignRight = faAlignRight;
+  protected faIndent = faIndent;
+  protected faOutdent = faOutdent;
+  protected faSuperscript = faSuperscript;
+  protected faSubscript = faSubscript;
+  protected faLink = faLink;
+  protected faLinkSlash = faLinkSlash;
 
   toggleToolbar(): void {
     const next = !this.showToolbar();
@@ -434,6 +577,46 @@ export class TiptapEditor implements OnDestroy {
 
   isToolbarVisible(): boolean {
     return this.showToolbar();
+  }
+
+  protected isAlignActive(alignment: string): boolean {
+    if (alignment === 'left') {
+      return !this.editor.isActive({ textAlign: 'center' }) &&
+             !this.editor.isActive({ textAlign: 'right' });
+    }
+    return this.editor.isActive({ textAlign: alignment });
+  }
+
+  protected canSinkListItem(): boolean {
+    return this.editor.can().sinkListItem('listItem') ||
+           this.editor.can().sinkListItem('taskItem');
+  }
+
+  protected canLiftListItem(): boolean {
+    return this.editor.can().liftListItem('listItem') ||
+           this.editor.can().liftListItem('taskItem');
+  }
+
+  protected sinkListItemSafe(): void {
+    if (this.editor.can().sinkListItem('listItem'))
+      this.editor.chain().focus().sinkListItem('listItem').run();
+    else if (this.editor.can().sinkListItem('taskItem'))
+      this.editor.chain().focus().sinkListItem('taskItem').run();
+  }
+
+  protected liftListItemSafe(): void {
+    if (this.editor.can().liftListItem('listItem'))
+      this.editor.chain().focus().liftListItem('listItem').run();
+    else if (this.editor.can().liftListItem('taskItem'))
+      this.editor.chain().focus().liftListItem('taskItem').run();
+  }
+
+  protected toggleLink(): void {
+    const previousUrl = this.editor.getAttributes('link')['href'] || '';
+    const url = window.prompt('Enter URL:', previousUrl);
+    if (url === null) return;
+    if (url === '') { this.editor.chain().focus().unsetLink().run(); return; }
+    this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }
 
   // Bubble menu state
@@ -461,11 +644,20 @@ export class TiptapEditor implements OnDestroy {
         }),
         Underline,
         TaskList,
-        TaskItem.configure({ nested: false }),
+        TaskItem.configure({ nested: true }),
         Table.configure({ resizable: false }),
         TableRow,
         TableCell,
         TableHeader,
+        TextAlign.configure({ types: ['heading', 'paragraph'] }),
+        Superscript,
+        Subscript,
+        Link.configure({
+          openOnClick: false,
+          autolink: true,
+          linkOnPaste: true,
+          HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
+        }),
         Placeholder.configure({
           placeholder: ({ node, pos }) => {
             if (pos === 0) return "Start typing, or press '/' for commands\u2026";
@@ -586,7 +778,7 @@ export class TiptapEditor implements OnDestroy {
       return;
     }
 
-    const menuWidth = 220;
+    const menuWidth = 280;
     const left = Math.max(8, Math.min(rect.left + rect.width / 2 - menuWidth / 2, window.innerWidth - menuWidth - 8));
     const top = rect.top - 44;
 
