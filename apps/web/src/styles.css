@@ -75,6 +75,11 @@ html.dark {
   outline: none;
   line-height: 1.6;
   overflow-wrap: anywhere;
+  font-family: 'Source Sans 3', sans-serif;
+}
+
+.noteflow-editor.serif-mode {
+  font-family: 'Source Serif 4', serif;
 }
 
 /* TipTap placeholder (via @tiptap/extension-placeholder) */

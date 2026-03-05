@@ -46,6 +46,7 @@ import {
   faSubscript,
   faLink,
   faLinkSlash,
+  faFont,
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { SlashCommandExtension } from './slash-command.extension';
@@ -423,11 +424,27 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Insert table"
         ><fa-icon [icon]="faTableCells" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Font toggle -->
+        <button
+          (mousedown)="$event.preventDefault(); toggleSerif()"
+          class="rounded px-1.5 py-1"
+          [class.bg-blue-100]="serifMode()"
+          [class.dark:bg-blue-900]="serifMode()"
+          [class.text-gray-600]="!serifMode()"
+          [class.dark:text-gray-300]="!serifMode()"
+          [class.hover:bg-gray-100]="!serifMode()"
+          [class.dark:hover:bg-gray-700]="!serifMode()"
+          title="Toggle serif font"
+        ><fa-icon [icon]="faFont" size="sm" /></button>
       </div>
     }
 
     <div
       class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
+      [class.serif-mode]="serifMode()"
       tiptap
       [editor]="editor"
     ></div>
@@ -543,6 +560,7 @@ export class TiptapEditor implements OnDestroy {
 
   // Toolbar state (persisted via localStorage)
   protected showToolbar = signal(localStorage.getItem('noteflow-toolbar') !== 'false');
+  protected serifMode = signal(localStorage.getItem('noteflow-font-serif') === 'true');
 
   // Toolbar icons
   protected faRotateLeft = faRotateLeft;
@@ -568,11 +586,18 @@ export class TiptapEditor implements OnDestroy {
   protected faSubscript = faSubscript;
   protected faLink = faLink;
   protected faLinkSlash = faLinkSlash;
+  protected faFont = faFont;
 
   toggleToolbar(): void {
     const next = !this.showToolbar();
     this.showToolbar.set(next);
     localStorage.setItem('noteflow-toolbar', String(next));
+  }
+
+  protected toggleSerif(): void {
+    const next = !this.serifMode();
+    this.serifMode.set(next);
+    localStorage.setItem('noteflow-font-serif', String(next));
   }
 
   isToolbarVisible(): boolean {
