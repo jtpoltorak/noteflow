@@ -10,6 +10,7 @@ import { SectionList } from './section-list/section-list';
 import { NoteArea } from './note-area/note-area';
 import { AboutDialog } from '../../shared/about-dialog/about-dialog';
 import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
+import { LegalDialog } from '../../shared/legal-dialog/legal-dialog';
 import { HelpPanel } from './help-panel/help-panel';
 import { Modal } from '../../shared/modal/modal';
 import { NavRail, type ShellMode } from './nav-rail/nav-rail';
@@ -22,7 +23,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -256,7 +257,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
       <!-- ── Footer ──────────────────────────────────────────── -->
       @if (vp.isDesktop() || mobilePanel() !== 'editor') {
         <footer class="flex h-8 items-center gap-3 border-t border-gray-200 bg-white px-4 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-          <span>&copy; {{ currentYear }} jtpoltorak</span>
+          <span>&copy; {{ currentYear }} Jonathan T. Poltorak</span>
           <span class="text-gray-300 dark:text-gray-600">|</span>
           <button (click)="showAbout.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
             <fa-icon [icon]="faCircleInfo" size="xs" />
@@ -265,14 +266,21 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
           <span class="text-gray-300 dark:text-gray-600">|</span>
           <button (click)="showFeedback.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
             <fa-icon [icon]="faCommentDots" size="xs" />
-            Send Feedback
+            Feedback
           </button>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <button (click)="openLegal('terms')" class="hover:text-gray-700 dark:hover:text-gray-200">Terms</button>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <button (click)="openLegal('privacy')" class="hover:text-gray-700 dark:hover:text-gray-200">Privacy</button>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <button (click)="openLegal('disclaimer')" class="hover:text-gray-700 dark:hover:text-gray-200">Disclaimer</button>
         </footer>
       }
     </div>
 
     <app-about-dialog [open]="showAbout()" (closed)="showAbout.set(false)" />
     <app-feedback-dialog [open]="showFeedback()" (closed)="showFeedback.set(false)" />
+    <app-legal-dialog [open]="showLegal()" [section]="legalSection()" [title]="legalTitle()" (closed)="showLegal.set(false)" />
   `,
 })
 export class Shell implements OnInit {
@@ -306,6 +314,15 @@ export class Shell implements OnInit {
   protected helpOpen = signal(false);
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
+  protected showLegal = signal(false);
+  protected legalSection = signal<'terms' | 'privacy' | 'disclaimer'>('terms');
+  protected legalTitle = computed(() => {
+    switch (this.legalSection()) {
+      case 'terms': return 'Terms of Use';
+      case 'privacy': return 'Privacy Policy';
+      case 'disclaimer': return 'Disclaimer';
+    }
+  });
   protected currentYear = new Date().getFullYear();
 
   // ── Mobile navigation ─────────────────────────────────────────
@@ -361,6 +378,11 @@ export class Shell implements OnInit {
 
   onLogout(): void {
     this.auth.logout().subscribe();
+  }
+
+  protected openLegal(section: 'terms' | 'privacy' | 'disclaimer'): void {
+    this.legalSection.set(section);
+    this.showLegal.set(true);
   }
 
   // ── Desktop search ──────────────────────────────────────────────

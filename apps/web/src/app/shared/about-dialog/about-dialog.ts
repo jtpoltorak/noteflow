@@ -15,7 +15,7 @@ import { Modal } from '../modal/modal';
           Built as a full-stack TypeScript portfolio project featuring Angular, Express, and SQLite.
         </p>
         <p class="text-xs text-gray-400 dark:text-gray-500">
-          Developed by jtpoltorak with AI-assisted coding.
+          Developed by Jonathan T. Poltorak with AI-assisted coding.
         </p>
       </div>
     </app-modal>
