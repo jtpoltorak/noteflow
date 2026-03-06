@@ -1,5 +1,5 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
-import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
@@ -326,6 +326,8 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   @for (note of state.notes(); track note.id) {
                     <div
                       cdkDrag
+                      (cdkDragStarted)="onNoteDragStarted()"
+                      (cdkDragEnded)="onNoteDragEnded($event, note.id)"
                       class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
                       [class.bg-blue-100]="note.id === state.selectedNoteId()"
                       [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
@@ -870,6 +872,33 @@ export class NoteArea {
     const list = [...this.state.notes()];
     moveItemInArray(list, event.previousIndex, event.currentIndex);
     this.state.reorderNotes(list);
+  }
+
+  protected onNoteDragStarted(): void {
+    this.dragged = false;
+    this.state.draggingType.set('note');
+  }
+
+  protected onNoteDragEnded(event: CdkDragEnd, noteId: number): void {
+    this.state.draggingType.set(null);
+    if (this.dragged) return;
+
+    const el = document.elementFromPoint(event.dropPoint.x, event.dropPoint.y);
+    const target = el?.closest('[data-section-id]');
+    if (!target) return;
+
+    const targetSectionId = Number(target.getAttribute('data-section-id'));
+    if (!targetSectionId || targetSectionId === this.state.selectedSectionId()) return;
+
+    // Hide the CDK return animation — the item is moving cross-panel
+    document.querySelector<HTMLElement>('.cdk-drag-preview')?.style.setProperty('opacity', '0');
+
+    this.state.moveNote(noteId, targetSectionId);
+
+    // CDK's cdkDropListDropped fires after cdkDragEnded (returning the item),
+    // which sets dragged=true via onDrop. Reset after CDK events settle so the
+    // next click isn't consumed by the dragged guard in onItemClick.
+    setTimeout(() => (this.dragged = false));
   }
 
   protected onItemClick(id: number): void {

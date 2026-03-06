@@ -26,6 +26,9 @@ export class ShellStateService {
   readonly loadingSections = signal(false);
   readonly loadingNotes = signal(false);
 
+  // ── Cross-panel drag state ──────────────────────────────────
+  readonly draggingType = signal<'section' | 'note' | null>(null);
+
   // ── Computed selections ───────────────────────────────────────
   readonly selectedNotebook = computed(() => {
     const id = this.selectedNotebookId();

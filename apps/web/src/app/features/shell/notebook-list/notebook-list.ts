@@ -53,11 +53,15 @@ import type { NotebookDto } from '@noteflow/shared-types';
         <div
           cdkDrag
           [cdkDragDisabled]="vp.isCompact()"
+          [attr.data-notebook-id]="nb.id"
           class="group flex items-center rounded px-2 py-1.5 text-sm cursor-pointer dark:text-gray-200"
           [class.bg-blue-100]="nb.id === state.selectedNotebookId()"
           [class.dark:bg-blue-900]="nb.id === state.selectedNotebookId()"
           [class.hover:bg-gray-100]="nb.id !== state.selectedNotebookId()"
           [class.dark:hover:bg-gray-700]="nb.id !== state.selectedNotebookId()"
+          [class.ring-2]="state.draggingType() === 'section' && nb.id !== state.selectedNotebookId()"
+          [class.ring-blue-300]="state.draggingType() === 'section' && nb.id !== state.selectedNotebookId()"
+          [class.dark:ring-blue-600]="state.draggingType() === 'section' && nb.id !== state.selectedNotebookId()"
           (click)="onItemClick(nb.id)"
         >
           <fa-icon [icon]="faBook" class="mr-2 text-gray-400" size="sm" />
