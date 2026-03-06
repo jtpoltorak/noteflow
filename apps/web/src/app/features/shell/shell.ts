@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -18,13 +18,14 @@ import { SearchPanel } from './search-panel/search-panel';
 import { ArchivePanel } from './archive-panel/archive-panel';
 import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import { SharedPanel } from './shared-panel/shared-panel';
+import { TagsPanel } from './tags-panel/tags-panel';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
-export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared';
+export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -98,6 +99,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <fa-icon [icon]="faShareNodes" size="sm" />
             </button>
             <button
+              (click)="toggleMobileTags()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-blue-500]="mobilePanel() === 'tags'"
+              [class.dark:text-blue-400]="mobilePanel() === 'tags'"
+              title="Tags"
+            >
+              <fa-icon [icon]="faTags" size="sm" />
+            </button>
+            <button
               (click)="toggleMobileSearch()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
               [class.text-blue-500]="mobilePanel() === 'search'"
@@ -159,6 +169,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <!-- Shared panel -->
             <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <app-shared-panel (resultClicked)="onSharedClicked($event)" />
+            </aside>
+          } @else if (shellMode() === 'tags' && !editorFullscreen()) {
+            <!-- Tags panel -->
+            <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <app-tags-panel (resultClicked)="onTagNoteClicked($event)" />
             </aside>
           } @else if (shellMode() === 'search' && !editorFullscreen()) {
             <!-- Search panel (replaces notebook + section panels) -->
@@ -265,6 +280,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <app-shared-panel (resultClicked)="onMobileSharedClicked($event)" />
               </div>
             }
+            @case ('tags') {
+              <div class="flex min-h-0 w-full flex-col bg-gray-50 dark:bg-gray-900">
+                <app-tags-panel (resultClicked)="onMobileTagNoteClicked($event)" />
+              </div>
+            }
           }
         </div>
 
@@ -320,6 +340,7 @@ export class Shell implements OnInit {
   protected faBoxArchive = faBoxArchive;
   protected faStar = faStar;
   protected faShareNodes = faShareNodes;
+  protected faTags = faTags;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
@@ -368,6 +389,8 @@ export class Shell implements OnInit {
         return 'Favorites';
       case 'shared':
         return 'Shared';
+      case 'tags':
+        return 'Tags';
     }
   });
 
@@ -375,8 +398,8 @@ export class Shell implements OnInit {
     // Auto-advance mobile panel when selections change on compact viewports
     effect(() => {
       if (!this.vp.isCompact()) return;
-      // Skip auto-advance when in search/archive/favorites/shared mode — they handle navigation themselves
-      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive' || this.mobilePanel() === 'favorites' || this.mobilePanel() === 'shared') return;
+      // Skip auto-advance when in search/archive/favorites/shared/tags mode — they handle navigation themselves
+      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive' || this.mobilePanel() === 'favorites' || this.mobilePanel() === 'shared' || this.mobilePanel() === 'tags') return;
       if (this.cameFromSearch) return;
 
       const nbId = this.state.selectedNotebookId();
@@ -429,6 +452,13 @@ export class Shell implements OnInit {
     this.shellMode.set('notes');
   }
 
+  // ── Desktop tags ────────────────────────────────────────────────
+
+  protected onTagNoteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
+    this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.shellMode.set('notes');
+  }
+
   // ── Desktop shared ──────────────────────────────────────────────
 
   protected onSharedClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
@@ -472,6 +502,21 @@ export class Shell implements OnInit {
   }
 
   protected onMobileSharedClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
+    this.cameFromSearch = true;
+    this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.mobilePanel.set('editor');
+    setTimeout(() => (this.cameFromSearch = false));
+  }
+
+  protected toggleMobileTags(): void {
+    if (this.mobilePanel() === 'tags') {
+      this.mobilePanel.set('notebooks');
+    } else {
+      this.mobilePanel.set('tags');
+    }
+  }
+
+  protected onMobileTagNoteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
     this.cameFromSearch = true;
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
     this.mobilePanel.set('editor');
@@ -529,6 +574,9 @@ export class Shell implements OnInit {
         this.mobilePanel.set('notebooks');
         break;
       case 'shared':
+        this.mobilePanel.set('notebooks');
+        break;
+      case 'tags':
         this.mobilePanel.set('notebooks');
         break;
     }

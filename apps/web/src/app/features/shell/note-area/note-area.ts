@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -11,7 +11,8 @@ import { PresentationView } from './presentation-view';
 import { MoveNoteDialog } from './move-note-dialog';
 import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
-import type { NoteDto } from '@noteflow/shared-types';
+import { TagService } from '../../../core/services/tag.service';
+import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
@@ -108,6 +109,14 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faShareNodes" size="sm" />
             </button>
             <button
+              (click)="toggleTagging()"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              [class]="noteTags().length > 0 ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Tags"
+            >
+              <fa-icon [icon]="faTag" size="sm" />
+            </button>
+            <button
               (click)="moving.set(true)"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
@@ -143,6 +152,52 @@ import type { NoteDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
           </div>
+
+          @if (tagging()) {
+            <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
+              <!-- Current tags -->
+              @if (noteTags().length > 0) {
+                <div class="mb-2 flex flex-wrap gap-1.5">
+                  @for (tag of noteTags(); track tag.id) {
+                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                      {{ tag.name }}
+                      <button
+                        (click)="removeTag(tag)"
+                        class="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                        title="Remove tag"
+                      >
+                        <fa-icon [icon]="faXmark" size="xs" />
+                      </button>
+                    </span>
+                  }
+                </div>
+              }
+              <!-- Add tag input -->
+              <div class="relative">
+                <input
+                  type="text"
+                  [value]="tagInput()"
+                  (input)="tagInput.set($any($event.target).value)"
+                  (keydown.enter)="addTag()"
+                  class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+                  placeholder="Add a tag…"
+                  maxlength="30"
+                />
+                @if (filteredSuggestions().length > 0 && tagInput().length > 0) {
+                  <ul class="absolute left-0 right-0 top-full z-10 mt-1 max-h-32 overflow-y-auto rounded border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700">
+                    @for (suggestion of filteredSuggestions(); track suggestion.id) {
+                      <li
+                        (click)="addTagByName(suggestion.name)"
+                        class="cursor-pointer px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600"
+                      >
+                        {{ suggestion.name }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            </div>
+          }
 
           @if (sharing()) {
             <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
@@ -348,6 +403,14 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faShareNodes" size="sm" />
                 </button>
                 <button
+                  (click)="toggleTagging()"
+                  class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  [class]="noteTags().length > 0 ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  title="Tags"
+                >
+                  <fa-icon [icon]="faTag" size="sm" />
+                </button>
+                <button
                   (click)="moving.set(true)"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Move note"
@@ -383,6 +446,52 @@ import type { NoteDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faTrash" size="sm" />
                 </button>
               </div>
+
+              @if (tagging()) {
+                <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
+                  <!-- Current tags -->
+                  @if (noteTags().length > 0) {
+                    <div class="mb-2 flex flex-wrap gap-1.5">
+                      @for (tag of noteTags(); track tag.id) {
+                        <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                          {{ tag.name }}
+                          <button
+                            (click)="removeTag(tag)"
+                            class="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                            title="Remove tag"
+                          >
+                            <fa-icon [icon]="faXmark" size="xs" />
+                          </button>
+                        </span>
+                      }
+                    </div>
+                  }
+                  <!-- Add tag input -->
+                  <div class="relative">
+                    <input
+                      type="text"
+                      [value]="tagInput()"
+                      (input)="tagInput.set($any($event.target).value)"
+                      (keydown.enter)="addTag()"
+                      class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+                      placeholder="Add a tag…"
+                      maxlength="30"
+                    />
+                    @if (filteredSuggestions().length > 0 && tagInput().length > 0) {
+                      <ul class="absolute left-0 right-0 top-full z-10 mt-1 max-h-32 overflow-y-auto rounded border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700">
+                        @for (suggestion of filteredSuggestions(); track suggestion.id) {
+                          <li
+                            (click)="addTagByName(suggestion.name)"
+                            class="cursor-pointer px-2.5 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600"
+                          >
+                            {{ suggestion.name }}
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </div>
+                </div>
+              }
 
               @if (sharing()) {
                 <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
@@ -491,6 +600,7 @@ import type { NoteDto } from '@noteflow/shared-types';
 export class NoteArea {
   protected state = inject(ShellStateService);
   protected vp = inject(ViewportService);
+  private tagSvc = inject(TagService);
 
   collapsed = input(false);
   fullscreen = input(false);
@@ -517,6 +627,8 @@ export class NoteArea {
   protected farStar = farStar;
   protected faBars = faBars;
   protected faShareNodes = faShareNodes;
+  protected faTag = faTag;
+  protected faXmark = faXmark;
 
   protected sharing = signal(false);
   protected linkCopied = signal(false);
@@ -526,6 +638,20 @@ export class NoteArea {
   protected presentationContent = signal('');
   protected editedTitle = signal('');
   protected deleting = signal(false);
+
+  // Tag management
+  protected tagging = signal(false);
+  protected noteTags = signal<TagDto[]>([]);
+  protected userTags = signal<TagWithCountDto[]>([]);
+  protected tagInput = signal('');
+  protected filteredSuggestions = computed(() => {
+    const input = this.tagInput().toLowerCase().trim();
+    if (!input) return [];
+    const currentTagIds = new Set(this.noteTags().map((t) => t.id));
+    return this.userTags().filter(
+      (t) => t.name.toLowerCase().includes(input) && !currentTagIds.has(t.id)
+    );
+  });
 
   protected noteTimestamp = computed(() => {
     const note = this.state.selectedNote();
@@ -582,6 +708,9 @@ export class NoteArea {
           this.deleting.set(false);
           this.sharing.set(false);
           this.linkCopied.set(false);
+          this.tagging.set(false);
+          this.noteTags.set([]);
+          this.tagInput.set('');
         }
 
         this.pendingContent = null;
@@ -748,5 +877,51 @@ export class NoteArea {
       return;
     }
     this.state.selectNote(id);
+  }
+
+  // ── Tag management ──────────────────────────────────────────────
+
+  protected toggleTagging(): void {
+    const opening = !this.tagging();
+    this.tagging.set(opening);
+    if (opening) {
+      const note = this.state.selectedNote();
+      if (note) {
+        this.tagSvc.getTagsForNote(note.id).subscribe((tags) => this.noteTags.set(tags));
+        this.tagSvc.getAll().subscribe((tags) => this.userTags.set(tags));
+      }
+    }
+  }
+
+  protected addTag(): void {
+    const name = this.tagInput().trim();
+    if (!name) return;
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.addTagByName(name);
+  }
+
+  protected addTagByName(name: string): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.tagSvc.addTagToNote(note.id, name).subscribe((tag) => {
+      // Add to noteTags if not already present
+      if (!this.noteTags().some((t) => t.id === tag.id)) {
+        this.noteTags.update((list) => [...list, tag]);
+      }
+      this.tagInput.set('');
+      // Refresh user tags to update counts
+      this.tagSvc.getAll().subscribe((tags) => this.userTags.set(tags));
+    });
+  }
+
+  protected removeTag(tag: TagDto): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.tagSvc.removeTagFromNote(note.id, tag.id).subscribe(() => {
+      this.noteTags.update((list) => list.filter((t) => t.id !== tag.id));
+      // Refresh user tags to update counts
+      this.tagSvc.getAll().subscribe((tags) => this.userTags.set(tags));
+    });
   }
 }

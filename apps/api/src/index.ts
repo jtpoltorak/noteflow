@@ -7,6 +7,7 @@ import { errorHandler } from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import notebookRoutes from "./routes/notebook.routes.js";
 import sectionRoutes from "./routes/section.routes.js";
+import tagRoutes from "./routes/tag.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import shareRoutes from "./routes/share.routes.js";
@@ -38,6 +39,7 @@ app.use("/api/v1", shareRoutes);
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
+app.use("/api/v1", requireAuth, tagRoutes);
 app.use("/api/v1", requireAuth, noteRoutes);
 app.use("/api/v1/search", requireAuth, searchRoutes);
 

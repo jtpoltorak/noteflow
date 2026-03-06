@@ -137,6 +137,30 @@ export interface SearchResultDto {
   updatedAt: string;
 }
 
+// ── Tag DTOs ─────────────────────────────────────────────────
+
+export interface TagDto {
+  id: number;
+  name: string;
+  createdAt: string;
+}
+
+export interface TagWithCountDto {
+  id: number;
+  name: string;
+  noteCount: number;
+}
+
+export interface TaggedNoteDto {
+  id: number;
+  title: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  updatedAt: string;
+}
+
 // ── API Response Wrappers ─────────────────────────────────────
 
 export interface ApiSuccessResponse<T> {
