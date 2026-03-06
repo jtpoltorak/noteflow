@@ -161,6 +161,20 @@ export class ShellStateService {
     });
   }
 
+  moveSection(sectionId: number, targetNotebookId: number): void {
+    this.sectionSvc.update(sectionId, { notebookId: targetNotebookId }).subscribe({
+      next: () => {
+        this.sections.update((list) => list.filter((s) => s.id !== sectionId));
+        if (this.selectedSectionId() === sectionId) {
+          this.selectedSectionId.set(null);
+          this.selectedNoteId.set(null);
+          this.notes.set([]);
+        }
+      },
+      error: (err) => console.error('Failed to move section:', err),
+    });
+  }
+
   deleteSection(id: number): void {
     this.sectionSvc.delete(id).subscribe(() => {
       this.sections.update((list) => list.filter((s) => s.id !== id));

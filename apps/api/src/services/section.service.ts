@@ -73,22 +73,35 @@ export function createSection(notebookId: number, userId: number, title: string)
 export function updateSection(
   id: number,
   userId: number,
-  updates: { title?: string; order?: number }
+  updates: { title?: string; order?: number; notebookId?: number }
 ): SectionDto {
   const existing = getSectionById(id, userId); // verifies ownership
 
   const db = getDb();
   const now = new Date().toISOString();
   const title = updates.title ?? existing.title;
-  const order = updates.order ?? existing.order;
+  let order = updates.order ?? existing.order;
+  let notebookId = existing.notebookId;
+
+  if (updates.notebookId && updates.notebookId !== existing.notebookId) {
+    // Verify ownership of target notebook
+    getNotebookById(updates.notebookId, userId);
+    notebookId = updates.notebookId;
+    // Place at end of target notebook's section list
+    const maxResult = db.exec(
+      'SELECT COALESCE(MAX("order"), -1) FROM Section WHERE notebookId = ?',
+      [notebookId]
+    );
+    order = (maxResult[0].values[0][0] as number) + 1;
+  }
 
   db.run(
-    'UPDATE Section SET title = ?, "order" = ?, updatedAt = ? WHERE id = ?',
-    [title, order, now, id]
+    'UPDATE Section SET title = ?, "order" = ?, notebookId = ?, updatedAt = ? WHERE id = ?',
+    [title, order, notebookId, now, id]
   );
   saveDb();
 
-  return { ...existing, title, order, updatedAt: now };
+  return { ...existing, title, order, notebookId, updatedAt: now };
 }
 
 export function deleteSection(id: number, userId: number): void {

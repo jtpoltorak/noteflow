@@ -17,6 +17,7 @@ const createSchema = z.object({
 const updateSchema = z.object({
   title: z.string().min(1).max(50).optional(),
   order: z.number().int().min(0).optional(),
+  notebookId: z.number().int().positive().optional(),
 });
 
 // GET /notebooks/:notebookId/sections

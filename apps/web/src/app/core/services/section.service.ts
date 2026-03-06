@@ -21,7 +21,7 @@ export class SectionService {
       .pipe(map((r) => r.data));
   }
 
-  update(id: number, updates: { title?: string; order?: number }): Observable<SectionDto> {
+  update(id: number, updates: { title?: string; order?: number; notebookId?: number }): Observable<SectionDto> {
     return this.http
       .put<ApiSuccessResponse<SectionDto>>(`${this.api}/sections/${id}`, updates)
       .pipe(map((r) => r.data));

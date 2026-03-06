@@ -26,6 +26,7 @@ export interface CreateSectionDto {
 export interface UpdateSectionDto {
   title?: string;
   order?: number;
+  notebookId?: number;
 }
 
 export interface CreateNoteDto {

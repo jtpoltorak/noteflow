@@ -1,15 +1,16 @@
 import { Component, inject, signal, ElementRef, viewChild, output, input } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faLayerGroup, faPlus, faPen, faTrash, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
+import { faLayerGroup, faPlus, faPen, faTrash, faChevronLeft, faArrowRightArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { MoveSectionDialog } from './move-section-dialog';
 import type { SectionDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-section-list',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag],
+  imports: [FaIconComponent, ConfirmDialog, MoveSectionDialog, CdkDropList, CdkDrag],
   template: `
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Sections</span>
@@ -90,6 +91,13 @@ import type { SectionDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faPen" size="xs" />
                 </button>
                 <button
+                  (click)="startMoving(sec.id, $event)"
+                  class="rounded p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  title="Move to another notebook"
+                >
+                  <fa-icon [icon]="faArrowRightArrowLeft" size="xs" />
+                </button>
+                <button
                   (click)="startDeleting(sec.id, $event)"
                   class="rounded p-0.5 text-gray-400 hover:text-red-600"
                   title="Delete"
@@ -106,6 +114,14 @@ import type { SectionDto } from '@noteflow/shared-types';
               (confirmed)="confirmDelete(sec.id)"
               (cancelled)="deletingId.set(null)"
             ></app-confirm-dialog>
+          }
+
+          @if (movingId() === sec.id) {
+            <app-move-section-dialog
+              [currentNotebookId]="state.selectedNotebookId()!"
+              (moved)="confirmMove(sec.id, $event)"
+              (cancelled)="movingId.set(null)"
+            />
           }
         } @empty {
           @if (!creating()) {
@@ -130,10 +146,12 @@ export class SectionList {
   protected faPen = faPen;
   protected faTrash = faTrash;
   protected faChevronLeft = faChevronLeft;
+  protected faArrowRightArrowLeft = faArrowRightArrowLeft;
 
   protected creating = signal(false);
   protected editingId = signal<number | null>(null);
   protected deletingId = signal<number | null>(null);
+  protected movingId = signal<number | null>(null);
   private dragged = false;
 
   private createInputRef = viewChild<ElementRef<HTMLInputElement>>('createInput');
@@ -174,6 +192,16 @@ export class SectionList {
   protected confirmDelete(id: number): void {
     this.deletingId.set(null);
     this.state.deleteSection(id);
+  }
+
+  protected startMoving(id: number, event: Event): void {
+    event.stopPropagation();
+    this.movingId.set(id);
+  }
+
+  protected confirmMove(sectionId: number, targetNotebookId: number): void {
+    this.state.moveSection(sectionId, targetNotebookId);
+    this.movingId.set(null);
   }
 
   protected onDrop(event: CdkDragDrop<SectionDto[]>): void {
