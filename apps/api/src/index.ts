@@ -46,7 +46,7 @@ app.use("/api/v1/search", requireAuth, searchRoutes);
 // ── Error handling (must be last) ─────────────────────────────
 app.use(errorHandler);
 
-// ── Start server ──────────────────────────────────────────────
+// ── Start server ─────────────────────────────────────────────
 async function start(): Promise<void> {
   await initDatabase();
   runMigrations();
