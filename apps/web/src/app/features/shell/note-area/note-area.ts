@@ -890,6 +890,9 @@ export class NoteArea {
         this.tagSvc.getTagsForNote(note.id).subscribe((tags) => this.noteTags.set(tags));
         this.tagSvc.getAll().subscribe((tags) => this.userTags.set(tags));
       }
+      requestAnimationFrame(() => {
+        document.querySelector<HTMLInputElement>('input[placeholder="Add a tag…"]')?.focus();
+      });
     }
   }
 
