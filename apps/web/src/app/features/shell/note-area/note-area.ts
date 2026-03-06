@@ -711,6 +711,7 @@ export class NoteArea {
           this.tagging.set(false);
           this.noteTags.set([]);
           this.tagInput.set('');
+          this.tagSvc.getTagsForNote(note.id).subscribe((tags) => this.noteTags.set(tags));
         }
 
         this.pendingContent = null;
