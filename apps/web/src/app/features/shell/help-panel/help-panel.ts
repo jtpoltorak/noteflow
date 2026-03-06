@@ -66,6 +66,34 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Font Style</h3>
+        <p>Switch between serif and sans-serif fonts using the font toggle button in the editor toolbar. Your choice applies to the current editing session.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Sharing</h3>
+        <p class="mb-1">Share notes with a public link anyone can view:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click the share icon in the editor toolbar to create a public link</li>
+          <li>Copy the link to share it with others</li>
+          <li>Open the Shared view from the navigation rail to see all shared notes</li>
+          <li>Stop sharing at any time to revoke access</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Tags</h3>
+        <p class="mb-1">Organise notes with tags for easy browsing:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click the tag icon in the editor toolbar to add or remove tags</li>
+          <li>Type a tag name and press Enter &mdash; existing tags are suggested as you type</li>
+          <li>Open the Tags view from the navigation rail to browse all tags</li>
+          <li>Click a tag to see all notes with that tag, then click a note to open it</li>
+          <li>Rename or delete tags from the tags panel</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Move &amp; Duplicate</h3>
         <p>Use the editor toolbar to move a note to a different section or duplicate it. The move dialog lets you pick any notebook and section as the destination.</p>
       </section>
