@@ -79,6 +79,7 @@ export interface NoteDto {
   archivedAt: string | null;
   favoritedAt: string | null;
   shareToken: string | null;
+  isLocked: boolean;
   createdAt: string;
   updatedAt: string;
 }

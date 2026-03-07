@@ -1,21 +1,27 @@
+import bcrypt from "bcryptjs";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
 import crypto from "node:crypto";
 import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto, SharedNoteListDto } from "@noteflow/shared-types";
 
-function rowToNote(row: unknown[]): NoteDto {
+const BCRYPT_ROUNDS = 12;
+
+function rowToNote(row: unknown[], hideContentIfLocked = false): NoteDto {
+  const passwordHash = row[8] as string | null;
+  const isLocked = !!passwordHash;
   return {
     id: row[0] as number,
     sectionId: row[1] as number,
     title: row[2] as string,
-    content: row[3] as string,
+    content: (hideContentIfLocked && isLocked) ? '' : row[3] as string,
     order: row[4] as number,
     archivedAt: (row[5] as string | null) ?? null,
     favoritedAt: (row[6] as string | null) ?? null,
     shareToken: (row[7] as string | null) ?? null,
-    createdAt: row[8] as string,
-    updatedAt: row[9] as string,
+    isLocked,
+    createdAt: row[9] as string,
+    updatedAt: row[10] as string,
   };
 }
 
@@ -24,27 +30,36 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
     [sectionId]
   );
   if (result.length === 0) return [];
-  return result[0].values.map(rowToNote);
+  return result[0].values.map((row) => rowToNote(row, true));
 }
 
-export function getNoteById(id: number, userId: number): NoteDto {
+/** Internal helper — returns note with full content regardless of lock status. */
+function getNoteRaw(id: number, userId: number): NoteDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, createdAt, updatedAt FROM Note WHERE id = ?',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE id = ?',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
     throw new AppError(404, "Note not found", "NOT_FOUND");
   }
-  const note = rowToNote(result[0].values[0]);
+  const note = rowToNote(result[0].values[0], false);
 
   // Verify ownership through section → notebook → user
   getSectionById(note.sectionId, userId);
 
+  return note;
+}
+
+export function getNoteById(id: number, userId: number): NoteDto {
+  const note = getNoteRaw(id, userId);
+  if (note.isLocked) {
+    return { ...note, content: '' };
+  }
   return note;
 }
 
@@ -74,7 +89,7 @@ export function createNote(
   const id = idResult[0].values[0][0] as number;
   saveDb();
 
-  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, shareToken: null, createdAt: now, updatedAt: now };
+  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, shareToken: null, isLocked: false, createdAt: now, updatedAt: now };
 }
 
 export function updateNote(
@@ -82,7 +97,7 @@ export function updateNote(
   userId: number,
   updates: { title?: string; content?: string; order?: number; sectionId?: number }
 ): NoteDto {
-  const existing = getNoteById(id, userId); // verifies ownership
+  const existing = getNoteRaw(id, userId); // verifies ownership
 
   const db = getDb();
   const now = new Date().toISOString();
@@ -112,7 +127,7 @@ export function updateNote(
 }
 
 export function deleteNote(id: number, userId: number): void {
-  getNoteById(id, userId); // verifies ownership
+  getNoteRaw(id, userId); // verifies ownership
 
   const db = getDb();
   db.run("DELETE FROM Note WHERE id = ?", [id]);
@@ -120,7 +135,7 @@ export function deleteNote(id: number, userId: number): void {
 }
 
 export function archiveNote(id: number, userId: number): void {
-  const note = getNoteById(id, userId);
+  const note = getNoteRaw(id, userId);
   if (note.archivedAt) {
     throw new AppError(400, "Note is already archived", "ALREADY_ARCHIVED");
   }
@@ -132,7 +147,7 @@ export function archiveNote(id: number, userId: number): void {
 }
 
 export function unarchiveNote(id: number, userId: number, targetSectionId: number): void {
-  const note = getNoteById(id, userId);
+  const note = getNoteRaw(id, userId);
   if (!note.archivedAt) {
     throw new AppError(400, "Note is not archived", "NOT_ARCHIVED");
   }
@@ -158,7 +173,7 @@ export function unarchiveNote(id: number, userId: number, targetSectionId: numbe
 }
 
 export function favoriteNote(id: number, userId: number): void {
-  const note = getNoteById(id, userId);
+  const note = getNoteRaw(id, userId);
   if (note.favoritedAt) {
     throw new AppError(400, "Note is already favorited", "ALREADY_FAVORITED");
   }
@@ -170,7 +185,7 @@ export function favoriteNote(id: number, userId: number): void {
 }
 
 export function unfavoriteNote(id: number, userId: number): void {
-  const note = getNoteById(id, userId);
+  const note = getNoteRaw(id, userId);
   if (!note.favoritedAt) {
     throw new AppError(400, "Note is not favorited", "NOT_FAVORITED");
   }
@@ -236,7 +251,7 @@ export function getArchivedNotes(userId: number): ArchivedNoteDto[] {
 }
 
 export function shareNote(id: number, userId: number): string {
-  getNoteById(id, userId); // verifies ownership
+  getNoteRaw(id, userId); // verifies ownership
 
   const token = crypto.randomBytes(16).toString("base64url");
   const db = getDb();
@@ -248,7 +263,7 @@ export function shareNote(id: number, userId: number): string {
 }
 
 export function unshareNote(id: number, userId: number): void {
-  getNoteById(id, userId); // verifies ownership
+  getNoteRaw(id, userId); // verifies ownership
 
   const db = getDb();
   const now = new Date().toISOString();
@@ -306,4 +321,54 @@ export function getSharedNotes(userId: number): SharedNoteListDto[] {
     notebookTitle: row[6] as string,
     updatedAt: row[7] as string,
   }));
+}
+
+// ── Password protection ─────────────────────────────────────────
+
+export function lockNote(id: number, userId: number, password: string): void {
+  getNoteRaw(id, userId); // verifies ownership
+
+  const hash = bcrypt.hashSync(password, BCRYPT_ROUNDS);
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET passwordHash = ?, updatedAt = ? WHERE id = ?", [hash, now, id]);
+  saveDb();
+}
+
+export function unlockNote(id: number, userId: number, password: string): void {
+  const note = getNoteRaw(id, userId);
+  if (!note.isLocked) {
+    throw new AppError(400, "Note is not locked", "NOT_LOCKED");
+  }
+
+  // Verify password by reading the hash directly
+  const db = getDb();
+  const result = db.exec("SELECT passwordHash FROM Note WHERE id = ?", [id]);
+  const hash = result[0].values[0][0] as string;
+
+  if (!bcrypt.compareSync(password, hash)) {
+    throw new AppError(403, "Incorrect password", "WRONG_PASSWORD");
+  }
+
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET passwordHash = NULL, updatedAt = ? WHERE id = ?", [now, id]);
+  saveDb();
+}
+
+export function accessLockedNote(id: number, userId: number, password: string): NoteDto {
+  const note = getNoteRaw(id, userId);
+  if (!note.isLocked) {
+    return note;
+  }
+
+  // Verify password
+  const db = getDb();
+  const result = db.exec("SELECT passwordHash FROM Note WHERE id = ?", [id]);
+  const hash = result[0].values[0][0] as string;
+
+  if (!bcrypt.compareSync(password, hash)) {
+    throw new AppError(403, "Incorrect password", "WRONG_PASSWORD");
+  }
+
+  return note; // full content since getNoteRaw doesn't hide it
 }

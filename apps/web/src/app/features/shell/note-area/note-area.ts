@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -9,14 +9,16 @@ import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import { TiptapEditor } from './tiptap-editor/tiptap-editor';
 import { PresentationView } from './presentation-view';
 import { MoveNoteDialog } from './move-note-dialog';
+import { PasswordDialog } from '../../../shared/password-dialog/password-dialog';
 import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import { TagService } from '../../../core/services/tag.service';
+import { NoteService } from '../../../core/services/note.service';
 import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog, PasswordDialog],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -57,6 +59,9 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <div class="flex items-center">
                   <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
                   <span class="truncate" [title]="note.title">{{ note.title || 'Untitled' }}</span>
+                  @if (note.isLocked && !unlockedNoteIds().has(note.id)) {
+                    <fa-icon [icon]="faLock" class="ml-auto shrink-0 text-gray-400" size="xs" />
+                  }
                 </div>
               </div>
             } @empty {
@@ -117,6 +122,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faTag" size="sm" />
             </button>
             <button
+              (click)="toggleLocking()"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              [class]="state.selectedNote()?.isLocked ? 'text-yellow-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              [title]="state.selectedNote()?.isLocked ? 'Remove password' : 'Set password'"
+            >
+              <fa-icon [icon]="state.selectedNote()?.isLocked ? faLock : faLockOpen" size="sm" />
+            </button>
+            <button
               (click)="moving.set(true)"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
@@ -152,6 +165,28 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
           </div>
+
+          @if (locking()) {
+            <div class="px-4">
+              @if (state.selectedNote()?.isLocked) {
+                <app-password-dialog
+                  message="Enter current password to remove protection"
+                  placeholder="Current password"
+                  submitLabel="Remove password"
+                  (submitted)="confirmUnlock($event)"
+                  (cancelled)="locking.set(false)"
+                />
+              } @else {
+                <app-password-dialog
+                  message="Set a password to protect this note"
+                  submitLabel="Set password"
+                  [showConfirm]="true"
+                  (submitted)="confirmLock($event)"
+                  (cancelled)="locking.set(false)"
+                />
+              }
+            </div>
+          }
 
           @if (tagging()) {
             <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
@@ -260,12 +295,37 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </div>
           }
 
-          <app-tiptap-editor
-            #tiptapEditor
-            (contentUpdated)="pendingContent = $event"
-            (contentChanged)="onContentChanged($event)"
-            (blurred)="saveNote()"
-          />
+          @if (isNoteLocked()) {
+            <div class="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+              <fa-icon [icon]="faLock" class="text-gray-300 dark:text-gray-600" size="3x" />
+              <p class="text-sm text-gray-500 dark:text-gray-400">This note is password-protected</p>
+              <div class="w-64">
+                <input
+                  #mobileAccessInput
+                  type="password"
+                  placeholder="Enter password"
+                  class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  (keydown.enter)="accessNote(mobileAccessInput.value, mobileAccessInput)"
+                />
+                @if (accessError()) {
+                  <p class="mb-2 text-xs text-red-600 dark:text-red-400">{{ accessError() }}</p>
+                }
+                <button
+                  (click)="accessNote(mobileAccessInput.value, mobileAccessInput)"
+                  class="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                >
+                  Unlock
+                </button>
+              </div>
+            </div>
+          } @else {
+            <app-tiptap-editor
+              #tiptapEditor
+              (contentUpdated)="pendingContent = $event"
+              (contentChanged)="onContentChanged($event)"
+              (blurred)="saveNote()"
+            />
+          }
         } @else {
           <div class="flex flex-1 items-center justify-center">
             <p class="text-gray-400">Select a note to edit</p>
@@ -338,6 +398,9 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                       <div class="flex items-center">
                         <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
                         <span class="truncate" [title]="note.title">{{ note.title || 'Untitled' }}</span>
+                        @if (note.isLocked && !unlockedNoteIds().has(note.id)) {
+                          <fa-icon [icon]="faLock" class="ml-auto shrink-0 text-gray-400" size="xs" />
+                        }
                       </div>
                     </div>
                   } @empty {
@@ -413,6 +476,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faTag" size="sm" />
                 </button>
                 <button
+                  (click)="toggleLocking()"
+                  class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  [class]="state.selectedNote()?.isLocked ? 'text-yellow-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  [title]="state.selectedNote()?.isLocked ? 'Remove password' : 'Set password'"
+                >
+                  <fa-icon [icon]="state.selectedNote()?.isLocked ? faLock : faLockOpen" size="sm" />
+                </button>
+                <button
                   (click)="moving.set(true)"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Move note"
@@ -448,6 +519,28 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faTrash" size="sm" />
                 </button>
               </div>
+
+              @if (locking()) {
+                <div class="px-4">
+                  @if (state.selectedNote()?.isLocked) {
+                    <app-password-dialog
+                      message="Enter current password to remove protection"
+                      placeholder="Current password"
+                      submitLabel="Remove password"
+                      (submitted)="confirmUnlock($event)"
+                      (cancelled)="locking.set(false)"
+                    />
+                  } @else {
+                    <app-password-dialog
+                      message="Set a password to protect this note"
+                      submitLabel="Set password"
+                      [showConfirm]="true"
+                      (submitted)="confirmLock($event)"
+                      (cancelled)="locking.set(false)"
+                    />
+                  }
+                </div>
+              }
 
               @if (tagging()) {
                 <div class="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
@@ -556,11 +649,36 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 </div>
               }
 
-              <app-tiptap-editor
-                #tiptapEditor
-                (contentChanged)="onContentChanged($event)"
-                (blurred)="saveNote()"
-              />
+              @if (isNoteLocked()) {
+                <div class="flex flex-1 flex-col items-center justify-center gap-4 p-8">
+                  <fa-icon [icon]="faLock" class="text-gray-300 dark:text-gray-600" size="3x" />
+                  <p class="text-sm text-gray-500 dark:text-gray-400">This note is password-protected</p>
+                  <div class="w-64">
+                    <input
+                      #desktopAccessInput
+                      type="password"
+                      placeholder="Enter password"
+                      class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                      (keydown.enter)="accessNote(desktopAccessInput.value, desktopAccessInput)"
+                    />
+                    @if (accessError()) {
+                      <p class="mb-2 text-xs text-red-600 dark:text-red-400">{{ accessError() }}</p>
+                    }
+                    <button
+                      (click)="accessNote(desktopAccessInput.value, desktopAccessInput)"
+                      class="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    >
+                      Unlock
+                    </button>
+                  </div>
+                </div>
+              } @else {
+                <app-tiptap-editor
+                  #tiptapEditor
+                  (contentChanged)="onContentChanged($event)"
+                  (blurred)="saveNote()"
+                />
+              }
             } @else {
               <div class="flex flex-1 items-center justify-center">
                 <p class="text-gray-400">Select a note to edit</p>
@@ -603,6 +721,7 @@ export class NoteArea {
   protected state = inject(ShellStateService);
   protected vp = inject(ViewportService);
   private tagSvc = inject(TagService);
+  private noteSvc = inject(NoteService);
 
   collapsed = input(false);
   fullscreen = input(false);
@@ -631,11 +750,16 @@ export class NoteArea {
   protected faShareNodes = faShareNodes;
   protected faTag = faTag;
   protected faXmark = faXmark;
+  protected faLock = faLock;
+  protected faLockOpen = faLockOpen;
 
   protected sharing = signal(false);
   protected linkCopied = signal(false);
   protected moving = signal(false);
   protected archiving = signal(false);
+  protected locking = signal(false);
+  protected accessError = signal('');
+  protected unlockedNoteIds = signal(new Set<number>());
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
   protected editedTitle = signal('');
@@ -653,6 +777,12 @@ export class NoteArea {
     return this.userTags().filter(
       (t) => t.name.toLowerCase().includes(input) && !currentTagIds.has(t.id)
     );
+  });
+
+  protected isNoteLocked = computed(() => {
+    const note = this.state.selectedNote();
+    if (!note?.isLocked) return false;
+    return !this.unlockedNoteIds().has(note.id);
   });
 
   protected noteTimestamp = computed(() => {
@@ -710,6 +840,8 @@ export class NoteArea {
           this.deleting.set(false);
           this.sharing.set(false);
           this.linkCopied.set(false);
+          this.locking.set(false);
+          this.accessError.set('');
           this.tagging.set(false);
           this.noteTags.set([]);
           this.tagInput.set('');
@@ -955,6 +1087,57 @@ export class NoteArea {
       this.noteTags.update((list) => list.filter((t) => t.id !== tag.id));
       // Refresh user tags to update counts
       this.tagSvc.getAll().subscribe((tags) => this.userTags.set(tags));
+    });
+  }
+
+  // ── Password protection ──────────────────────────────────────────
+
+  protected toggleLocking(): void {
+    this.locking.set(!this.locking());
+  }
+
+  protected confirmLock(password: string): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.state.lockNote(note.id, password);
+    this.locking.set(false);
+  }
+
+  protected confirmUnlock(password: string): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.noteSvc.unlock(note.id, password).subscribe({
+      next: () => {
+        this.state.notes.update((list) =>
+          list.map((n) => (n.id === note.id ? { ...n, isLocked: false } : n))
+        );
+        this.unlockedNoteIds.update((ids) => {
+          ids.delete(note.id);
+          return new Set(ids);
+        });
+        this.locking.set(false);
+      },
+      error: () => this.accessError.set('Incorrect password'),
+    });
+  }
+
+  protected accessNote(password: string, inputEl: HTMLInputElement): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    this.accessError.set('');
+    this.noteSvc.access(note.id, password).subscribe({
+      next: (fullNote) => {
+        // Store full content in notes list
+        this.state.notes.update((list) => list.map((n) => (n.id === note.id ? fullNote : n)));
+        // Mark as unlocked for this session
+        this.unlockedNoteIds.update((ids) => new Set(ids).add(note.id));
+        this.accessError.set('');
+      },
+      error: () => {
+        this.accessError.set('Incorrect password');
+        inputEl.value = '';
+        inputEl.focus();
+      },
     });
   }
 }

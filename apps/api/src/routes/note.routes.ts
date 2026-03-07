@@ -16,6 +16,9 @@ import {
   shareNote,
   unshareNote,
   getSharedNotes,
+  lockNote,
+  unlockNote,
+  accessLockedNote,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -111,6 +114,51 @@ router.post("/notes/:id/unshare", (req: Request, res: Response) => {
   unshareNote(Number(req.params.id), req.user!.id);
   res.json({ data: null, message: "Sharing disabled" });
 });
+
+const lockSchema = z.object({
+  password: z.string().min(4, "Password must be at least 4 characters").max(100),
+});
+
+// PUT /notes/:id/lock
+router.put(
+  "/notes/:id/lock",
+  validate(lockSchema),
+  (req: Request, res: Response) => {
+    const { password } = req.body as z.infer<typeof lockSchema>;
+    lockNote(Number(req.params.id), req.user!.id, password);
+    res.json({ data: null, message: "Note locked" });
+  }
+);
+
+const unlockSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
+// PUT /notes/:id/unlock
+router.put(
+  "/notes/:id/unlock",
+  validate(unlockSchema),
+  (req: Request, res: Response) => {
+    const { password } = req.body as z.infer<typeof unlockSchema>;
+    unlockNote(Number(req.params.id), req.user!.id, password);
+    res.json({ data: null, message: "Note unlocked" });
+  }
+);
+
+const accessSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+});
+
+// POST /notes/:id/access
+router.post(
+  "/notes/:id/access",
+  validate(accessSchema),
+  (req: Request, res: Response) => {
+    const { password } = req.body as z.infer<typeof accessSchema>;
+    const note = accessLockedNote(Number(req.params.id), req.user!.id, password);
+    res.json({ data: note });
+  }
+);
 
 // GET /notes/:id
 router.get("/notes/:id", (req: Request, res: Response) => {

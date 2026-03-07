@@ -80,4 +80,18 @@ export class NoteService {
   unshare(id: number): Observable<void> {
     return this.http.post<void>(`${this.api}/notes/${id}/unshare`, {});
   }
+
+  lock(id: number, password: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/notes/${id}/lock`, { password });
+  }
+
+  unlock(id: number, password: string): Observable<void> {
+    return this.http.put<void>(`${this.api}/notes/${id}/unlock`, { password });
+  }
+
+  access(id: number, password: string): Observable<NoteDto> {
+    return this.http
+      .post<ApiSuccessResponse<NoteDto>>(`${this.api}/notes/${id}/access`, { password })
+      .pipe(map((r) => r.data));
+  }
 }

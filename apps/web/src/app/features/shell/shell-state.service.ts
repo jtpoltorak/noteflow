@@ -292,6 +292,39 @@ export class ShellStateService {
     });
   }
 
+  // ── Password protection ──────────────────────────────────────
+
+  lockNote(id: number, password: string): void {
+    this.noteSvc.lock(id, password).subscribe({
+      next: () => {
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, isLocked: true, content: '' } : n))
+        );
+      },
+      error: (err) => console.error('Failed to lock note:', err),
+    });
+  }
+
+  unlockNote(id: number, password: string): void {
+    this.noteSvc.unlock(id, password).subscribe({
+      next: () => {
+        this.notes.update((list) =>
+          list.map((n) => (n.id === id ? { ...n, isLocked: false } : n))
+        );
+      },
+      error: (err) => console.error('Failed to unlock note:', err),
+    });
+  }
+
+  accessLockedNote(id: number, password: string): void {
+    this.noteSvc.access(id, password).subscribe({
+      next: (note) => {
+        this.notes.update((list) => list.map((n) => (n.id === id ? note : n)));
+      },
+      error: (err) => console.error('Failed to access locked note:', err),
+    });
+  }
+
   // ── Reorder (drag-and-drop) ───────────────────────────────────
 
   reorderNotebooks(reordered: NotebookDto[]): void {
