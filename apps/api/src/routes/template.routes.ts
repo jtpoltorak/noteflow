@@ -32,7 +32,7 @@ router.get("/templates", (req: Request, res: Response) => {
 
 // POST /templates
 router.post("/templates", validate(createSchema), (req: Request, res: Response) => {
-  const data = req.body as z.infer<typeof createSchema>;
+  const data = req.body as { name: string; description?: string; content: string; category?: string };
   const template = createUserTemplate(req.user!.id, data);
   res.status(201).json({ data: template });
 });

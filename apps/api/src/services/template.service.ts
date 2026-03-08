@@ -64,7 +64,7 @@ export function updateUserTemplate(
   const db = getDb();
   const now = new Date().toISOString();
   const fields: string[] = ["updatedAt = ?"];
-  const params: unknown[] = [now];
+  const params: (string | number)[] = [now];
 
   if (updates.name !== undefined) {
     fields.push("name = ?");
