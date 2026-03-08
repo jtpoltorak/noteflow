@@ -12,6 +12,7 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../services/auth.service.js";
+import { exportAsJson, exportAsMarkdownZip } from "../services/export.service.js";
 
 const router = Router();
 
@@ -118,6 +119,19 @@ router.put("/password", requireAuth, validate(changePasswordSchema), (req: Reque
   const { currentPassword, newPassword } = req.body as z.infer<typeof changePasswordSchema>;
   changePassword(req.user!.id, currentPassword, newPassword);
   res.json({ data: null, message: "Password changed successfully" });
+});
+
+router.get("/export/json", requireAuth, (req: Request, res: Response) => {
+  const json = exportAsJson(req.user!.id, req.user!.email);
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Content-Disposition", "attachment; filename=noteflow-export.json");
+  res.send(json);
+});
+
+router.get("/export/markdown", requireAuth, (req: Request, res: Response) => {
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", "attachment; filename=noteflow-export.zip");
+  exportAsMarkdownZip(req.user!.id, req.user!.email, res);
 });
 
 export default router;

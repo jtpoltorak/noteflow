@@ -1,10 +1,11 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSun, faMoon } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-settings-dialog',
@@ -72,6 +73,30 @@ import { ThemeService } from '../../core/services/theme.service';
           </form>
         </section>
 
+        <!-- Export data -->
+        <section>
+          <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Export My Data</h3>
+          <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+            Download all your notebooks, sections, notes, and tags.
+          </p>
+          <div class="flex gap-2">
+            <a
+              [href]="exportJsonUrl"
+              class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <fa-icon [icon]="faFileExport" size="sm" />
+              JSON
+            </a>
+            <a
+              [href]="exportMarkdownUrl"
+              class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <fa-icon [icon]="faFileExport" size="sm" />
+              Markdown (ZIP)
+            </a>
+          </div>
+        </section>
+
         <!-- Sign out -->
         <section class="border-t border-gray-200 pt-4 dark:border-gray-600">
           <button
@@ -95,6 +120,10 @@ export class SettingsDialog {
 
   protected faSun = faSun;
   protected faMoon = faMoon;
+  protected faFileExport = faFileExport;
+
+  protected exportJsonUrl = `${environment.apiUrl}/auth/export/json`;
+  protected exportMarkdownUrl = `${environment.apiUrl}/auth/export/markdown`;
 
   // Change password form
   protected currentPassword = '';
