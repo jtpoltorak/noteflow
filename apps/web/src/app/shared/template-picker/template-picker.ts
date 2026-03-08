@@ -1,7 +1,7 @@
 import { Component, inject, input, output, signal, effect, HostListener } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faFile } from '@fortawesome/free-regular-svg-icons';
-import { faTrash, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faUser, faPen } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { TemplateService } from '../../core/services/template.service';
 import { NOTE_TEMPLATES, TEMPLATE_CATEGORIES, type NoteTemplate } from './templates.config';
@@ -49,6 +49,13 @@ export type SelectedTemplate = { name: string; content: string } | null;
                         <p class="truncate text-xs text-gray-400 dark:text-gray-500">{{ tmpl.description }}</p>
                       }
                     </div>
+                  </button>
+                  <button
+                    (click)="renameTemplate(tmpl.id, tmpl.name)"
+                    class="shrink-0 rounded p-1.5 text-gray-300 opacity-0 transition-opacity hover:text-blue-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:text-blue-400"
+                    title="Rename template"
+                  >
+                    <fa-icon [icon]="faPen" size="xs" />
                   </button>
                   <button
                     (click)="deleteTemplate(tmpl.id)"
@@ -99,6 +106,7 @@ export class TemplatePicker {
   protected faFile = faFile;
   protected faUser = faUser;
   protected faTrash = faTrash;
+  protected faPen = faPen;
   protected categories = TEMPLATE_CATEGORIES;
   protected userTemplates = signal<UserTemplateDto[]>([]);
 
@@ -119,6 +127,14 @@ export class TemplatePicker {
 
   protected getByCategory(category: string): NoteTemplate[] {
     return NOTE_TEMPLATES.filter((t) => t.category === category);
+  }
+
+  protected renameTemplate(id: number, currentName: string): void {
+    const name = prompt('Rename template:', currentName);
+    if (!name || name === currentName) return;
+    this.templateSvc.update(id, { name }).subscribe((updated) => {
+      this.userTemplates.update((list) => list.map((t) => (t.id === id ? updated : t)));
+    });
   }
 
   protected deleteTemplate(id: number): void {
