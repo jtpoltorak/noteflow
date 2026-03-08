@@ -21,6 +21,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import Subscript from '@tiptap/extension-subscript';
 import Link from '@tiptap/extension-link';
+import Highlight from '@tiptap/extension-highlight';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faRotateLeft,
@@ -47,6 +48,9 @@ import {
   faLink,
   faLinkSlash,
   faFont,
+  faHighlighter,
+  faDroplet,
+  faEraser,
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { SlashCommandExtension } from './slash-command.extension';
@@ -238,6 +242,52 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           [class.dark:hover:bg-gray-700]="!editor.isActive('code')"
           title="Inline code"
         ><fa-icon [icon]="faCode" size="sm" /></button>
+
+        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Highlight -->
+        <div class="relative">
+          <button
+            (mousedown)="$event.preventDefault(); toggleHighlight(activeHighlightColor())"
+            class="rounded px-1.5 py-1"
+            [class.bg-blue-100]="editor.isActive('highlight')"
+            [class.dark:bg-blue-900]="editor.isActive('highlight')"
+            [class.text-gray-600]="!editor.isActive('highlight')"
+            [class.dark:text-gray-300]="!editor.isActive('highlight')"
+            [class.hover:bg-gray-100]="!editor.isActive('highlight')"
+            [class.dark:hover:bg-gray-700]="!editor.isActive('highlight')"
+            title="Highlight"
+          >
+            <fa-icon [icon]="faHighlighter" size="sm" />
+            <span class="absolute bottom-0.5 left-1/2 h-0.5 w-3.5 -translate-x-1/2 rounded-full" [style.background]="activeHighlightColor()"></span>
+          </button>
+        </div>
+        <div class="relative">
+          <button
+            (mousedown)="$event.preventDefault(); highlightPickerOpen.set(!highlightPickerOpen())"
+            class="rounded px-0.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            title="Highlight colors"
+          ><fa-icon [icon]="faDroplet" size="xs" /></button>
+          @if (highlightPickerOpen()) {
+            <div class="absolute left-0 top-full z-50 mt-1 flex gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+              @for (color of highlightColors; track color.value) {
+                <button
+                  (mousedown)="$event.preventDefault(); applyHighlightColor(color.value)"
+                  class="h-5 w-5 rounded-full border-2 transition-transform hover:scale-125"
+                  [style.background]="color.value"
+                  [class.border-blue-500]="activeHighlightColor() === color.value"
+                  [class.border-transparent]="activeHighlightColor() !== color.value"
+                  [title]="color.label"
+                ></button>
+              }
+              <button
+                (mousedown)="$event.preventDefault(); removeHighlight()"
+                class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent text-gray-400 transition-transform hover:scale-125 hover:text-red-500"
+                title="Remove highlight"
+              ><fa-icon [icon]="faEraser" size="xs" /></button>
+            </div>
+          }
+        </div>
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
@@ -523,6 +573,39 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           [class.dark:hover:bg-gray-700]="!editor.isActive('link')"
           title="Insert/edit link"
         ><fa-icon [icon]="faLink" size="sm" /></button>
+        <div class="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="relative">
+          <button
+            (mousedown)="$event.preventDefault(); bubbleHighlightOpen.set(!bubbleHighlightOpen())"
+            class="rounded px-2 py-1 text-sm"
+            [class.bg-blue-100]="editor.isActive('highlight')"
+            [class.dark:bg-blue-900]="editor.isActive('highlight')"
+            [class.text-gray-700]="!editor.isActive('highlight')"
+            [class.dark:text-gray-200]="!editor.isActive('highlight')"
+            [class.hover:bg-gray-100]="!editor.isActive('highlight')"
+            [class.dark:hover:bg-gray-700]="!editor.isActive('highlight')"
+            title="Highlight"
+          ><fa-icon [icon]="faHighlighter" size="sm" /></button>
+          @if (bubbleHighlightOpen()) {
+            <div class="absolute bottom-full left-1/2 z-50 mb-1 flex -translate-x-1/2 gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+              @for (color of highlightColors; track color.value) {
+                <button
+                  (mousedown)="$event.preventDefault(); applyHighlightFromBubble(color.value)"
+                  class="h-5 w-5 rounded-full border-2 transition-transform hover:scale-125"
+                  [style.background]="color.value"
+                  [class.border-blue-500]="activeHighlightColor() === color.value"
+                  [class.border-transparent]="activeHighlightColor() !== color.value"
+                  [title]="color.label"
+                ></button>
+              }
+              <button
+                (mousedown)="$event.preventDefault(); removeHighlightFromBubble()"
+                class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent text-gray-400 transition-transform hover:scale-125 hover:text-red-500"
+                title="Remove highlight"
+              ><fa-icon [icon]="faEraser" size="xs" /></button>
+            </div>
+          }
+        </div>
       </div>
     }
 
@@ -587,6 +670,9 @@ export class TiptapEditor implements OnDestroy {
   protected faLink = faLink;
   protected faLinkSlash = faLinkSlash;
   protected faFont = faFont;
+  protected faHighlighter = faHighlighter;
+  protected faDroplet = faDroplet;
+  protected faEraser = faEraser;
 
   toggleToolbar(): void {
     const next = !this.showToolbar();
@@ -598,6 +684,45 @@ export class TiptapEditor implements OnDestroy {
     const next = !this.serifMode();
     this.serifMode.set(next);
     localStorage.setItem('noteflow-font-serif', String(next));
+  }
+
+  // Highlight colors
+  protected highlightColors = [
+    { value: '#fde047', label: 'Yellow' },
+    { value: '#86efac', label: 'Green' },
+    { value: '#93c5fd', label: 'Blue' },
+    { value: '#fca5a5', label: 'Red' },
+    { value: '#fdba74', label: 'Orange' },
+    { value: '#d8b4fe', label: 'Purple' },
+  ];
+  protected highlightPickerOpen = signal(false);
+  protected bubbleHighlightOpen = signal(false);
+  protected activeHighlightColor = signal('#fde047');
+
+  protected toggleHighlight(color: string): void {
+    this.editor.chain().focus().toggleHighlight({ color }).run();
+  }
+
+  protected applyHighlightColor(color: string): void {
+    this.activeHighlightColor.set(color);
+    this.editor.chain().focus().toggleHighlight({ color }).run();
+    this.highlightPickerOpen.set(false);
+  }
+
+  protected removeHighlight(): void {
+    this.editor.chain().focus().unsetHighlight().run();
+    this.highlightPickerOpen.set(false);
+  }
+
+  protected applyHighlightFromBubble(color: string): void {
+    this.activeHighlightColor.set(color);
+    this.editor.chain().focus().toggleHighlight({ color }).run();
+    this.bubbleHighlightOpen.set(false);
+  }
+
+  protected removeHighlightFromBubble(): void {
+    this.editor.chain().focus().unsetHighlight().run();
+    this.bubbleHighlightOpen.set(false);
   }
 
   isToolbarVisible(): boolean {
@@ -677,6 +802,7 @@ export class TiptapEditor implements OnDestroy {
         TextAlign.configure({ types: ['heading', 'paragraph'] }),
         Superscript,
         Subscript,
+        Highlight.configure({ multicolor: true }),
         Link.configure({
           openOnClick: false,
           autolink: true,
@@ -706,6 +832,7 @@ export class TiptapEditor implements OnDestroy {
         this.blurred.emit();
         this.hideBubbleMenu();
         this.tableToolbarVisible.set(false);
+        this.highlightPickerOpen.set(false);
       },
       onSelectionUpdate: ({ editor }) => {
         this.updateBubbleMenu(editor);
@@ -813,6 +940,7 @@ export class TiptapEditor implements OnDestroy {
 
   private hideBubbleMenu(): void {
     this.bubbleMenuVisible.set(false);
+    this.bubbleHighlightOpen.set(false);
   }
 
   // ── Table toolbar ─────────────────────────────────────────────

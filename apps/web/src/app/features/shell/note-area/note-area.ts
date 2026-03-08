@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -157,7 +157,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Save as template"
             >
-              <fa-icon [icon]="faFloppyDisk" size="sm" />
+              <fa-icon [icon]="faFileCirclePlus" size="sm" />
             </button>
             <button
               (click)="startArchiving()"
@@ -529,7 +529,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Save as template"
                 >
-                  <fa-icon [icon]="faFloppyDisk" size="sm" />
+                  <fa-icon [icon]="faFileCirclePlus" size="sm" />
                 </button>
                 <button
                   (click)="startArchiving()"
@@ -799,7 +799,7 @@ export class NoteArea {
   protected faLock = faLock;
   protected faLockOpen = faLockOpen;
   protected faWandMagicSparkles = faWandMagicSparkles;
-  protected faFloppyDisk = faFloppyDisk;
+  protected faFileCirclePlus = faFileCirclePlus;
 
   protected showTemplatePicker = signal(false);
   protected templatePickerMode = signal<'create' | 'apply'>('create');
