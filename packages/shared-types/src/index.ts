@@ -50,6 +50,20 @@ export interface ChangePasswordDto {
   newPassword: string;
 }
 
+export interface CreateUserTemplateDto {
+  name: string;
+  description?: string;
+  content: string;
+  category?: string;
+}
+
+export interface UpdateUserTemplateDto {
+  name?: string;
+  description?: string;
+  content?: string;
+  category?: string;
+}
+
 // ── Response DTOs ─────────────────────────────────────────────
 
 export interface UserDto {
@@ -141,6 +155,18 @@ export interface SearchResultDto {
   notebookTitle: string;
   snippet: string;
   archivedAt: string | null;
+  updatedAt: string;
+}
+
+// ── User Template DTOs ───────────────────────────────────────
+
+export interface UserTemplateDto {
+  id: number;
+  name: string;
+  description: string;
+  content: string;
+  category: string;
+  createdAt: string;
   updatedAt: string;
 }
 

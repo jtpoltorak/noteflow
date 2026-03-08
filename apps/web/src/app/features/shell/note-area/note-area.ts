@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFloppyDisk } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -14,8 +14,8 @@ import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import { TagService } from '../../../core/services/tag.service';
 import { NoteService } from '../../../core/services/note.service';
-import { TemplatePicker } from '../../../shared/template-picker/template-picker';
-import type { NoteTemplate } from '../../../shared/template-picker/templates.config';
+import { TemplatePicker, type SelectedTemplate } from '../../../shared/template-picker/template-picker';
+import { TemplateService } from '../../../core/services/template.service';
 import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
 
 @Component({
@@ -151,6 +151,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               title="Export as Markdown"
             >
               <fa-icon [icon]="faDownload" size="sm" />
+            </button>
+            <button
+              (click)="saveAsTemplate()"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Save as template"
+            >
+              <fa-icon [icon]="faFloppyDisk" size="sm" />
             </button>
             <button
               (click)="startArchiving()"
@@ -518,6 +525,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faDownload" size="sm" />
                 </button>
                 <button
+                  (click)="saveAsTemplate()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Save as template"
+                >
+                  <fa-icon [icon]="faFloppyDisk" size="sm" />
+                </button>
+                <button
                   (click)="startArchiving()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Archive note"
@@ -753,6 +767,7 @@ export class NoteArea {
   protected vp = inject(ViewportService);
   private tagSvc = inject(TagService);
   private noteSvc = inject(NoteService);
+  private templateSvc = inject(TemplateService);
 
   collapsed = input(false);
   fullscreen = input(false);
@@ -784,6 +799,7 @@ export class NoteArea {
   protected faLock = faLock;
   protected faLockOpen = faLockOpen;
   protected faWandMagicSparkles = faWandMagicSparkles;
+  protected faFloppyDisk = faFloppyDisk;
 
   protected showTemplatePicker = signal(false);
   protected templatePickerMode = signal<'create' | 'apply'>('create');
@@ -919,7 +935,7 @@ export class NoteArea {
     this.showTemplatePicker.set(true);
   }
 
-  protected onTemplateSelected(template: NoteTemplate | null): void {
+  protected onTemplateSelected(template: SelectedTemplate): void {
     this.showTemplatePicker.set(false);
 
     if (this.templatePickerMode() === 'create') {
@@ -936,6 +952,19 @@ export class NoteArea {
         this.saveNote();
       }
     }
+  }
+
+  protected saveAsTemplate(): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+    const editor = this.tiptapEditor();
+    const content = editor ? editor.getHTML() : note.content;
+    if (!content || content === '<p></p>') return;
+
+    const name = prompt('Template name:', note.title);
+    if (!name) return;
+
+    this.templateSvc.create({ name, content }).subscribe();
   }
 
   protected onContentChanged(html: string): void {
