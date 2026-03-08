@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -14,11 +14,13 @@ import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import { TagService } from '../../../core/services/tag.service';
 import { NoteService } from '../../../core/services/note.service';
+import { TemplatePicker } from '../../../shared/template-picker/template-picker';
+import type { NoteTemplate } from '../../../shared/template-picker/templates.config';
 import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog, PasswordDialog],
+  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog, PasswordDialog, TemplatePicker],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -325,6 +327,17 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (contentChanged)="onContentChanged($event)"
               (blurred)="saveNote()"
             />
+            @if (isNoteEmpty()) {
+              <div class="pointer-events-none absolute bottom-4 left-0 right-0 z-10 flex justify-center">
+                <button
+                  (mousedown)="$event.preventDefault(); applyTemplate()"
+                  class="pointer-events-auto flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-500 shadow-sm hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-200"
+                >
+                  <fa-icon [icon]="faWandMagicSparkles" size="xs" />
+                  Use a template
+                </button>
+              </div>
+            }
           }
         } @else {
           <div class="flex flex-1 items-center justify-center">
@@ -678,6 +691,17 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   (contentChanged)="onContentChanged($event)"
                   (blurred)="saveNote()"
                 />
+                @if (isNoteEmpty()) {
+                  <div class="absolute bottom-4 left-0 right-0 flex justify-center">
+                    <button
+                      (click)="applyTemplate()"
+                      class="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-500 shadow-sm hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-200"
+                    >
+                      <fa-icon [icon]="faWandMagicSparkles" size="xs" />
+                      Use a template
+                    </button>
+                  </div>
+                }
               }
             } @else {
               <div class="flex flex-1 items-center justify-center">
@@ -706,6 +730,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
         (closed)="presentationOpen.set(false)"
       />
     }
+
+    <!-- Template picker -->
+    <app-template-picker
+      [open]="showTemplatePicker()"
+      (closed)="showTemplatePicker.set(false)"
+      (selected)="onTemplateSelected($event)"
+    />
 
     <!-- Hidden file input for markdown import -->
     <input
@@ -752,6 +783,17 @@ export class NoteArea {
   protected faXmark = faXmark;
   protected faLock = faLock;
   protected faLockOpen = faLockOpen;
+  protected faWandMagicSparkles = faWandMagicSparkles;
+
+  protected showTemplatePicker = signal(false);
+  protected templatePickerMode = signal<'create' | 'apply'>('create');
+
+  protected isNoteEmpty = computed(() => {
+    const note = this.state.selectedNote();
+    if (!note) return false;
+    const content = this.pendingContent ?? note.content;
+    return !content || content === '<p></p>' || content.trim() === '';
+  });
 
   protected sharing = signal(false);
   protected linkCopied = signal(false);
@@ -868,7 +910,32 @@ export class NoteArea {
   }
 
   protected createNote(): void {
-    this.state.createNote('Untitled note');
+    this.templatePickerMode.set('create');
+    this.showTemplatePicker.set(true);
+  }
+
+  protected applyTemplate(): void {
+    this.templatePickerMode.set('apply');
+    this.showTemplatePicker.set(true);
+  }
+
+  protected onTemplateSelected(template: NoteTemplate | null): void {
+    this.showTemplatePicker.set(false);
+
+    if (this.templatePickerMode() === 'create') {
+      const title = template ? template.name : 'Untitled note';
+      const content = template ? template.content.trim() : undefined;
+      this.state.createNote(title, content);
+    } else {
+      // Apply mode — set content on the current note
+      if (!template) return;
+      const editor = this.tiptapEditor();
+      if (editor) {
+        editor.setContent(template.content.trim());
+        this.pendingContent = template.content.trim();
+        this.saveNote();
+      }
+    }
   }
 
   protected onContentChanged(html: string): void {
