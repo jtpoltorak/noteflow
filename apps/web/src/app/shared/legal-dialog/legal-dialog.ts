@@ -28,6 +28,8 @@ import { Modal } from '../modal/modal';
               <li><strong>Your notes</strong> &mdash; notebooks, sections, and note content are stored in a server-side database so you can access them across sessions.</li>
               <li><strong>No tracking</strong> &mdash; there are no analytics, no advertising cookies, and no third-party tracking scripts.</li>
               <li><strong>No data sharing</strong> &mdash; your data is not sold, shared with, or disclosed to any third party.</li>
+              <li><strong>Data export</strong> &mdash; you can export all of your data at any time from Account Settings in JSON or Markdown format.</li>
+              <li><strong>Account deletion</strong> &mdash; if you delete your account, all associated data is permanently removed from the database.</li>
             </ul>
           }
           @case ('disclaimer') {
