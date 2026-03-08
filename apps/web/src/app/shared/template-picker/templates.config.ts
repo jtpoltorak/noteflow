@@ -2,6 +2,7 @@ import {
   faUsers, faBullseye, faCalendarCheck, faUserFriends, faBug,
   faFlag, faCalendarDay, faPlane, faCalendarDays, faBook,
   faMicroscope, faGraduationCap, faPenFancy, faUtensils, faLightbulb,
+  faPeopleArrows,
 } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
@@ -81,6 +82,26 @@ export const NOTE_TEMPLATES: NoteTemplate[] = [
       <p></p>
       <h3>Action Items</h3>
       <ul data-type="taskList"><li data-type="taskItem" data-checked="false"><label><input type="checkbox"><span></span></label><div><p></p></div></li></ul>
+    `,
+  },
+  {
+    id: 'standup-status',
+    name: 'Standup Status',
+    description: 'Daily scrum standup with yesterday, today, and blockers',
+    icon: faPeopleArrows,
+    category: 'Work',
+    content: `
+      <h2>Standup Status</h2>
+      <p><strong>Date:</strong> </p>
+      <p><strong>Sprint:</strong> </p>
+      <h3>What I did yesterday</h3>
+      <ul><li><p></p></li></ul>
+      <h3>What I'm doing today</h3>
+      <ul><li><p></p></li></ul>
+      <h3>Blockers / Impediments</h3>
+      <ul><li><p></p></li></ul>
+      <h3>Notes</h3>
+      <p></p>
     `,
   },
   {
