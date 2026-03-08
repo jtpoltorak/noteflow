@@ -7,6 +7,7 @@ import {
   login,
   getUserById,
   updatePreferences,
+  changePassword,
   generateAccessToken,
   generateRefreshToken,
   verifyRefreshToken,
@@ -28,6 +29,11 @@ const loginSchema = z.object({
 
 const preferencesSchema = z.object({
   darkMode: z.boolean().optional(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Current password is required"),
+  newPassword: z.string().min(8, "New password must be at least 8 characters"),
 });
 
 // ── Cookie helpers ────────────────────────────────────────────
@@ -106,6 +112,12 @@ router.put("/preferences", requireAuth, validate(preferencesSchema), (req: Reque
   const prefs = req.body as z.infer<typeof preferencesSchema>;
   const user = updatePreferences(req.user!.id, prefs);
   res.json({ data: user });
+});
+
+router.put("/password", requireAuth, validate(changePasswordSchema), (req: Request, res: Response) => {
+  const { currentPassword, newPassword } = req.body as z.infer<typeof changePasswordSchema>;
+  changePassword(req.user!.id, currentPassword, newPassword);
+  res.json({ data: null, message: "Password changed successfully" });
 });
 
 export default router;

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -11,6 +11,7 @@ import { NoteArea } from './note-area/note-area';
 import { AboutDialog } from '../../shared/about-dialog/about-dialog';
 import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
 import { LegalDialog } from '../../shared/legal-dialog/legal-dialog';
+import { SettingsDialog } from '../../shared/settings-dialog/settings-dialog';
 import { HelpPanel } from './help-panel/help-panel';
 import { Modal } from '../../shared/modal/modal';
 import { NavRail, type ShellMode } from './nav-rail/nav-rail';
@@ -25,7 +26,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -42,6 +43,13 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               title="Toggle dark mode"
             >
               <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
+            </button>
+            <button
+              (click)="showSettings.set(true)"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              title="Account settings"
+            >
+              <fa-icon [icon]="faGear" size="sm" />
             </button>
             <button
               (click)="helpOpen.set(!helpOpen())"
@@ -126,11 +134,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <fa-icon [icon]="faBoxArchive" size="sm" />
             </button>
             <button
-              (click)="theme.toggle()"
+              (click)="showSettings.set(true)"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              title="Toggle dark mode"
+              title="Account settings"
             >
-              <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
+              <fa-icon [icon]="faGear" size="sm" />
             </button>
             <button
               (click)="helpOpen.set(!helpOpen())"
@@ -140,12 +148,6 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               title="Toggle help"
             >
               <fa-icon [icon]="faCircleQuestion" size="sm" />
-            </button>
-            <button
-              (click)="onLogout()"
-              class="rounded px-2 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              Sign out
             </button>
           </div>
         </header>
@@ -321,6 +323,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
     <app-about-dialog [open]="showAbout()" (closed)="showAbout.set(false)" />
     <app-feedback-dialog [open]="showFeedback()" (closed)="showFeedback.set(false)" />
     <app-legal-dialog [open]="showLegal()" [section]="legalSection()" [title]="legalTitle()" (closed)="showLegal.set(false)" />
+    <app-settings-dialog [open]="showSettings()" (closed)="showSettings.set(false)" />
   `,
 })
 export class Shell implements OnInit {
@@ -341,6 +344,7 @@ export class Shell implements OnInit {
   protected faStar = faStar;
   protected faShareNodes = faShareNodes;
   protected faTags = faTags;
+  protected faGear = faGear;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
@@ -356,6 +360,7 @@ export class Shell implements OnInit {
   protected helpOpen = signal(false);
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
+  protected showSettings = signal(false);
   protected showLegal = signal(false);
   protected legalSection = signal<'terms' | 'privacy' | 'disclaimer'>('terms');
   protected legalTitle = computed(() => {

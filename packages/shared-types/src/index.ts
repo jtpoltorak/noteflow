@@ -45,6 +45,11 @@ export interface UpdatePreferencesDto {
   darkMode?: boolean;
 }
 
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
 // ── Response DTOs ─────────────────────────────────────────────
 
 export interface UserDto {

@@ -113,3 +113,22 @@ export function updatePreferences(userId: number, prefs: { darkMode?: boolean })
 
   return getUserById(userId);
 }
+
+export function changePassword(userId: number, currentPassword: string, newPassword: string): void {
+  const db = getDb();
+
+  const result = db.exec("SELECT passwordHash FROM User WHERE id = ?", [userId]);
+  if (result.length === 0 || result[0].values.length === 0) {
+    throw new AppError(404, "User not found", "NOT_FOUND");
+  }
+
+  const passwordHash = result[0].values[0][0] as string;
+  const valid = bcrypt.compareSync(currentPassword, passwordHash);
+  if (!valid) {
+    throw new AppError(401, "Current password is incorrect", "INVALID_PASSWORD");
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, BCRYPT_ROUNDS);
+  db.run("UPDATE User SET passwordHash = ? WHERE id = ?", [newHash, userId]);
+  saveDb();
+}

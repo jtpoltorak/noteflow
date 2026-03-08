@@ -53,6 +53,13 @@ export class AuthService {
     );
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<ApiSuccessResponse<null>> {
+    return this.http.put<ApiSuccessResponse<null>>(
+      `${environment.apiUrl}/auth/password`,
+      { currentPassword, newPassword }
+    );
+  }
+
   /** Clear local state and redirect to login without making an HTTP call. */
   clearAndRedirect(): void {
     this.currentUser.set(null);
