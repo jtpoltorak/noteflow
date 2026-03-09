@@ -40,7 +40,9 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", shareRoutes);
 
-// Image static serving is registered after DB init (see start())
+// Serve uploaded images without auth (referenced by <img> tags in note content)
+ensureUploadDir();
+app.use("/api/v1/images", express.static(getUploadDir()));
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
@@ -57,10 +59,6 @@ app.use(errorHandler);
 async function start(): Promise<void> {
   await initDatabase();
   runMigrations();
-  ensureUploadDir();
-
-  // Serve uploaded images as static files (no auth required for rendering in editor)
-  app.use("/api/v1/images", express.static(getUploadDir()));
 
   app.listen(PORT, () => {
     console.log(`NoteFlow API running on http://localhost:${PORT}`);
