@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -151,6 +151,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               title="Export as Markdown"
             >
               <fa-icon [icon]="faDownload" size="sm" />
+            </button>
+            <button
+              (click)="printNote()"
+              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              title="Print note"
+            >
+              <fa-icon [icon]="faPrint" size="sm" />
             </button>
             <button
               (click)="saveAsTemplate()"
@@ -526,6 +533,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faDownload" size="sm" />
                 </button>
                 <button
+                  (click)="printNote()"
+                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                  title="Print note"
+                >
+                  <fa-icon [icon]="faPrint" size="sm" />
+                </button>
+                <button
                   (click)="saveAsTemplate()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Save as template"
@@ -802,6 +816,7 @@ export class NoteArea {
   protected faLockOpen = faLockOpen;
   protected faWandMagicSparkles = faWandMagicSparkles;
   protected faFileCirclePlus = faFileCirclePlus;
+  protected faPrint = faPrint;
 
   protected showTemplatePicker = signal(false);
   protected templatePickerMode = signal<'create' | 'apply'>('create');
@@ -1016,6 +1031,73 @@ export class NoteArea {
     const editor = this.tiptapEditor();
     const content = editor ? editor.getHTML() : note.content;
     exportNoteAsMarkdown(note.title, content);
+  }
+
+  protected printNote(): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (!note) return;
+    const editor = this.tiptapEditor();
+    const content = editor ? editor.getHTML() : note.content;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <title>${note.title}</title>
+  <style>
+    body {
+      font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #1f2937;
+      line-height: 1.6;
+    }
+    h1.print-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e5e7eb;
+    }
+    h1 { font-size: 1.875rem; font-weight: 700; margin: 0.75rem 0 0.5rem; }
+    h2 { font-size: 1.5rem; font-weight: 600; margin: 0.625rem 0 0.375rem; }
+    h3 { font-size: 1.25rem; font-weight: 600; margin: 0.5rem 0 0.25rem; }
+    p { margin-bottom: 0.5rem; }
+    ul { list-style: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+    ol { list-style: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+    li { margin-bottom: 0.125rem; }
+    li p { margin-bottom: 0; }
+    pre { background: #f3f4f6; border-radius: 0.375rem; padding: 0.75rem 1rem; overflow-x: auto; font-family: monospace; font-size: 0.875rem; }
+    pre code { background: none; padding: 0; }
+    code { background: #f3f4f6; border-radius: 0.25rem; padding: 0.125rem 0.25rem; font-family: monospace; font-size: 0.875em; }
+    blockquote { border-left: 3px solid #d1d5db; padding: 0.5rem 1rem; margin: 0.5rem 0; color: #6b7280; }
+    hr { border: none; border-top: 2px solid #e5e7eb; margin: 1rem 0; }
+    table { border-collapse: collapse; width: 100%; margin: 0.5rem 0; }
+    th, td { border: 1px solid #d1d5db; padding: 0.375rem 0.625rem; text-align: left; }
+    th { background: #f3f4f6; font-weight: 600; }
+    img { max-width: 100%; height: auto; border-radius: 0.375rem; margin: 0.5rem 0; }
+    a { color: #3b82f6; text-decoration: underline; }
+    ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+    ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.5rem; }
+    ul[data-type="taskList"] li label input[type="checkbox"] { margin-top: 0.35rem; }
+    ul[data-type="taskList"] li[data-checked="true"] > div p { text-decoration: line-through; color: #9ca3af; }
+    @media print {
+      body { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <h1 class="print-title">${note.title}</h1>
+  ${content}
+</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   }
 
   protected importNote(): void {
