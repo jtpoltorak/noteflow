@@ -866,6 +866,10 @@ export class TiptapEditor implements OnDestroy {
         Image.configure({
           inline: false,
           allowBase64: false,
+          resize: {
+            enabled: true,
+            alwaysPreserveAspectRatio: true,
+          },
         }),
         FileHandler.configure({
           allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
