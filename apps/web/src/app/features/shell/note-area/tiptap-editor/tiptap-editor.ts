@@ -58,6 +58,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { ImageService } from '../../../../core/services/image.service';
+import { environment } from '../../../../../environments/environment';
 import { SlashCommandExtension } from './slash-command.extension';
 import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProps } from './slash-command.extension';
 import { SlashCommandMenu } from '../slash-command-menu';
@@ -802,7 +803,8 @@ export class TiptapEditor implements OnDestroy {
     for (const file of files) {
       this.imageService.upload(id, file).subscribe({
         next: (image) => {
-          this.editor.chain().focus().setImage({ src: image.url }).run();
+          const src = `${environment.apiUrl}/images/${image.filename}`;
+          this.editor.chain().focus().setImage({ src }).run();
         },
         error: (err) => {
           console.error('Image upload failed:', err);
