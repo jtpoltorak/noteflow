@@ -66,11 +66,13 @@
     "@angular/build": "^21.1.5",
     "@angular/cli": "^21.1.5",
     "@angular/compiler-cli": "^21.1.0",
-    "@rollup/rollup-win32-x64-msvc": "^4.59.0",
     "@tailwindcss/postcss": "^4.1.0",
     "jsdom": "^27.1.0",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
   }
 }
