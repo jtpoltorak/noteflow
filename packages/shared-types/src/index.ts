@@ -170,6 +170,19 @@ export interface UserTemplateDto {
   updatedAt: string;
 }
 
+// ── Image DTOs ──────────────────────────────────────────────
+
+export interface ImageDto {
+  id: number;
+  noteId: number;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+}
+
 // ── Tag DTOs ─────────────────────────────────────────────────
 
 export interface TagDto {

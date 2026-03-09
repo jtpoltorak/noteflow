@@ -330,6 +330,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
           } @else {
             <app-tiptap-editor
               #tiptapEditor
+              [noteId]="state.selectedNoteId()"
               (contentUpdated)="pendingContent = $event"
               (contentChanged)="onContentChanged($event)"
               (blurred)="saveNote()"
@@ -702,6 +703,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               } @else {
                 <app-tiptap-editor
                   #tiptapEditor
+                  [noteId]="state.selectedNoteId()"
                   (contentChanged)="onContentChanged($event)"
                   (blurred)="saveNote()"
                 />

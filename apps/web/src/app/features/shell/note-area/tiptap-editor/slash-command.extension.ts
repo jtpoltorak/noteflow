@@ -46,6 +46,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'code', label: 'Code Block', description: 'Code snippet' },
   { id: 'divider', label: 'Divider', description: 'Horizontal rule' },
   { id: 'table', label: 'Table', description: 'Insert a table' },
+  { id: 'image', label: 'Image', description: 'Upload an image' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -84,6 +85,10 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
       break;
     case 'table':
       editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+      break;
+    case 'image':
+      // Dispatches a custom event the editor component listens for
+      editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-image', { bubbles: true }));
       break;
   }
 }

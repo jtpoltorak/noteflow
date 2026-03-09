@@ -12,7 +12,9 @@ import templateRoutes from "./routes/template.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import shareRoutes from "./routes/share.routes.js";
+import imageRoutes from "./routes/image.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
+import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -38,11 +40,14 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", shareRoutes);
 
+// Image static serving is registered after DB init (see start())
+
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
 app.use("/api/v1", requireAuth, tagRoutes);
 app.use("/api/v1", requireAuth, templateRoutes);
 app.use("/api/v1", requireAuth, noteRoutes);
+app.use("/api/v1", requireAuth, imageRoutes);
 app.use("/api/v1/search", requireAuth, searchRoutes);
 
 // ── Error handling (must be last) ─────────────────────────────
@@ -52,6 +57,10 @@ app.use(errorHandler);
 async function start(): Promise<void> {
   await initDatabase();
   runMigrations();
+  ensureUploadDir();
+
+  // Serve uploaded images as static files (no auth required for rendering in editor)
+  app.use("/api/v1/images", express.static(getUploadDir()));
 
   app.listen(PORT, () => {
     console.log(`NoteFlow API running on http://localhost:${PORT}`);

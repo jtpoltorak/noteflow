@@ -9,5 +9,8 @@
   ],
   "scripts": {
     "build:shared": "npm run build --workspace=packages/shared-types"
+  },
+  "optionalDependencies": {
+    "@rollup/rollup-win32-x64-msvc": "^4.59.0"
   }
 }

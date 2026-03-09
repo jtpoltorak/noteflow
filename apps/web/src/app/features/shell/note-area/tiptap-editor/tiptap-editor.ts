@@ -1,6 +1,7 @@
 import {
   Component,
   OnDestroy,
+  inject,
   input,
   output,
   signal,
@@ -22,6 +23,8 @@ import Superscript from '@tiptap/extension-superscript';
 import Subscript from '@tiptap/extension-subscript';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
+import Image from '@tiptap/extension-image';
+import { FileHandler } from '@tiptap/extension-file-handler';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
   faRotateLeft,
@@ -51,8 +54,10 @@ import {
   faHighlighter,
   faDroplet,
   faEraser,
+  faImage,
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
+import { ImageService } from '../../../../core/services/image.service';
 import { SlashCommandExtension } from './slash-command.extension';
 import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProps } from './slash-command.extension';
 import { SlashCommandMenu } from '../slash-command-menu';
@@ -475,6 +480,13 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Insert table"
         ><fa-icon [icon]="faTableCells" size="sm" /></button>
 
+        <!-- Image -->
+        <button
+          (mousedown)="$event.preventDefault(); insertImage()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Insert image"
+        ><fa-icon [icon]="faImage" size="sm" /></button>
+
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Font toggle -->
@@ -635,10 +647,12 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 })
 export class TiptapEditor implements OnDestroy {
   content = input('');
+  noteId = input<number | null>(null);
   contentChanged = output<string>();
   contentUpdated = output<string>();
   blurred = output<void>();
 
+  private imageService = inject(ImageService);
   editor!: Editor;
 
   // Toolbar state (persisted via localStorage)
@@ -673,6 +687,7 @@ export class TiptapEditor implements OnDestroy {
   protected faHighlighter = faHighlighter;
   protected faDroplet = faDroplet;
   protected faEraser = faEraser;
+  protected faImage = faImage;
 
   toggleToolbar(): void {
     const next = !this.showToolbar();
@@ -769,6 +784,33 @@ export class TiptapEditor implements OnDestroy {
     this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }
 
+  protected insertImage(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/gif,image/webp';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) this.uploadAndInsertImages([file]);
+    };
+    input.click();
+  }
+
+  private uploadAndInsertImages(files: File[]): void {
+    const id = this.noteId();
+    if (!id) return;
+
+    for (const file of files) {
+      this.imageService.upload(id, file).subscribe({
+        next: (image) => {
+          this.editor.chain().focus().setImage({ src: image.url }).run();
+        },
+        error: (err) => {
+          console.error('Image upload failed:', err);
+        },
+      });
+    }
+  }
+
   // Bubble menu state
   protected bubbleMenuVisible = signal(false);
   protected bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -785,6 +827,7 @@ export class TiptapEditor implements OnDestroy {
   private slashSuggestionProps: SlashSuggestionCallbackProps | null = null;
 
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private slashImageHandler: (() => void) | null = null;
 
   constructor() {
     this.editor = new Editor({
@@ -818,6 +861,19 @@ export class TiptapEditor implements OnDestroy {
           showOnlyCurrent: true,
         }),
         SlashCommandExtension,
+        Image.configure({
+          inline: false,
+          allowBase64: false,
+        }),
+        FileHandler.configure({
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+          onDrop: (_editor, files) => {
+            this.uploadAndInsertImages(files);
+          },
+          onPaste: (_editor, files) => {
+            this.uploadAndInsertImages(files);
+          },
+        }),
       ],
       content: '',
       onUpdate: ({ editor }) => {
@@ -879,6 +935,10 @@ export class TiptapEditor implements OnDestroy {
       return false;
     };
 
+    // Listen for slash-command image insertion
+    this.slashImageHandler = () => this.insertImage();
+    this.editor.view.dom.addEventListener('slash-insert-image', this.slashImageHandler);
+
     // Sync content input to editor
     effect(() => {
       const html = this.content();
@@ -902,6 +962,9 @@ export class TiptapEditor implements OnDestroy {
 
   ngOnDestroy(): void {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
+    if (this.slashImageHandler) {
+      this.editor?.view.dom.removeEventListener('slash-insert-image', this.slashImageHandler);
+    }
     this.editor?.destroy();
   }
 

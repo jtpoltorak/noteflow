@@ -342,6 +342,20 @@ html.dark {
   background: rgba(59, 130, 246, 0.2); /* blue-500 at 20% */
 }
 
+/* ── TipTap Image ────────────────────────────────────────────── */
+.noteflow-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+  cursor: default;
+}
+
+.noteflow-editor img.ProseMirror-selectednode {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* ── Presentation Mode ───────────────────────────────────────── */
 .noteflow-editor.presentation-mode {
   font-size: 1.5rem;
