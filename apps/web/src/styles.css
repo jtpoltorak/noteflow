@@ -356,13 +356,39 @@ html.dark {
   outline-offset: 2px;
 }
 
-.noteflow-editor .tiptap-resize-handle {
+/* Resize handle container — show handles on hover or selection */
+.noteflow-editor [data-resize-container] {
+  display: inline-flex !important;
+}
+
+.noteflow-editor [data-resize-wrapper] {
+  position: relative;
+  display: inline-block;
+}
+
+/* Resize handles — visible on hover */
+.noteflow-editor [data-resize-handle] {
+  width: 10px;
+  height: 10px;
   background: #3b82f6;
   border: 1.5px solid white;
   border-radius: 2px;
-  width: 8px;
-  height: 8px;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 10;
+  transform: translate(-50%, -50%);
 }
+
+.noteflow-editor [data-resize-wrapper]:hover [data-resize-handle],
+.noteflow-editor [data-resize-container][data-resize-state="true"] [data-resize-handle] {
+  opacity: 1;
+}
+
+/* Cursor styles for corner handles */
+.noteflow-editor [data-resize-handle="top-left"] { cursor: nwse-resize; }
+.noteflow-editor [data-resize-handle="top-right"] { cursor: nesw-resize; }
+.noteflow-editor [data-resize-handle="bottom-left"] { cursor: nesw-resize; }
+.noteflow-editor [data-resize-handle="bottom-right"] { cursor: nwse-resize; }
 
 /* ── Presentation Mode ───────────────────────────────────────── */
 .noteflow-editor.presentation-mode {
