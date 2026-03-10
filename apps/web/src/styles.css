@@ -452,6 +452,44 @@ html.dark {
 
 .noteflow-editor.presentation-mode a { text-underline-offset: 3px; }
 
+/* ── Drag Handle ─────────────────────────────────────────────── */
+.drag-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  cursor: grab;
+  color: #9ca3af;
+  font-size: 0.875rem;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  user-select: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.drag-handle:hover {
+  background: #e5e7eb;
+  color: #6b7280;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Show the handle when hovering over the editor */
+.noteflow-editor:hover .drag-handle,
+.drag-handle.visible {
+  opacity: 1;
+}
+
+.dark .drag-handle:hover {
+  background: #374151;
+  color: #9ca3af;
+}
+
 /* ── Bubble menu ──────────────────────────────────────────────── */
 .bubble-menu button {
   transition: background-color 0.15s ease;

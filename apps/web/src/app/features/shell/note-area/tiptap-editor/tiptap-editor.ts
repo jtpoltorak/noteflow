@@ -25,6 +25,7 @@ import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import Typography from '@tiptap/extension-typography';
+import DragHandle from '@tiptap/extension-drag-handle';
 
 /**
  * Wraps Typography so every input rule checks a live flag before firing.
@@ -521,7 +522,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
     }
 
     <div
-      class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
+      class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden py-4 pr-4 pl-8 text-gray-700 focus:outline-none dark:text-gray-200"
       [class.serif-mode]="prefs.serifMode()"
       tiptap
       [editor]="editor"
@@ -962,6 +963,18 @@ export class TiptapEditor implements OnDestroy {
         },
       }),
       SmartTypography.configure({ isEnabled: () => this.prefs.typographyMode() }),
+      DragHandle.configure({
+        render: () => {
+          const el = document.createElement('div');
+          el.classList.add('drag-handle');
+          el.innerHTML = '⠿';
+          return el;
+        },
+        nested: {
+          edgeDetection: { threshold: -16 },
+          defaultRules: true,
+        },
+      }),
     ];
   }
 
