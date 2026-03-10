@@ -58,6 +58,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { ImageService } from '../../../../core/services/image.service';
+import { EditorPreferencesService } from '../../../../core/services/editor-preferences.service';
 import { environment } from '../../../../../environments/environment';
 import { SlashCommandExtension } from './slash-command.extension';
 import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProps } from './slash-command.extension';
@@ -120,7 +121,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
   host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- Formatting toolbar -->
-    @if (showToolbar()) {
+    @if (prefs.showToolbar()) {
       <div class="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900">
         <!-- Undo / Redo -->
         <button
@@ -487,27 +488,12 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Insert image"
         ><fa-icon [icon]="faImage" size="sm" /></button>
-
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
-
-        <!-- Font toggle -->
-        <button
-          (mousedown)="$event.preventDefault(); toggleSerif()"
-          class="rounded px-1.5 py-1"
-          [class.bg-blue-100]="serifMode()"
-          [class.dark:bg-blue-900]="serifMode()"
-          [class.text-gray-600]="!serifMode()"
-          [class.dark:text-gray-300]="!serifMode()"
-          [class.hover:bg-gray-100]="!serifMode()"
-          [class.dark:hover:bg-gray-700]="!serifMode()"
-          title="Toggle serif font"
-        ><fa-icon [icon]="faFont" size="sm" /></button>
       </div>
     }
 
     <div
       class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden p-4 text-gray-700 focus:outline-none dark:text-gray-200"
-      [class.serif-mode]="serifMode()"
+      [class.serif-mode]="prefs.serifMode()"
       tiptap
       [editor]="editor"
     ></div>
@@ -654,11 +640,8 @@ export class TiptapEditor implements OnDestroy {
   blurred = output<void>();
 
   private imageService = inject(ImageService);
+  protected prefs = inject(EditorPreferencesService);
   editor!: Editor;
-
-  // Toolbar state (persisted via localStorage)
-  protected showToolbar = signal(localStorage.getItem('noteflow-toolbar') !== 'false');
-  protected serifMode = signal(localStorage.getItem('noteflow-font-serif') === 'true');
 
   // Toolbar icons
   protected faRotateLeft = faRotateLeft;
@@ -691,15 +674,7 @@ export class TiptapEditor implements OnDestroy {
   protected faImage = faImage;
 
   toggleToolbar(): void {
-    const next = !this.showToolbar();
-    this.showToolbar.set(next);
-    localStorage.setItem('noteflow-toolbar', String(next));
-  }
-
-  protected toggleSerif(): void {
-    const next = !this.serifMode();
-    this.serifMode.set(next);
-    localStorage.setItem('noteflow-font-serif', String(next));
+    this.prefs.toggleToolbar();
   }
 
   // Highlight colors
@@ -742,7 +717,7 @@ export class TiptapEditor implements OnDestroy {
   }
 
   isToolbarVisible(): boolean {
-    return this.showToolbar();
+    return this.prefs.showToolbar();
   }
 
   protected isAlignActive(alignment: string): boolean {

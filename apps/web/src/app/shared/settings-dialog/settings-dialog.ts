@@ -5,6 +5,7 @@ import { faSun, faMoon, faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { EditorPreferencesService } from '../../core/services/editor-preferences.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -29,6 +30,52 @@ import { environment } from '../../../environments/environment';
               <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
               {{ theme.darkMode() ? 'Dark' : 'Light' }}
             </button>
+          </div>
+        </section>
+
+        <!-- Editor -->
+        <section>
+          <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Editor</h3>
+          <div class="space-y-1">
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <span class="text-sm text-gray-600 dark:text-gray-400">Show Formatting Toolbar</span>
+              <button
+                (click)="editorPrefs.toggleToolbar()"
+                class="relative h-5 w-9 rounded-full transition-colors"
+                [class]="editorPrefs.showToolbar() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                  [class.translate-x-4]="editorPrefs.showToolbar()"
+                ></span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <span class="text-sm text-gray-600 dark:text-gray-400">Serif Font</span>
+              <button
+                (click)="editorPrefs.toggleSerif()"
+                class="relative h-5 w-9 rounded-full transition-colors"
+                [class]="editorPrefs.serifMode() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                  [class.translate-x-4]="editorPrefs.serifMode()"
+                ></span>
+              </button>
+            </div>
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <span class="text-sm text-gray-600 dark:text-gray-400">Show Note Metadata</span>
+              <button
+                (click)="editorPrefs.toggleMetadata()"
+                class="relative h-5 w-9 rounded-full transition-colors"
+                [class]="editorPrefs.showMetadata() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                  [class.translate-x-4]="editorPrefs.showMetadata()"
+                ></span>
+              </button>
+            </div>
           </div>
         </section>
 
@@ -116,6 +163,7 @@ export class SettingsDialog {
   closed = output();
 
   protected theme = inject(ThemeService);
+  protected editorPrefs = inject(EditorPreferencesService);
   private auth = inject(AuthService);
 
   protected faSun = faSun;
