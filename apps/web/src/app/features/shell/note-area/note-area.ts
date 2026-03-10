@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight } from '@fortawesome/free-solid-svg-icons';
 import { EditorPreferencesService } from '../../../core/services/editor-preferences.service';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
@@ -209,6 +209,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               title="Toggle smart typography"
             >
               <fa-icon [icon]="faQuoteLeft" size="sm" />
+            </button>
+            <button
+              (click)="editorPrefs.cycleFontSize()"
+              class="ml-1 shrink-0 rounded p-1"
+              [class]="editorPrefs.fontSize() !== 'default' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [title]="'Font size: ' + fontSizeLabel()"
+            >
+              <fa-icon [icon]="faTextHeight" size="sm" />
             </button>
           </div>
 
@@ -629,6 +637,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 >
                   <fa-icon [icon]="faQuoteLeft" size="sm" />
                 </button>
+                <button
+                  (click)="editorPrefs.cycleFontSize()"
+                  class="ml-1 shrink-0 rounded p-1"
+                  [class]="editorPrefs.fontSize() !== 'default' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [title]="'Font size: ' + fontSizeLabel()"
+                >
+                  <fa-icon [icon]="faTextHeight" size="sm" />
+                </button>
               </div>
 
               @if (locking()) {
@@ -900,6 +916,12 @@ export class NoteArea {
   protected faCircleInfo = faCircleInfo;
   protected faFont = faFont;
   protected faQuoteLeft = faQuoteLeft;
+  protected faTextHeight = faTextHeight;
+
+  protected fontSizeLabel = computed(() => {
+    const labels: Record<string, string> = { default: 'Default', large: 'Large', xl: 'Extra Large', xxl: 'Extra Extra Large' };
+    return labels[this.editorPrefs.fontSize()] ?? 'Default';
+  });
 
   protected showTemplatePicker = signal(false);
   protected templatePickerMode = signal<'create' | 'apply'>('create');

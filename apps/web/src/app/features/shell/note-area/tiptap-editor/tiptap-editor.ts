@@ -571,6 +571,9 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
     <div
       class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden py-4 pr-4 pl-8 text-gray-700 focus:outline-none dark:text-gray-200"
       [class.serif-mode]="prefs.serifMode()"
+      [class.font-large]="prefs.fontSize() === 'large'"
+      [class.font-xl]="prefs.fontSize() === 'xl'"
+      [class.font-xxl]="prefs.fontSize() === 'xxl'"
       tiptap
       [editor]="editor"
     ></div>

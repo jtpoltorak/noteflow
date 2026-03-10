@@ -82,6 +82,10 @@ html.dark {
   font-family: 'Source Serif 4', serif;
 }
 
+.noteflow-editor.font-large  { font-size: 1.125rem; line-height: 1.7; }
+.noteflow-editor.font-xl     { font-size: 1.25rem;  line-height: 1.75; }
+.noteflow-editor.font-xxl    { font-size: 1.5rem;   line-height: 1.8; }
+
 /* TipTap placeholder (via @tiptap/extension-placeholder) */
 .noteflow-editor .tiptap .is-empty::before {
   content: attr(data-placeholder);
