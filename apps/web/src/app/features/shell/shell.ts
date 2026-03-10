@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -20,13 +20,14 @@ import { ArchivePanel } from './archive-panel/archive-panel';
 import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import { SharedPanel } from './shared-panel/shared-panel';
 import { TagsPanel } from './tags-panel/tags-panel';
+import { QuickNoteDialog, type QuickNoteResult } from '../../shared/quick-note-dialog/quick-note-dialog';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
 export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, QuickNoteDialog],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -34,7 +35,17 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
       <!-- ── Header ──────────────────────────────────────────── -->
       @if (vp.isDesktop()) {
         <header class="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800">
-          <img src="noteflow-logo.svg" alt="NoteFlow" class="h-7 dark:invert" />
+          <div class="flex items-center gap-3">
+            <img src="noteflow-logo.svg" alt="NoteFlow" class="h-7 dark:invert" />
+            <button
+              (click)="showQuickNote.set(true)"
+              class="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+              title="Quick Note"
+            >
+              <fa-icon [icon]="faPlus" size="sm" />
+              Quick Note
+            </button>
+          </div>
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-500 dark:text-gray-400">{{ auth.user()?.email }}</span>
             <button
@@ -88,6 +99,13 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             }
           </div>
           <div class="flex shrink-0 items-center gap-2">
+            <button
+              (click)="showQuickNote.set(true)"
+              class="rounded-md bg-blue-600 p-1.5 text-white hover:bg-blue-700"
+              title="Quick Note"
+            >
+              <fa-icon [icon]="faPlus" size="sm" />
+            </button>
             <button
               (click)="toggleMobileFavorites()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -324,6 +342,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
     <app-feedback-dialog [open]="showFeedback()" (closed)="showFeedback.set(false)" />
     <app-legal-dialog [open]="showLegal()" [section]="legalSection()" [title]="legalTitle()" (closed)="showLegal.set(false)" />
     <app-settings-dialog [open]="showSettings()" (closed)="showSettings.set(false)" />
+    <app-quick-note-dialog [open]="showQuickNote()" (closed)="showQuickNote.set(false)" (created)="onQuickNoteCreated($event)" />
   `,
 })
 export class Shell implements OnInit {
@@ -345,6 +364,7 @@ export class Shell implements OnInit {
   protected faShareNodes = faShareNodes;
   protected faTags = faTags;
   protected faGear = faGear;
+  protected faPlus = faPlus;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
@@ -361,6 +381,7 @@ export class Shell implements OnInit {
   protected showAbout = signal(false);
   protected showFeedback = signal(false);
   protected showSettings = signal(false);
+  protected showQuickNote = signal(false);
   protected showLegal = signal(false);
   protected legalSection = signal<'terms' | 'privacy' | 'disclaimer'>('terms');
   protected legalTitle = computed(() => {
@@ -429,6 +450,16 @@ export class Shell implements OnInit {
 
   onLogout(): void {
     this.auth.logout().subscribe();
+  }
+
+  protected onQuickNoteCreated(result: QuickNoteResult): void {
+    this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.shellMode.set('notes');
+    if (this.vp.isCompact()) {
+      this.cameFromSearch = true;
+      this.mobilePanel.set('editor');
+      setTimeout(() => (this.cameFromSearch = false));
+    }
   }
 
   protected openLegal(section: 'terms' | 'privacy' | 'disclaimer'): void {
