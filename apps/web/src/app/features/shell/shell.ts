@@ -35,7 +35,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
       <!-- ── Header ──────────────────────────────────────────── -->
       @if (vp.isDesktop()) {
         <header class="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-4 dark:border-gray-700 dark:bg-gray-800">
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-6">
             <img src="noteflow-logo.svg" alt="NoteFlow" class="h-7 dark:invert" />
             <button
               (click)="showQuickNote.set(true)"
