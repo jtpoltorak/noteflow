@@ -76,6 +76,22 @@ import { environment } from '../../../environments/environment';
                 ></span>
               </button>
             </div>
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <div>
+                <span class="text-sm text-gray-600 dark:text-gray-400">Smart Typography</span>
+                <p class="text-[11px] text-gray-400 dark:text-gray-500">Auto-convert characters like -&gt; to arrows, (c) to &copy;, etc.</p>
+              </div>
+              <button
+                (click)="editorPrefs.toggleTypography()"
+                class="relative h-5 w-9 shrink-0 rounded-full transition-colors"
+                [class]="editorPrefs.typographyMode() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                  [class.translate-x-4]="editorPrefs.typographyMode()"
+                ></span>
+              </button>
+            </div>
           </div>
         </section>
 

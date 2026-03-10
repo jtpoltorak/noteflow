@@ -8,7 +8,7 @@ import {
   effect,
   viewChild,
 } from '@angular/core';
-import { Editor } from '@tiptap/core';
+import { Editor, InputRule } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TaskList from '@tiptap/extension-task-list';
@@ -24,6 +24,35 @@ import Subscript from '@tiptap/extension-subscript';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
+import Typography from '@tiptap/extension-typography';
+
+/**
+ * Wraps Typography so every input rule checks a live flag before firing.
+ * This lets us toggle smart typography on/off without rebuilding the editor.
+ */
+const SmartTypography = Typography.extend<{ isEnabled: () => boolean }>({
+  name: 'smartTypography',
+  addOptions() {
+    return {
+      ...this.parent?.(),
+      isEnabled: () => false,
+    };
+  },
+  addInputRules() {
+    const rules = this.parent?.() ?? [];
+    const isEnabled: () => boolean = this.options.isEnabled;
+    return rules.map(
+      (rule) =>
+        new InputRule({
+          find: rule.find,
+          handler: (props) => {
+            if (!isEnabled()) return null;
+            return rule.handler(props);
+          },
+        }),
+    );
+  },
+});
 import { FileHandler } from '@tiptap/extension-file-handler';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -808,54 +837,7 @@ export class TiptapEditor implements OnDestroy {
 
   constructor() {
     this.editor = new Editor({
-      extensions: [
-        StarterKit.configure({
-          heading: { levels: [1, 2, 3] },
-        }),
-        Underline,
-        TaskList,
-        TaskItem.configure({ nested: true }),
-        Table.configure({ resizable: false }),
-        TableRow,
-        TableCell,
-        TableHeader,
-        TextAlign.configure({ types: ['heading', 'paragraph'] }),
-        Superscript,
-        Subscript,
-        Highlight.configure({ multicolor: true }),
-        Link.configure({
-          openOnClick: false,
-          autolink: true,
-          linkOnPaste: true,
-          HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
-        }),
-        Placeholder.configure({
-          placeholder: ({ node, pos }) => {
-            if (pos === 0) return "Start typing, or press '/' for commands\u2026";
-            if (node.type.name === 'heading') return 'Heading';
-            return "Type '/' for commands\u2026";
-          },
-          showOnlyCurrent: true,
-        }),
-        SlashCommandExtension,
-        Image.configure({
-          inline: false,
-          allowBase64: false,
-          resize: {
-            enabled: true,
-            alwaysPreserveAspectRatio: true,
-          },
-        }),
-        FileHandler.configure({
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-          onDrop: (_editor, files) => {
-            this.uploadAndInsertImages(files);
-          },
-          onPaste: (_editor, files) => {
-            this.uploadAndInsertImages(files);
-          },
-        }),
-      ],
+      extensions: this.buildExtensions(),
       content: '',
       onUpdate: ({ editor }) => {
         const html = editor.getHTML();
@@ -928,6 +910,59 @@ export class TiptapEditor implements OnDestroy {
         this.editor.commands.setContent(migrated, { emitUpdate: false });
       }
     });
+
+  }
+
+  private buildExtensions() {
+    return [
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
+      Underline,
+      TaskList,
+      TaskItem.configure({ nested: true }),
+      Table.configure({ resizable: false }),
+      TableRow,
+      TableCell,
+      TableHeader,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Superscript,
+      Subscript,
+      Highlight.configure({ multicolor: true }),
+      Link.configure({
+        openOnClick: false,
+        autolink: true,
+        linkOnPaste: true,
+        HTMLAttributes: { target: '_blank', rel: 'noopener noreferrer' },
+      }),
+      Placeholder.configure({
+        placeholder: ({ node, pos }) => {
+          if (pos === 0) return "Start typing, or press '/' for commands\u2026";
+          if (node.type.name === 'heading') return 'Heading';
+          return "Type '/' for commands\u2026";
+        },
+        showOnlyCurrent: true,
+      }),
+      SlashCommandExtension,
+      Image.configure({
+        inline: false,
+        allowBase64: false,
+        resize: {
+          enabled: true,
+          alwaysPreserveAspectRatio: true,
+        },
+      }),
+      FileHandler.configure({
+        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+        onDrop: (_editor, files) => {
+          this.uploadAndInsertImages(files);
+        },
+        onPaste: (_editor, files) => {
+          this.uploadAndInsertImages(files);
+        },
+      }),
+      SmartTypography.configure({ isEnabled: () => this.prefs.typographyMode() }),
+    ];
   }
 
   setContent(html: string): void {

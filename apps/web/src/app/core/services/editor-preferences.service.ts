@@ -5,6 +5,7 @@ export class EditorPreferencesService {
   readonly showToolbar = signal(localStorage.getItem('noteflow-toolbar') !== 'false');
   readonly serifMode = signal(localStorage.getItem('noteflow-font-serif') === 'true');
   readonly showMetadata = signal(localStorage.getItem('noteflow-metadata') === 'true');
+  readonly typographyMode = signal(localStorage.getItem('noteflow-typography') === 'true');
 
   toggleToolbar(): void {
     const next = !this.showToolbar();
@@ -22,5 +23,11 @@ export class EditorPreferencesService {
     const next = !this.showMetadata();
     this.showMetadata.set(next);
     localStorage.setItem('noteflow-metadata', String(next));
+  }
+
+  toggleTypography(): void {
+    const next = !this.typographyMode();
+    this.typographyMode.set(next);
+    localStorage.setItem('noteflow-typography', String(next));
   }
 }
