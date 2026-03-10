@@ -1,7 +1,7 @@
 import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { ViewportService } from '../../../core/services/viewport.service';
@@ -158,6 +158,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               title="Print note"
             >
               <fa-icon [icon]="faPrint" size="sm" />
+            </button>
+            <button
+              (click)="toggleMetadata()"
+              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              [class]="showMetadata() ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              title="Note info"
+            >
+              <fa-icon [icon]="faCircleInfo" size="sm" />
             </button>
             <button
               (click)="saveAsTemplate()"
@@ -342,6 +350,16 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (contentChanged)="onContentChanged($event)"
               (blurred)="saveNote()"
             />
+            @if (showMetadata() && state.selectedNote()) {
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+                <span>Created {{ formatDate(state.selectedNote()!.createdAt) }}</span>
+                <span>Modified {{ formatDate(state.selectedNote()!.updatedAt) }}</span>
+                <span>{{ textStats().words }} words</span>
+                <span>{{ textStats().characters }} chars</span>
+                <span>{{ textStats().paragraphs }} paragraphs</span>
+                <span>{{ readingTime() }}</span>
+              </div>
+            }
             @if (isNoteEmpty()) {
               <div class="pointer-events-none absolute bottom-4 left-0 right-0 z-10 flex justify-center">
                 <button
@@ -540,6 +558,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <fa-icon [icon]="faPrint" size="sm" />
                 </button>
                 <button
+                  (click)="toggleMetadata()"
+                  class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+                  [class]="showMetadata() ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  title="Note info"
+                >
+                  <fa-icon [icon]="faCircleInfo" size="sm" />
+                </button>
+                <button
                   (click)="saveAsTemplate()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                   title="Save as template"
@@ -721,6 +747,16 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   (contentChanged)="onContentChanged($event)"
                   (blurred)="saveNote()"
                 />
+                @if (showMetadata() && state.selectedNote()) {
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+                    <span>Created {{ formatDate(state.selectedNote()!.createdAt) }}</span>
+                    <span>Modified {{ formatDate(state.selectedNote()!.updatedAt) }}</span>
+                    <span>{{ textStats().words }} words</span>
+                    <span>{{ textStats().characters }} chars</span>
+                    <span>{{ textStats().paragraphs }} paragraphs</span>
+                    <span>{{ readingTime() }}</span>
+                  </div>
+                }
                 @if (isNoteEmpty()) {
                   <div class="absolute bottom-4 left-0 right-0 flex justify-center">
                     <button
@@ -817,7 +853,9 @@ export class NoteArea {
   protected faWandMagicSparkles = faWandMagicSparkles;
   protected faFileCirclePlus = faFileCirclePlus;
   protected faPrint = faPrint;
+  protected faCircleInfo = faCircleInfo;
 
+  protected showMetadata = signal(localStorage.getItem('noteflow-metadata') === 'true');
   protected showTemplatePicker = signal(false);
   protected templatePickerMode = signal<'create' | 'apply'>('create');
 
@@ -860,6 +898,8 @@ export class NoteArea {
     return !this.unlockedNoteIds().has(note.id);
   });
 
+  protected textStats = signal({ words: 0, characters: 0, paragraphs: 0 });
+
   protected noteTimestamp = computed(() => {
     const note = this.state.selectedNote();
     if (!note) return '';
@@ -868,6 +908,18 @@ export class NoteArea {
     const label = isNew ? 'Created' : 'Updated';
     return `${label} ${date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
   });
+
+  protected readingTime = computed(() => {
+    const words = this.textStats().words;
+    if (words === 0) return '0 min read';
+    const minutes = Math.ceil(words / 200);
+    return minutes === 1 ? '1 min read' : `${minutes} min read`;
+  });
+
+  protected formatDate(iso: string): string {
+    const d = new Date(iso);
+    return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })} at ${d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`;
+  }
   private dragged = false;
 
   // TipTap editor ref
@@ -928,6 +980,8 @@ export class NoteArea {
           editor.setContent(contentForEditor);
           this.syncedNoteId = note.id;
           this.syncedEditorRef = editor;
+          // Refresh text stats after content is set
+          requestAnimationFrame(() => this.refreshTextStats());
         }
       } else if (!note) {
         this.syncedNoteId = null;
@@ -986,6 +1040,20 @@ export class NoteArea {
 
   protected onContentChanged(html: string): void {
     this.pendingContent = html;
+    this.refreshTextStats();
+  }
+
+  protected toggleMetadata(): void {
+    const next = !this.showMetadata();
+    this.showMetadata.set(next);
+    localStorage.setItem('noteflow-metadata', String(next));
+  }
+
+  private refreshTextStats(): void {
+    const editor = this.tiptapEditor();
+    if (editor) {
+      this.textStats.set(editor.getTextStats());
+    }
   }
 
   protected saveNote(): void {

@@ -966,6 +966,17 @@ export class TiptapEditor implements OnDestroy {
     return this.editor?.getHTML() ?? '';
   }
 
+  getTextStats(): { words: number; characters: number; paragraphs: number } {
+    if (!this.editor || this.editor.isDestroyed) {
+      return { words: 0, characters: 0, paragraphs: 0 };
+    }
+    const text = this.editor.getText();
+    const characters = text.length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const paragraphs = this.editor.state.doc.content.childCount;
+    return { words, characters, paragraphs };
+  }
+
   ngOnDestroy(): void {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     if (this.slashImageHandler) {
