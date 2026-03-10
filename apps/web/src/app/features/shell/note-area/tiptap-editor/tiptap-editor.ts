@@ -23,6 +23,8 @@ import Superscript from '@tiptap/extension-superscript';
 import Subscript from '@tiptap/extension-subscript';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
+import { Color } from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Image from '@tiptap/extension-image';
 import Typography from '@tiptap/extension-typography';
 import DragHandle from '@tiptap/extension-drag-handle';
@@ -85,6 +87,7 @@ import {
   faDroplet,
   faEraser,
   faImage,
+  faPaintbrush,
 } from '@fortawesome/free-solid-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { ImageService } from '../../../../core/services/image.service';
@@ -281,6 +284,50 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
         ><fa-icon [icon]="faCode" size="sm" /></button>
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+
+        <!-- Text color -->
+        <div class="relative">
+          <button
+            (mousedown)="$event.preventDefault(); applyTextColor(activeTextColor())"
+            class="relative rounded px-1.5 py-1"
+            [class.bg-blue-100]="editor.isActive('textStyle')"
+            [class.dark:bg-blue-900]="editor.isActive('textStyle')"
+            [class.text-gray-600]="!editor.isActive('textStyle')"
+            [class.dark:text-gray-300]="!editor.isActive('textStyle')"
+            [class.hover:bg-gray-100]="!editor.isActive('textStyle')"
+            [class.dark:hover:bg-gray-700]="!editor.isActive('textStyle')"
+            title="Text color"
+          >
+            <fa-icon [icon]="faFont" size="sm" />
+            <span class="absolute bottom-0.5 left-1/2 h-0.5 w-3.5 -translate-x-1/2 rounded-full" [style.background]="activeTextColor()"></span>
+          </button>
+        </div>
+        <div class="relative">
+          <button
+            (mousedown)="$event.preventDefault(); textColorPickerOpen.set(!textColorPickerOpen())"
+            class="rounded px-0.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            title="Text colors"
+          ><fa-icon [icon]="faPaintbrush" size="xs" /></button>
+          @if (textColorPickerOpen()) {
+            <div class="absolute left-0 top-full z-50 mt-1 flex gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+              @for (color of textColors; track color.value) {
+                <button
+                  (mousedown)="$event.preventDefault(); selectTextColor(color.value)"
+                  class="h-5 w-5 rounded-full border-2 transition-transform hover:scale-125"
+                  [style.background]="color.value"
+                  [class.border-blue-500]="activeTextColor() === color.value"
+                  [class.border-transparent]="activeTextColor() !== color.value"
+                  [title]="color.label"
+                ></button>
+              }
+              <button
+                (mousedown)="$event.preventDefault(); removeTextColor()"
+                class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent text-gray-400 transition-transform hover:scale-125 hover:text-red-500"
+                title="Remove text color"
+              ><fa-icon [icon]="faEraser" size="xs" /></button>
+            </div>
+          }
+        </div>
 
         <!-- Highlight -->
         <div class="relative">
@@ -605,6 +652,41 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
         <div class="mx-0.5 h-4 w-px bg-gray-200 dark:bg-gray-600"></div>
         <div class="relative">
           <button
+            (mousedown)="$event.preventDefault(); bubbleTextColorOpen.set(!bubbleTextColorOpen())"
+            class="relative rounded px-2 py-1 text-sm"
+            [class.bg-blue-100]="editor.isActive('textStyle')"
+            [class.dark:bg-blue-900]="editor.isActive('textStyle')"
+            [class.text-gray-700]="!editor.isActive('textStyle')"
+            [class.dark:text-gray-200]="!editor.isActive('textStyle')"
+            [class.hover:bg-gray-100]="!editor.isActive('textStyle')"
+            [class.dark:hover:bg-gray-700]="!editor.isActive('textStyle')"
+            title="Text color"
+          >
+            <fa-icon [icon]="faFont" size="sm" />
+            <span class="absolute bottom-0.5 left-1/2 h-0.5 w-3 -translate-x-1/2 rounded-full" [style.background]="activeTextColor()"></span>
+          </button>
+          @if (bubbleTextColorOpen()) {
+            <div class="absolute bottom-full left-1/2 z-50 mb-1 flex -translate-x-1/2 gap-1 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+              @for (color of textColors; track color.value) {
+                <button
+                  (mousedown)="$event.preventDefault(); applyTextColorFromBubble(color.value)"
+                  class="h-5 w-5 rounded-full border-2 transition-transform hover:scale-125"
+                  [style.background]="color.value"
+                  [class.border-blue-500]="activeTextColor() === color.value"
+                  [class.border-transparent]="activeTextColor() !== color.value"
+                  [title]="color.label"
+                ></button>
+              }
+              <button
+                (mousedown)="$event.preventDefault(); removeTextColorFromBubble()"
+                class="flex h-5 w-5 items-center justify-center rounded-full border-2 border-transparent text-gray-400 transition-transform hover:scale-125 hover:text-red-500"
+                title="Remove text color"
+              ><fa-icon [icon]="faEraser" size="xs" /></button>
+            </div>
+          }
+        </div>
+        <div class="relative">
+          <button
             (mousedown)="$event.preventDefault(); bubbleHighlightOpen.set(!bubbleHighlightOpen())"
             class="rounded px-2 py-1 text-sm"
             [class.bg-blue-100]="editor.isActive('highlight')"
@@ -698,6 +780,7 @@ export class TiptapEditor implements OnDestroy {
   protected faLink = faLink;
   protected faLinkSlash = faLinkSlash;
   protected faFont = faFont;
+  protected faPaintbrush = faPaintbrush;
   protected faHighlighter = faHighlighter;
   protected faDroplet = faDroplet;
   protected faEraser = faEraser;
@@ -744,6 +827,47 @@ export class TiptapEditor implements OnDestroy {
   protected removeHighlightFromBubble(): void {
     this.editor.chain().focus().unsetHighlight().run();
     this.bubbleHighlightOpen.set(false);
+  }
+
+  // Text colors
+  protected textColors = [
+    { value: '#ef4444', label: 'Red' },
+    { value: '#f97316', label: 'Orange' },
+    { value: '#eab308', label: 'Yellow' },
+    { value: '#22c55e', label: 'Green' },
+    { value: '#3b82f6', label: 'Blue' },
+    { value: '#8b5cf6', label: 'Purple' },
+    { value: '#ec4899', label: 'Pink' },
+    { value: '#6b7280', label: 'Gray' },
+  ];
+  protected textColorPickerOpen = signal(false);
+  protected bubbleTextColorOpen = signal(false);
+  protected activeTextColor = signal('#ef4444');
+
+  protected applyTextColor(color: string): void {
+    this.editor.chain().focus().setColor(color).run();
+  }
+
+  protected selectTextColor(color: string): void {
+    this.activeTextColor.set(color);
+    this.editor.chain().focus().setColor(color).run();
+    this.textColorPickerOpen.set(false);
+  }
+
+  protected removeTextColor(): void {
+    this.editor.chain().focus().unsetColor().run();
+    this.textColorPickerOpen.set(false);
+  }
+
+  protected applyTextColorFromBubble(color: string): void {
+    this.activeTextColor.set(color);
+    this.editor.chain().focus().setColor(color).run();
+    this.bubbleTextColorOpen.set(false);
+  }
+
+  protected removeTextColorFromBubble(): void {
+    this.editor.chain().focus().unsetColor().run();
+    this.bubbleTextColorOpen.set(false);
   }
 
   isToolbarVisible(): boolean {
@@ -853,6 +977,7 @@ export class TiptapEditor implements OnDestroy {
         this.hideBubbleMenu();
         this.tableToolbarVisible.set(false);
         this.highlightPickerOpen.set(false);
+        this.textColorPickerOpen.set(false);
       },
       onSelectionUpdate: ({ editor }) => {
         this.updateBubbleMenu(editor);
@@ -930,6 +1055,8 @@ export class TiptapEditor implements OnDestroy {
       Superscript,
       Subscript,
       Highlight.configure({ multicolor: true }),
+      TextStyle,
+      Color,
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -1044,6 +1171,7 @@ export class TiptapEditor implements OnDestroy {
   private hideBubbleMenu(): void {
     this.bubbleMenuVisible.set(false);
     this.bubbleHighlightOpen.set(false);
+    this.bubbleTextColorOpen.set(false);
   }
 
   // ── Table toolbar ─────────────────────────────────────────────
