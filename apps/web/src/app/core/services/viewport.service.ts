@@ -4,19 +4,19 @@ export type ViewportSize = 'mobile' | 'tablet' | 'desktop';
 
 @Injectable({ providedIn: 'root' })
 export class ViewportService implements OnDestroy {
-  private lgQuery = window.matchMedia('(min-width: 1024px)');
+  private lgQuery = window.matchMedia('(min-width: 1025px)');
   private smQuery = window.matchMedia('(min-width: 640px)');
 
   /** Current viewport category */
   readonly viewport = signal<ViewportSize>(this.evaluate());
 
-  /** True when viewport >= 1024px (Tailwind lg) */
+  /** True when viewport > 1024px */
   readonly isDesktop = computed(() => this.viewport() === 'desktop');
 
   /** True when viewport < 640px */
   readonly isMobile = computed(() => this.viewport() === 'mobile');
 
-  /** True when viewport < 1024px (mobile OR tablet) */
+  /** True when viewport <= 1024px (mobile OR tablet) */
   readonly isCompact = computed(() => this.viewport() !== 'desktop');
 
   private lgListener = (e: MediaQueryListEvent) => this.viewport.set(this.evaluate());

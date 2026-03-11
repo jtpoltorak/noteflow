@@ -81,7 +81,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
         </header>
       } @else {
         <!-- Compact header -->
-        <header class="flex h-12 items-center justify-between border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-800">
+        <header class="flex min-h-12 items-center justify-between border-b border-gray-200 bg-white px-3 dark:border-gray-700 dark:bg-gray-800">
           <div class="flex min-w-0 flex-1 items-center gap-2">
             @if (mobilePanel() !== 'notebooks') {
               <button
@@ -98,7 +98,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100" [title]="mobileBreadcrumb()">{{ mobileBreadcrumb() }}</h1>
             }
           </div>
-          <div class="flex shrink-0 items-center gap-2">
+          <div class="flex shrink-0 flex-wrap items-center gap-1">
             <button
               (click)="showQuickNote.set(true)"
               class="rounded-md bg-blue-600 p-1.5 text-white hover:bg-blue-700"

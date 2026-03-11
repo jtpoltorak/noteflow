@@ -81,7 +81,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
     @if (mobileMode() && showEditorOnly()) {
       <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
         @if (state.selectedNote()) {
-          <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+          <div class="flex flex-wrap items-center gap-y-1 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
             <input
               type="text"
               [value]="editedTitle()"
@@ -493,17 +493,16 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
           <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
             @if (state.selectedNote()) {
               <!-- Editor header -->
-              <div class="flex items-center justify-between border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+              <div class="flex flex-wrap items-center gap-y-1 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
                 <input
                   type="text"
                   [value]="editedTitle()"
                   maxlength="75"
                   (input)="editedTitle.set($any($event.target).value)"
                   (blur)="saveNote()"
-                  class="flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
+                  class="min-w-0 flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
                   placeholder="Note title"
                 />
-                <span class="ml-3 shrink-0 text-xs text-gray-400 dark:text-gray-500">{{ noteTimestamp() }}</span>
                 <!-- Note actions -->
                 <button
                   (click)="openPresentation()"
