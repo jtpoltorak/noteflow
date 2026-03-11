@@ -217,6 +217,29 @@ html.dark {
 .dark .noteflow-editor a { color: #60a5fa; }
 .dark .noteflow-editor a:hover { color: #93c5fd; }
 
+/* Note-to-note links */
+.noteflow-editor a.note-link {
+  color: #8b5cf6;
+  text-decoration: none;
+  border-bottom: 1px dashed #8b5cf6;
+  cursor: pointer;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.noteflow-editor a.note-link:hover {
+  color: #7c3aed;
+  background-color: rgba(139, 92, 246, 0.08);
+  border-bottom-style: solid;
+}
+.dark .noteflow-editor a.note-link {
+  color: #a78bfa;
+  border-bottom-color: #a78bfa;
+}
+.dark .noteflow-editor a.note-link:hover {
+  color: #c4b5fd;
+  background-color: rgba(167, 139, 250, 0.12);
+}
+
 /* Nested lists (indent support) */
 .noteflow-editor li > ul,
 .noteflow-editor li > ol { margin-bottom: 0; }

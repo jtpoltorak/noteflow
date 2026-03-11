@@ -379,6 +379,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (contentUpdated)="pendingContent = $event"
               (contentChanged)="onContentChanged($event)"
               (blurred)="saveNote()"
+              (noteLinkClicked)="onNoteLinkClicked($event)"
             />
             @if (editorPrefs.showMetadata() && state.selectedNote()) {
               <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
@@ -804,6 +805,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   [noteId]="state.selectedNoteId()"
                   (contentChanged)="onContentChanged($event)"
                   (blurred)="saveNote()"
+                  (noteLinkClicked)="onNoteLinkClicked($event)"
                 />
                 @if (editorPrefs.showMetadata() && state.selectedNote()) {
                   <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
@@ -1107,6 +1109,11 @@ export class NoteArea {
   protected onContentChanged(html: string): void {
     this.pendingContent = html;
     this.refreshTextStats();
+  }
+
+  protected onNoteLinkClicked(target: { noteId: number; sectionId: number; notebookId: number }): void {
+    this.saveNote();
+    this.state.selectNoteFromSearch(target.notebookId, target.sectionId, target.noteId);
   }
 
 

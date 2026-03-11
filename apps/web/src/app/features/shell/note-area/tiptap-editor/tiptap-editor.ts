@@ -98,6 +98,11 @@ import type { SlashCommandItem, SlashCommandStorage, SlashSuggestionCallbackProp
 import { SlashCommandMenu } from '../slash-command-menu';
 import type { SlashCommand } from '../slash-command-menu';
 import { TableToolbar } from '../table-toolbar';
+import { NoteLinkPicker } from '../note-link-picker';
+import { LinkPopover, type LinkPopoverResult } from '../link-popover';
+import { NoteLink } from './note-link.extension';
+import { NoteService } from '../../../../core/services/note.service';
+import type { SearchResultDto } from '@noteflow/shared-types';
 
 /**
  * Transforms old contenteditable todo HTML to TipTap's task list format.
@@ -150,7 +155,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
 @Component({
   selector: 'app-tiptap-editor',
-  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar],
+  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover],
   host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- Formatting toolbar -->
@@ -733,6 +738,26 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
       />
     }
 
+    <!-- Note link picker (from slash command) -->
+    @if (noteLinkPickerOpen()) {
+      <app-note-link-picker
+        [position]="noteLinkPickerPosition()"
+        [initialQuery]="noteLinkInitialQuery()"
+        (selected)="onNoteLinkSelected($event)"
+        (dismissed)="noteLinkPickerOpen.set(false)"
+      />
+    }
+
+    <!-- Unified link popover (URL + Note) -->
+    @if (linkPopoverOpen()) {
+      <app-link-popover
+        [position]="linkPopoverPosition()"
+        [currentUrl]="linkPopoverCurrentUrl()"
+        (selected)="onLinkPopoverSelected($event)"
+        (dismissed)="linkPopoverOpen.set(false)"
+      />
+    }
+
     <!-- Table toolbar (appears when cursor is inside a table) -->
     @if (tableToolbarVisible()) {
       <app-table-toolbar
@@ -753,8 +778,10 @@ export class TiptapEditor implements OnDestroy {
   contentChanged = output<string>();
   contentUpdated = output<string>();
   blurred = output<void>();
+  noteLinkClicked = output<{ noteId: number; sectionId: number; notebookId: number }>();
 
   private imageService = inject(ImageService);
+  private noteService = inject(NoteService);
   protected prefs = inject(EditorPreferencesService);
   editor!: Editor;
 
@@ -910,11 +937,63 @@ export class TiptapEditor implements OnDestroy {
   }
 
   protected toggleLink(): void {
+    if (this.linkPopoverOpen()) {
+      this.linkPopoverOpen.set(false);
+      return;
+    }
+
     const previousUrl = this.editor.getAttributes('link')['href'] || '';
-    const url = window.prompt('Enter URL:', previousUrl);
-    if (url === null) return;
-    if (url === '') { this.editor.chain().focus().unsetLink().run(); return; }
-    this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+
+    // Position near cursor
+    const { from } = this.editor.state.selection;
+    const coords = this.editor.view.coordsAtPos(from);
+    this.linkPopoverPosition.set({
+      top: coords.bottom + 4,
+      left: Math.max(8, Math.min(coords.left, window.innerWidth - 300)),
+    });
+    this.linkPopoverCurrentUrl.set(previousUrl);
+    this.linkPopoverOpen.set(true);
+  }
+
+  protected onLinkPopoverSelected(result: LinkPopoverResult): void {
+    this.linkPopoverOpen.set(false);
+
+    if (result.type === 'url') {
+      this.editor
+        .chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: result.url })
+        .run();
+    } else {
+      // Insert note link
+      const { empty } = this.editor.state.selection;
+      if (empty) {
+        // No selection — insert the note title as linked text
+        this.editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: 'text',
+            text: result.result.noteTitle,
+            marks: [
+              {
+                type: 'noteLink',
+                attrs: { noteId: result.result.noteId, noteTitle: result.result.noteTitle },
+              },
+            ],
+          })
+          .run();
+      } else {
+        // Selection exists — apply note link mark to selected text
+        this.editor
+          .chain()
+          .focus()
+          .extendMarkRange('noteLink')
+          .setNoteLink({ noteId: result.result.noteId, noteTitle: result.result.noteTitle })
+          .run();
+      }
+    }
   }
 
   protected insertImage(): void {
@@ -960,8 +1039,20 @@ export class TiptapEditor implements OnDestroy {
   private slashMenu = viewChild(SlashCommandMenu);
   private slashSuggestionProps: SlashSuggestionCallbackProps | null = null;
 
+  // Note link picker state (from slash command)
+  protected noteLinkPickerOpen = signal(false);
+  protected noteLinkPickerPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+  protected noteLinkInitialQuery = signal('');
+
+  // Unified link popover state (toolbar + bubble menu)
+  protected linkPopoverOpen = signal(false);
+  protected linkPopoverPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+  protected linkPopoverCurrentUrl = signal('');
+
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private slashImageHandler: (() => void) | null = null;
+  private slashNoteLinkHandler: (() => void) | null = null;
+  private noteLinkClickHandler: ((e: Event) => void) | null = null;
 
   constructor() {
     this.editor = new Editor({
@@ -1031,6 +1122,17 @@ export class TiptapEditor implements OnDestroy {
     this.slashImageHandler = () => this.insertImage();
     this.editor.view.dom.addEventListener('slash-insert-image', this.slashImageHandler);
 
+    // Listen for slash-command note link insertion
+    this.slashNoteLinkHandler = () => this.openNoteLinkPicker();
+    this.editor.view.dom.addEventListener('slash-insert-note-link', this.slashNoteLinkHandler);
+
+    // Listen for note link clicks
+    this.noteLinkClickHandler = (e: Event) => {
+      const noteId = (e as CustomEvent).detail?.noteId as number | undefined;
+      if (noteId) this.navigateToNoteLink(noteId);
+    };
+    this.editor.view.dom.addEventListener('note-link-clicked', this.noteLinkClickHandler);
+
     // Sync content input to editor
     effect(() => {
       const html = this.content();
@@ -1060,6 +1162,7 @@ export class TiptapEditor implements OnDestroy {
       Highlight.configure({ multicolor: true }),
       TextStyle,
       Color,
+      NoteLink,
       Link.configure({
         openOnClick: false,
         autolink: true,
@@ -1134,6 +1237,12 @@ export class TiptapEditor implements OnDestroy {
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     if (this.slashImageHandler) {
       this.editor?.view.dom.removeEventListener('slash-insert-image', this.slashImageHandler);
+    }
+    if (this.slashNoteLinkHandler) {
+      this.editor?.view.dom.removeEventListener('slash-insert-note-link', this.slashNoteLinkHandler);
+    }
+    if (this.noteLinkClickHandler) {
+      this.editor?.view.dom.removeEventListener('note-link-clicked', this.noteLinkClickHandler);
     }
     this.editor?.destroy();
   }
@@ -1247,5 +1356,52 @@ export class TiptapEditor implements OnDestroy {
     this.slashMenuOpen.set(false);
     this.slashFilter.set('');
     this.slashSuggestionProps = null;
+  }
+
+  // ── Note link picker ─────────────────────────────────────────
+
+  private openNoteLinkPicker(): void {
+    const { from } = this.editor.state.selection;
+    const coords = this.editor.view.coordsAtPos(from);
+    this.noteLinkPickerPosition.set({
+      top: coords.bottom + 4,
+      left: Math.max(8, Math.min(coords.left, window.innerWidth - 300)),
+    });
+    this.noteLinkInitialQuery.set('');
+    this.noteLinkPickerOpen.set(true);
+  }
+
+  protected onNoteLinkSelected(result: SearchResultDto): void {
+    this.editor
+      .chain()
+      .focus()
+      .insertContent({
+        type: 'text',
+        text: result.noteTitle,
+        marks: [
+          {
+            type: 'noteLink',
+            attrs: { noteId: result.noteId, noteTitle: result.noteTitle },
+          },
+        ],
+      })
+      .run();
+    this.noteLinkPickerOpen.set(false);
+  }
+
+  private navigateToNoteLink(noteId: number): void {
+    this.noteService.resolveNoteLink(noteId).subscribe({
+      next: (ctx) => {
+        this.noteLinkClicked.emit({
+          noteId: ctx.noteId,
+          sectionId: ctx.sectionId,
+          notebookId: ctx.notebookId,
+        });
+      },
+      error: () => {
+        // Note may have been deleted
+        alert('This note no longer exists or you do not have access to it.');
+      },
+    });
   }
 }

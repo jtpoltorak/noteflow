@@ -207,6 +207,15 @@ export interface TaggedNoteDto {
   updatedAt: string;
 }
 
+// ── Note Link DTOs ──────────────────────────────────────────────
+
+export interface NoteLinkContextDto {
+  noteId: number;
+  noteTitle: string;
+  sectionId: number;
+  notebookId: number;
+}
+
 // ── API Response Wrappers ─────────────────────────────────────
 
 export interface ApiSuccessResponse<T> {

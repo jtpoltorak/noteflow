@@ -3,7 +3,7 @@ import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
 import crypto from "node:crypto";
-import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto, SharedNoteListDto } from "@noteflow/shared-types";
+import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto, SharedNoteListDto, NoteLinkContextDto } from "@noteflow/shared-types";
 
 const BCRYPT_ROUNDS = 12;
 
@@ -321,6 +321,19 @@ export function getSharedNotes(userId: number): SharedNoteListDto[] {
     notebookTitle: row[6] as string,
     updatedAt: row[7] as string,
   }));
+}
+
+// ── Note link context ───────────────────────────────────────────
+
+export function getNoteLinkContext(id: number, userId: number): NoteLinkContextDto {
+  const note = getNoteRaw(id, userId);
+  const section = getSectionById(note.sectionId, userId);
+  return {
+    noteId: note.id,
+    noteTitle: note.title,
+    sectionId: note.sectionId,
+    notebookId: section.notebookId,
+  };
 }
 
 // ── Password protection ─────────────────────────────────────────

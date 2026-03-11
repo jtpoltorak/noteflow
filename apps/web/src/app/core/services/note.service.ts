@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { ApiSuccessResponse, NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteListDto } from '@noteflow/shared-types';
+import type { ApiSuccessResponse, NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteListDto, NoteLinkContextDto } from '@noteflow/shared-types';
 
 @Injectable({ providedIn: 'root' })
 export class NoteService {
@@ -92,6 +92,12 @@ export class NoteService {
   access(id: number, password: string): Observable<NoteDto> {
     return this.http
       .post<ApiSuccessResponse<NoteDto>>(`${this.api}/notes/${id}/access`, { password })
+      .pipe(map((r) => r.data));
+  }
+
+  resolveNoteLink(id: number): Observable<NoteLinkContextDto> {
+    return this.http
+      .get<ApiSuccessResponse<NoteLinkContextDto>>(`${this.api}/notes/${id}/context`)
       .pipe(map((r) => r.data));
   }
 }

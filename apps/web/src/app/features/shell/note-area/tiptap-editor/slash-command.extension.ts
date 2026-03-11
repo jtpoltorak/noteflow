@@ -47,6 +47,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'divider', label: 'Divider', description: 'Horizontal rule' },
   { id: 'table', label: 'Table', description: 'Insert a table' },
   { id: 'image', label: 'Image', description: 'Upload an image' },
+  { id: 'note-link', label: 'Link to Note', description: 'Link to another note' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -89,6 +90,9 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
     case 'image':
       // Dispatches a custom event the editor component listens for
       editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-image', { bubbles: true }));
+      break;
+    case 'note-link':
+      editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-note-link', { bubbles: true }));
       break;
   }
 }

@@ -19,6 +19,7 @@ import {
   lockNote,
   unlockNote,
   accessLockedNote,
+  getNoteLinkContext,
 } from "../services/note.service.js";
 
 const router = Router();
@@ -159,6 +160,12 @@ router.post(
     res.json({ data: note });
   }
 );
+
+// GET /notes/:id/context (for note-to-note link navigation)
+router.get("/notes/:id/context", (req: Request, res: Response) => {
+  const context = getNoteLinkContext(Number(req.params.id), req.user!.id);
+  res.json({ data: context });
+});
 
 // GET /notes/:id
 router.get("/notes/:id", (req: Request, res: Response) => {
