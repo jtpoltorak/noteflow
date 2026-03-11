@@ -7,6 +7,7 @@ import { catchError, of } from 'rxjs';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { AuthService } from './core/services/auth.service';
+import { PwaService } from './core/services/pwa.service';
 import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
@@ -23,6 +24,7 @@ export const appConfig: ApplicationConfig = {
       multi: true,
       useFactory: () => {
         const auth = inject(AuthService);
+        inject(PwaService); // Ensure PwaService is constructed early to capture install prompt
         return () => auth.loadUser().pipe(catchError(() => of(null)));
       },
     },

@@ -17,7 +17,15 @@ export class PwaService {
       (window.navigator as unknown as { standalone?: boolean }).standalone === true;
     this.isInstalled.set(isStandalone);
 
-    // Listen for the install prompt
+    // Check if beforeinstallprompt was captured before Angular bootstrapped (see main.ts)
+    const earlyPrompt = (window as unknown as Record<string, unknown>)['__pwaInstallPrompt'] as BeforeInstallPromptEvent | undefined;
+    if (earlyPrompt) {
+      this.deferredPrompt = earlyPrompt;
+      this.canInstall.set(true);
+      delete (window as unknown as Record<string, unknown>)['__pwaInstallPrompt'];
+    }
+
+    // Listen for future install prompt events
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault();
       this.deferredPrompt = event as BeforeInstallPromptEvent;
