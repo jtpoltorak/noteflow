@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -21,6 +21,8 @@ import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import { SharedPanel } from './shared-panel/shared-panel';
 import { TagsPanel } from './tags-panel/tags-panel';
 import { QuickNoteDialog, type QuickNoteResult } from '../../shared/quick-note-dialog/quick-note-dialog';
+import { PwaService } from '../../core/services/pwa.service';
+import { PwaUpdateService } from '../../core/services/pwa-update.service';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
 export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags';
@@ -31,6 +33,19 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
+
+      <!-- ── PWA update banner ─────────────────────────────── -->
+      @if (pwaUpdate.updateAvailable()) {
+        <div class="flex items-center justify-center gap-2 bg-blue-600 px-4 py-1.5 text-sm text-white">
+          <span>A new version of NoteFlow is available.</span>
+          <button
+            (click)="pwaUpdate.activateUpdate()"
+            class="rounded bg-white/20 px-2 py-0.5 text-sm font-medium hover:bg-white/30"
+          >
+            Update now
+          </button>
+        </div>
+      }
 
       <!-- ── Header ──────────────────────────────────────────── -->
       @if (vp.isDesktop()) {
@@ -55,6 +70,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             >
               <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
             </button>
+            @if (pwa.canInstall()) {
+              <button
+                (click)="pwa.promptInstall()"
+                class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                title="Install NoteFlow app"
+              >
+                <fa-icon [icon]="faDownload" size="sm" />
+              </button>
+            }
             <button
               (click)="showSettings.set(true)"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -151,6 +175,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             >
               <fa-icon [icon]="faBoxArchive" size="sm" />
             </button>
+            @if (pwa.canInstall()) {
+              <button
+                (click)="pwa.promptInstall()"
+                class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                title="Install NoteFlow app"
+              >
+                <fa-icon [icon]="faDownload" size="sm" />
+              </button>
+            }
             <button
               (click)="showSettings.set(true)"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -349,6 +382,8 @@ export class Shell implements OnInit {
   protected auth = inject(AuthService);
   protected theme = inject(ThemeService);
   protected vp = inject(ViewportService);
+  protected pwa = inject(PwaService);
+  protected pwaUpdate = inject(PwaUpdateService);
   private state = inject(ShellStateService);
 
   protected faMoon = faMoon;
@@ -365,6 +400,7 @@ export class Shell implements OnInit {
   protected faTags = faTags;
   protected faGear = faGear;
   protected faPlus = faPlus;
+  protected faDownload = faDownload;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);

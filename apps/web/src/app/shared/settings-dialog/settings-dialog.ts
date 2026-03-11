@@ -1,11 +1,12 @@
 import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSun, faMoon, faFileExport } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon, faFileExport, faDownload, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { EditorPreferencesService } from '../../core/services/editor-preferences.service';
+import { PwaService } from '../../core/services/pwa.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -32,6 +33,36 @@ import { environment } from '../../../environments/environment';
             </button>
           </div>
         </section>
+
+        <!-- Install App -->
+        @if (pwa.canInstall()) {
+          <section>
+            <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Install App</h3>
+            <div class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <p class="mb-2 text-sm text-gray-600 dark:text-gray-400">
+                Install NoteFlow on your device for quick access and a native app experience.
+              </p>
+              <button
+                (click)="pwa.promptInstall()"
+                class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                <fa-icon [icon]="faDownload" size="sm" />
+                Install NoteFlow
+              </button>
+            </div>
+          </section>
+        }
+        @if (pwa.isInstalled()) {
+          <section>
+            <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">App Status</h3>
+            <div class="rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <p class="inline-flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400">
+                <fa-icon [icon]="faCircleCheck" size="sm" />
+                NoteFlow is installed on this device.
+              </p>
+            </div>
+          </section>
+        }
 
         <!-- Editor -->
         <section>
@@ -193,11 +224,14 @@ export class SettingsDialog {
 
   protected theme = inject(ThemeService);
   protected editorPrefs = inject(EditorPreferencesService);
+  protected pwa = inject(PwaService);
   private auth = inject(AuthService);
 
   protected faSun = faSun;
   protected faMoon = faMoon;
   protected faFileExport = faFileExport;
+  protected faDownload = faDownload;
+  protected faCircleCheck = faCircleCheck;
 
   protected exportJsonUrl = `${environment.apiUrl}/auth/export/json`;
   protected exportMarkdownUrl = `${environment.apiUrl}/auth/export/markdown`;
