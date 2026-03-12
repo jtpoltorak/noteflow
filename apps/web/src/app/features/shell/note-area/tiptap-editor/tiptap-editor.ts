@@ -158,7 +158,10 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 @Component({
   selector: 'app-tiptap-editor',
   imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover, FindReplacePanel],
-  host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
+  host: {
+    class: 'relative flex min-h-0 min-w-0 flex-1 flex-col',
+    '(keydown)': 'onHostKeyDown($event)',
+  },
   template: `
     <!-- Formatting toolbar -->
     @if (prefs.showToolbar()) {
@@ -828,6 +831,19 @@ export class TiptapEditor implements OnDestroy {
 
   toggleToolbar(): void {
     this.prefs.toggleToolbar();
+  }
+
+  protected onHostKeyDown(event: KeyboardEvent): void {
+    const mod = event.ctrlKey || event.metaKey;
+    if (mod && event.key === 'f') {
+      event.preventDefault();
+      this.findReplaceMode.set('find');
+      this.findReplacePanelOpen.set(true);
+    } else if (mod && event.key === 'h') {
+      event.preventDefault();
+      this.findReplaceMode.set('findReplace');
+      this.findReplacePanelOpen.set(true);
+    }
   }
 
   // Highlight colors
