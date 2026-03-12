@@ -833,16 +833,24 @@ export class TiptapEditor implements OnDestroy {
     this.prefs.toggleToolbar();
   }
 
+  openFind(): void {
+    this.findReplaceMode.set('find');
+    this.findReplacePanelOpen.set(true);
+  }
+
+  openFindReplace(): void {
+    this.findReplaceMode.set('findReplace');
+    this.findReplacePanelOpen.set(true);
+  }
+
   protected onHostKeyDown(event: KeyboardEvent): void {
     const mod = event.ctrlKey || event.metaKey;
     if (mod && event.key === 'f') {
       event.preventDefault();
-      this.findReplaceMode.set('find');
-      this.findReplacePanelOpen.set(true);
+      this.openFind();
     } else if (mod && event.key === 'h') {
       event.preventDefault();
-      this.findReplaceMode.set('findReplace');
-      this.findReplacePanelOpen.set(true);
+      this.openFindReplace();
     }
   }
 

@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight } from '@fortawesome/free-solid-svg-icons';
@@ -879,6 +879,7 @@ export class NoteArea {
   protected vp = inject(ViewportService);
   protected editorPrefs = inject(EditorPreferencesService);
   private tagSvc = inject(TagService);
+  private destroyRef = inject(DestroyRef);
   private noteSvc = inject(NoteService);
   private templateSvc = inject(TemplateService);
 
@@ -1062,6 +1063,26 @@ export class NoteArea {
         this.deleting.set(false);
       }
     });
+
+    // Global Ctrl+F / Ctrl+H interception when a note is displayed
+    const onKeyDown = (event: KeyboardEvent) => {
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod || (event.key !== 'f' && event.key !== 'h')) return;
+      if (!this.state.selectedNote()) return;
+
+      const editor = this.tiptapEditor();
+      if (!editor) return;
+
+      event.preventDefault();
+      if (event.key === 'f') {
+        editor.openFind();
+      } else {
+        editor.openFindReplace();
+      }
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    this.destroyRef.onDestroy(() => document.removeEventListener('keydown', onKeyDown));
   }
 
   protected createNote(): void {
