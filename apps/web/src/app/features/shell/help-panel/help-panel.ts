@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { APP_VERSION } from '../../../version';
 
 @Component({
   selector: 'app-help-panel',
@@ -133,12 +134,17 @@ import { faXmark } from '@fortawesome/free-solid-svg-icons';
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Drag &amp; Drop</h3>
         <p>Reorder notebooks, sections, and notes by dragging them to a new position in their respective panels.</p>
       </section>
+
+      <hr class="my-4 border-gray-200 dark:border-gray-700" />
+      <p class="text-xs text-gray-400 dark:text-gray-500">NoteFlow <button (click)="releaseNotes.emit()" class="underline hover:text-gray-600 dark:hover:text-gray-300">v{{ appVersion }}</button></p>
     </div>
   `,
 })
 export class HelpPanel {
   asContent = input(false);
   close = output();
+  releaseNotes = output();
 
   protected faXmark = faXmark;
+  protected appVersion = APP_VERSION;
 }

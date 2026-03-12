@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleInfo, faCircleQuestion, faCommentDots, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -21,15 +21,17 @@ import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import { SharedPanel } from './shared-panel/shared-panel';
 import { TagsPanel } from './tags-panel/tags-panel';
 import { QuickNoteDialog, type QuickNoteResult } from '../../shared/quick-note-dialog/quick-note-dialog';
+import { ReleaseNotesDialog } from '../../shared/release-notes-dialog/release-notes-dialog';
 import { PwaService } from '../../core/services/pwa.service';
 import { PwaUpdateService } from '../../core/services/pwa-update.service';
 import type { SearchResultDto } from '@noteflow/shared-types';
+import { APP_VERSION } from '../../version';
 
 export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, QuickNoteDialog],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, QuickNoteDialog, ReleaseNotesDialog],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -296,7 +298,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
           @if (helpOpen() && !editorFullscreen()) {
             <aside class="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-              <app-help-panel (close)="helpOpen.set(false)" />
+              <app-help-panel (close)="helpOpen.set(false)" (releaseNotes)="showReleaseNotes.set(true)" />
             </aside>
           }
         </div>
@@ -354,7 +356,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
         <!-- Help modal for compact viewports -->
         <app-modal [open]="helpOpen()" title="Help" (closed)="helpOpen.set(false)">
-          <app-help-panel [asContent]="true" (close)="helpOpen.set(false)" />
+          <app-help-panel [asContent]="true" (close)="helpOpen.set(false)" (releaseNotes)="showReleaseNotes.set(true)" />
         </app-modal>
       }
 
@@ -363,15 +365,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
         <footer class="flex h-8 items-center gap-3 border-t border-gray-200 bg-white px-4 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
           <span>&copy; {{ currentYear }} Jonathan T. Poltorak</span>
           <span class="text-gray-300 dark:text-gray-600">|</span>
-          <button (click)="showAbout.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-            <fa-icon [icon]="faCircleInfo" size="xs" />
-            About
-          </button>
+          <button (click)="showReleaseNotes.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">v{{ appVersion }}</button>
           <span class="text-gray-300 dark:text-gray-600">|</span>
-          <button (click)="showFeedback.set(true)" class="inline-flex cursor-pointer items-center gap-1 hover:text-gray-700 dark:hover:text-gray-200">
-            <fa-icon [icon]="faCommentDots" size="xs" />
-            Feedback
-          </button>
+          <button (click)="showAbout.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">About</button>
+          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <button (click)="showFeedback.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">Feedback</button>
           <span class="text-gray-300 dark:text-gray-600">|</span>
           <button (click)="openLegal('terms')" class="hover:text-gray-700 dark:hover:text-gray-200">Terms</button>
           <span class="text-gray-300 dark:text-gray-600">|</span>
@@ -387,6 +385,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
     <app-legal-dialog [open]="showLegal()" [section]="legalSection()" [title]="legalTitle()" (closed)="showLegal.set(false)" />
     <app-settings-dialog [open]="showSettings()" (closed)="showSettings.set(false)" />
     <app-quick-note-dialog [open]="showQuickNote()" (closed)="showQuickNote.set(false)" (created)="onQuickNoteCreated($event)" />
+    <app-release-notes-dialog [open]="showReleaseNotes()" (closed)="showReleaseNotes.set(false)" />
   `,
 })
 export class Shell implements OnInit {
@@ -399,8 +398,6 @@ export class Shell implements OnInit {
 
   protected faMoon = faMoon;
   protected faSun = faSun;
-  protected faCircleInfo = faCircleInfo;
-  protected faCommentDots = faCommentDots;
   protected faChevronRight = faChevronRight;
   protected faChevronLeft = faChevronLeft;
   protected faCircleQuestion = faCircleQuestion;
@@ -429,6 +426,7 @@ export class Shell implements OnInit {
   protected showFeedback = signal(false);
   protected showSettings = signal(false);
   protected showQuickNote = signal(false);
+  protected showReleaseNotes = signal(false);
   protected showLegal = signal(false);
   protected legalSection = signal<'terms' | 'privacy' | 'disclaimer'>('terms');
   protected legalTitle = computed(() => {
@@ -439,6 +437,7 @@ export class Shell implements OnInit {
     }
   });
   protected currentYear = new Date().getFullYear();
+  protected appVersion = APP_VERSION;
   protected closureDeletionDate = computed(() => {
     const deleteRequestedAt = this.auth.user()?.deleteRequestedAt;
     if (!deleteRequestedAt) return '';
