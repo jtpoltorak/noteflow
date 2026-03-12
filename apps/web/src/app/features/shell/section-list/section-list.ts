@@ -130,7 +130,9 @@ import type { SectionDto } from '@noteflow/shared-types';
             />
           }
         } @empty {
-          @if (!creating()) {
+          @if (state.loadingSections()) {
+            <p class="px-2 py-4 text-center text-sm text-gray-400">Loading...</p>
+          } @else if (!creating()) {
             <p class="px-2 py-4 text-center text-sm text-gray-400">
               No sections yet. Click + to create one.
             </p>

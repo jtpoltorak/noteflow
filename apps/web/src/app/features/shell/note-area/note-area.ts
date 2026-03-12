@@ -68,9 +68,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 </div>
               </div>
             } @empty {
-              <p class="px-2 py-4 text-center text-sm text-gray-400">
-                No notes yet. Click + to create one.
-              </p>
+              @if (state.loadingNotes()) {
+                <p class="px-2 py-4 text-center text-sm text-gray-400">Loading...</p>
+              } @else {
+                <p class="px-2 py-4 text-center text-sm text-gray-400">
+                  No notes yet. Click + to create one.
+                </p>
+              }
             }
           }
         </div>
