@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { NotebookService } from '../../core/services/notebook.service';
 import { SectionService } from '../../core/services/section.service';
 import { NoteService } from '../../core/services/note.service';
@@ -202,10 +202,12 @@ export class ShellStateService {
     });
   }
 
-  updateNote(id: number, updates: { title?: string; content?: string }): void {
-    this.noteSvc.update(id, updates).subscribe((updated) => {
+  updateNote(id: number, updates: { title?: string; content?: string }): Observable<NoteDto> {
+    const obs = this.noteSvc.update(id, updates);
+    obs.subscribe((updated) => {
       this.notes.update((list) => list.map((n) => (n.id === id ? updated : n)));
     });
+    return obs;
   }
 
   duplicateNote(id: number): void {

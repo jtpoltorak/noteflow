@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid } from '@fortawesome/free-solid-svg-icons';
 import { EditorPreferencesService } from '../../../core/services/editor-preferences.service';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
@@ -386,13 +386,19 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (noteLinkClicked)="onNoteLinkClicked($event)"
             />
             @if (editorPrefs.showMetadata() && state.selectedNote()) {
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
                 <span>Created {{ formatDate(state.selectedNote()!.createdAt) }}</span>
                 <span>Modified {{ formatDate(state.selectedNote()!.updatedAt) }}</span>
                 <span>{{ textStats().words }} words</span>
                 <span>{{ textStats().characters }} chars</span>
                 <span>{{ textStats().paragraphs }} paragraphs</span>
                 <span>{{ readingTime() }}</span>
+                @if (saveStatus() === 'saving') {
+                  <span class="ml-auto flex items-center gap-1">
+                    <fa-icon [icon]="faCircleSolid" size="xs" class="animate-pulse text-orange-600" />
+                    <span>Saving...</span>
+                  </span>
+                }
               </div>
             }
             @if (isNoteEmpty()) {
@@ -812,13 +818,19 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   (noteLinkClicked)="onNoteLinkClicked($event)"
                 />
                 @if (editorPrefs.showMetadata() && state.selectedNote()) {
-                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-[11px] text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
+                  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-gray-200 bg-gray-50 px-4 py-1.5 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800/50 dark:text-gray-400">
                     <span>Created {{ formatDate(state.selectedNote()!.createdAt) }}</span>
                     <span>Modified {{ formatDate(state.selectedNote()!.updatedAt) }}</span>
                     <span>{{ textStats().words }} words</span>
                     <span>{{ textStats().characters }} chars</span>
                     <span>{{ textStats().paragraphs }} paragraphs</span>
                     <span>{{ readingTime() }}</span>
+                    @if (saveStatus() === 'saving') {
+                      <span class="ml-auto flex items-center gap-1">
+                        <fa-icon [icon]="faCircleSolid" size="xs" class="animate-pulse text-orange-600" />
+                        <span>Saving...</span>
+                      </span>
+                    }
                   </div>
                 }
                 @if (isNoteEmpty()) {
@@ -923,6 +935,7 @@ export class NoteArea {
   protected faFont = faFont;
   protected faQuoteLeft = faQuoteLeft;
   protected faTextHeight = faTextHeight;
+  protected faCircleSolid = faCircleSolid;
 
   protected fontSizeLabel = computed(() => {
     const labels: Record<string, string> = { default: 'Default', large: 'Large', xl: 'Extra Large', xxl: 'Extra Extra Large' };
@@ -949,6 +962,7 @@ export class NoteArea {
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
   protected editedTitle = signal('');
+  protected saveStatus = signal<'idle' | 'saving'>('idle');
   protected deleting = signal(false);
 
   // Tag management
@@ -1037,6 +1051,7 @@ export class NoteArea {
 
         if (note.id !== this.syncedNoteId) {
           this.editedTitle.set(note.title);
+          this.saveStatus.set('idle');
           this.deleting.set(false);
           this.sharing.set(false);
           this.linkCopied.set(false);
@@ -1162,9 +1177,13 @@ export class NoteArea {
 
     if (title === note.title && normalizedContent === note.content) return;
 
+    this.saveStatus.set('saving');
     this.state.updateNote(note.id, {
       title: title || note.title,
       content: normalizedContent,
+    }).subscribe({
+      next: () => this.saveStatus.set('idle'),
+      error: () => this.saveStatus.set('idle'),
     });
   }
 
