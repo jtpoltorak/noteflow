@@ -101,6 +101,8 @@ import { TableToolbar } from '../table-toolbar';
 import { NoteLinkPicker } from '../note-link-picker';
 import { LinkPopover, type LinkPopoverResult } from '../link-popover';
 import { NoteLink } from './note-link.extension';
+import { SearchReplaceExtension } from './search-replace.extension';
+import { FindReplacePanel } from '../find-replace-panel';
 import { NoteService } from '../../../../core/services/note.service';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
@@ -155,7 +157,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
 @Component({
   selector: 'app-tiptap-editor',
-  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover],
+  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover, FindReplacePanel],
   host: { class: 'relative flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- Formatting toolbar -->
@@ -571,6 +573,14 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Insert image"
         ><fa-icon [icon]="faImage" size="sm" /></button>
       </div>
+    }
+
+    @if (findReplacePanelOpen()) {
+      <app-find-replace-panel
+        [editor]="editor"
+        [findOnly]="findReplaceMode() === 'find'"
+        (closed)="findReplacePanelOpen.set(false)"
+      />
     }
 
     <div
@@ -1049,6 +1059,10 @@ export class TiptapEditor implements OnDestroy {
   protected linkPopoverPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
   protected linkPopoverCurrentUrl = signal('');
 
+  // Find & replace state
+  protected findReplacePanelOpen = signal(false);
+  protected findReplaceMode = signal<'find' | 'findReplace'>('find');
+
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private slashImageHandler: (() => void) | null = null;
   private slashNoteLinkHandler: (() => void) | null = null;
@@ -1133,12 +1147,25 @@ export class TiptapEditor implements OnDestroy {
     };
     this.editor.view.dom.addEventListener('note-link-clicked', this.noteLinkClickHandler);
 
+    // Register find/replace callbacks
+    const searchStorage = (this.editor.storage as unknown as Record<string, Record<string, unknown>>)['searchReplace'];
+    searchStorage['onOpenFind'] = () => {
+      this.findReplaceMode.set('find');
+      this.findReplacePanelOpen.set(true);
+    };
+    searchStorage['onOpenFindReplace'] = () => {
+      this.findReplaceMode.set('findReplace');
+      this.findReplacePanelOpen.set(true);
+    };
+
     // Sync content input to editor
     effect(() => {
       const html = this.content();
       if (this.editor && !this.editor.isDestroyed) {
         const migrated = migrateOldTodoHtml(html);
         this.editor.commands.setContent(migrated, { emitUpdate: false });
+        this.editor.commands.clearSearch();
+        this.findReplacePanelOpen.set(false);
       }
     });
 
@@ -1178,6 +1205,7 @@ export class TiptapEditor implements OnDestroy {
         showOnlyCurrent: true,
       }),
       SlashCommandExtension,
+      SearchReplaceExtension,
       Image.configure({
         inline: false,
         allowBase64: false,

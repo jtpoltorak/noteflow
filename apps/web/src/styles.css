@@ -517,6 +517,26 @@ html.dark {
   color: #9ca3af;
 }
 
+/* ── Find & Replace highlights ────────────────────────────────── */
+.noteflow-editor .search-match {
+  background-color: rgba(250, 204, 21, 0.4);
+  border-radius: 2px;
+}
+
+.noteflow-editor .search-match-current {
+  background-color: rgba(251, 146, 60, 0.6);
+  box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.8);
+}
+
+.dark .noteflow-editor .search-match {
+  background-color: rgba(250, 204, 21, 0.25);
+}
+
+.dark .noteflow-editor .search-match-current {
+  background-color: rgba(251, 146, 60, 0.45);
+  box-shadow: 0 0 0 1px rgba(251, 146, 60, 0.6);
+}
+
 /* ── Bubble menu ──────────────────────────────────────────────── */
 .bubble-menu button {
   transition: background-color 0.15s ease;
