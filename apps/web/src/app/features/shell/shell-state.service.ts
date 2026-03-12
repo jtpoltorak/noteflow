@@ -95,6 +95,7 @@ export class ShellStateService {
     this.selectedNoteId.set(null);
     this.sections.set([]);
     this.notes.set([]);
+    this.loadingSections.set(true);
     this.loadSections(id);
   }
 
@@ -103,6 +104,7 @@ export class ShellStateService {
     this.selectedSectionId.set(id);
     this.selectedNoteId.set(null);
     this.notes.set([]);
+    this.loadingNotes.set(true);
     this.loadNotes(id);
   }
 
