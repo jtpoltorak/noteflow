@@ -13,6 +13,7 @@ import {
   verifyRefreshToken,
 } from "../services/auth.service.js";
 import { exportAsJson, exportAsMarkdownZip } from "../services/export.service.js";
+import { requestAccountClosure, reactivateAccount } from "../services/account-closure.service.js";
 
 const router = Router();
 
@@ -35,6 +36,10 @@ const preferencesSchema = z.object({
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
   newPassword: z.string().min(8, "New password must be at least 8 characters"),
+});
+
+const closeAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
 });
 
 // ── Cookie helpers ────────────────────────────────────────────
@@ -132,6 +137,19 @@ router.get("/export/markdown", requireAuth, (req: Request, res: Response) => {
   res.setHeader("Content-Type", "application/zip");
   res.setHeader("Content-Disposition", "attachment; filename=noteflow-export.zip");
   exportAsMarkdownZip(req.user!.id, req.user!.email, res);
+});
+
+// ── Account closure ──────────────────────────────────────────
+
+router.post("/close-account", requireAuth, validate(closeAccountSchema), (req: Request, res: Response) => {
+  const { password } = req.body as z.infer<typeof closeAccountSchema>;
+  const status = requestAccountClosure(req.user!.id, password);
+  res.json({ data: status, message: "Account scheduled for deletion" });
+});
+
+router.post("/reactivate-account", requireAuth, (req: Request, res: Response) => {
+  reactivateAccount(req.user!.id);
+  res.json({ data: null, message: "Account reactivated successfully" });
 });
 
 export default router;

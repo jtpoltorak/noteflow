@@ -34,6 +34,17 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
 
+      <!-- ── Account closure banner ────────────────────────── -->
+      @if (auth.user()?.deleteRequestedAt) {
+        <div class="flex items-center justify-center gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+          <span>Your account is scheduled for deletion on {{ closureDeletionDate() }}.</span>
+          <button
+            (click)="onReactivate()"
+            class="font-semibold underline hover:no-underline"
+          >Cancel and keep my account</button>
+        </div>
+      }
+
       <!-- ── PWA update banner ─────────────────────────────── -->
       @if (pwaUpdate.updateAvailable()) {
         <div class="flex items-center justify-center gap-2 bg-blue-600 px-4 py-1.5 text-sm text-white">
@@ -428,6 +439,13 @@ export class Shell implements OnInit {
     }
   });
   protected currentYear = new Date().getFullYear();
+  protected closureDeletionDate = computed(() => {
+    const deleteRequestedAt = this.auth.user()?.deleteRequestedAt;
+    if (!deleteRequestedAt) return '';
+    const d = new Date(deleteRequestedAt);
+    d.setDate(d.getDate() + 7);
+    return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  });
 
   // ── Mobile navigation ─────────────────────────────────────────
   protected mobilePanel = signal<MobilePanel>('notebooks');
@@ -486,6 +504,10 @@ export class Shell implements OnInit {
 
   onLogout(): void {
     this.auth.logout().subscribe();
+  }
+
+  protected onReactivate(): void {
+    this.auth.reactivateAccount().subscribe();
   }
 
   protected onQuickNoteCreated(result: QuickNoteResult): void {

@@ -1,7 +1,7 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSun, faMoon, faFileExport, faDownload, faCircleCheck } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon, faFileExport, faDownload, faCircleCheck, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -204,6 +204,89 @@ import { environment } from '../../../environments/environment';
           </div>
         </section>
 
+        <!-- Danger Zone -->
+        <section class="rounded-lg border-2 border-red-200 dark:border-red-800">
+          <div class="flex items-center gap-2 border-b border-red-200 bg-red-50 px-3 py-2 dark:border-red-800 dark:bg-red-900/20">
+            <fa-icon [icon]="faTriangleExclamation" class="text-red-500" size="sm" />
+            <h3 class="text-sm font-semibold text-red-700 dark:text-red-400">Danger Zone</h3>
+          </div>
+          <div class="space-y-3 px-3 py-3">
+
+            <div class="text-xs leading-relaxed text-gray-600 dark:text-gray-400">
+              <p class="mb-1.5">
+                <strong>Closing your account is permanent.</strong> After the 7-day grace period,
+                all your data will be irreversibly deleted — including your notebooks, sections,
+                notes, tags, images, and templates.
+              </p>
+              <p class="mb-1.5">
+                We recommend <strong>exporting your data first</strong> using the options above
+                so you have a backup in case you ever want to reference your notes.
+              </p>
+              <p>
+                During the 7-day grace period you can still log in and cancel the closure to
+                keep your account.
+              </p>
+            </div>
+
+            @if (closurePending()) {
+              <!-- Account is pending closure -->
+              <div class="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-700 dark:bg-amber-900/20">
+                <p class="text-sm text-amber-800 dark:text-amber-300">
+                  Your account is scheduled for permanent deletion on
+                  <strong>{{ closureDeletionDate() }}</strong>.
+                </p>
+              </div>
+              <button
+                (mousedown)="onReactivate()"
+                [disabled]="reactivating()"
+                class="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {{ reactivating() ? 'Reactivating...' : 'Cancel Closure & Keep My Account' }}
+              </button>
+            } @else {
+              <!-- Close account form -->
+              @if (!showClosureConfirm()) {
+                <button
+                  (click)="showClosureConfirm.set(true)"
+                  class="w-full rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-700 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  Close My Account...
+                </button>
+              } @else {
+                <div class="space-y-2">
+                  <p class="text-xs font-medium text-red-600 dark:text-red-400">Enter your password to confirm:</p>
+                  <input
+                    type="password"
+                    placeholder="Your password"
+                    [(ngModel)]="closurePassword"
+                    name="closurePassword"
+                    (keydown.enter)="onRequestClosure()"
+                    class="w-full rounded-md border border-red-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-red-400 dark:border-red-700 dark:bg-gray-700 dark:text-gray-100"
+                  />
+                  @if (closureError()) {
+                    <p class="text-xs text-red-600 dark:text-red-400">{{ closureError() }}</p>
+                  }
+                  <div class="flex gap-2">
+                    <button
+                      (click)="showClosureConfirm.set(false); closurePassword = ''; closureError.set('')"
+                      class="flex-1 rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      (click)="onRequestClosure()"
+                      [disabled]="closureLoading()"
+                      class="flex-1 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {{ closureLoading() ? 'Closing...' : 'Permanently Close Account' }}
+                    </button>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </section>
+
         <!-- Sign out -->
         <section class="border-t border-gray-200 pt-4 dark:border-gray-600">
           <button
@@ -232,6 +315,7 @@ export class SettingsDialog {
   protected faFileExport = faFileExport;
   protected faDownload = faDownload;
   protected faCircleCheck = faCircleCheck;
+  protected faTriangleExclamation = faTriangleExclamation;
 
   protected exportJsonUrl = `${environment.apiUrl}/auth/export/json`;
   protected exportMarkdownUrl = `${environment.apiUrl}/auth/export/markdown`;
@@ -243,6 +327,51 @@ export class SettingsDialog {
   protected passwordError = signal('');
   protected passwordSuccess = signal('');
   protected changingPassword = signal(false);
+
+  // Account closure
+  protected closurePassword = '';
+  protected closureError = signal('');
+  protected closureLoading = signal(false);
+  protected showClosureConfirm = signal(false);
+  protected reactivating = signal(false);
+
+  protected closurePending = computed(() => !!this.auth.user()?.deleteRequestedAt);
+  protected closureDeletionDate = computed(() => {
+    const deleteRequestedAt = this.auth.user()?.deleteRequestedAt;
+    if (!deleteRequestedAt) return '';
+    const d = new Date(deleteRequestedAt);
+    d.setDate(d.getDate() + 7);
+    return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+  });
+
+  protected onRequestClosure(): void {
+    this.closureError.set('');
+    if (!this.closurePassword) {
+      this.closureError.set('Password is required');
+      return;
+    }
+    this.closureLoading.set(true);
+    this.auth.closeAccount(this.closurePassword).subscribe({
+      next: () => {
+        this.closureLoading.set(false);
+        this.closurePassword = '';
+        this.showClosureConfirm.set(false);
+      },
+      error: (err) => {
+        const msg = err?.error?.error?.message ?? 'Failed to close account';
+        this.closureError.set(msg);
+        this.closureLoading.set(false);
+      },
+    });
+  }
+
+  protected onReactivate(): void {
+    this.reactivating.set(true);
+    this.auth.reactivateAccount().subscribe({
+      next: () => this.reactivating.set(false),
+      error: () => this.reactivating.set(false),
+    });
+  }
 
   protected onChangePassword(): void {
     this.passwordError.set('');
@@ -293,5 +422,8 @@ export class SettingsDialog {
     this.confirmPassword = '';
     this.passwordError.set('');
     this.passwordSuccess.set('');
+    this.closurePassword = '';
+    this.closureError.set('');
+    this.showClosureConfirm.set(false);
   }
 }

@@ -15,6 +15,7 @@ import shareRoutes from "./routes/share.routes.js";
 import imageRoutes from "./routes/image.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
+import { startAccountPurgeCron } from "./cron/account-purge.cron.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,7 @@ app.use(errorHandler);
 async function start(): Promise<void> {
   await initDatabase();
   runMigrations();
+  startAccountPurgeCron();
 
   app.listen(PORT, () => {
     console.log(`NoteFlow API running on http://localhost:${PORT}`);

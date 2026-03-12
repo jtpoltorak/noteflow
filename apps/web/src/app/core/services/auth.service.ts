@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ThemeService } from './theme.service';
-import type { ApiSuccessResponse, UserDto } from '@noteflow/shared-types';
+import type { ApiSuccessResponse, UserDto, AccountClosureStatusDto } from '@noteflow/shared-types';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -58,6 +58,35 @@ export class AuthService {
       `${environment.apiUrl}/auth/password`,
       { currentPassword, newPassword }
     );
+  }
+
+  closeAccount(password: string): Observable<ApiSuccessResponse<AccountClosureStatusDto>> {
+    return this.http
+      .post<ApiSuccessResponse<AccountClosureStatusDto>>(
+        `${environment.apiUrl}/auth/close-account`,
+        { password },
+      )
+      .pipe(
+        tap((res) => {
+          const user = this.currentUser();
+          if (user) {
+            this.currentUser.set({ ...user, deleteRequestedAt: res.data.deleteRequestedAt });
+          }
+        }),
+      );
+  }
+
+  reactivateAccount(): Observable<ApiSuccessResponse<null>> {
+    return this.http
+      .post<ApiSuccessResponse<null>>(`${environment.apiUrl}/auth/reactivate-account`, {})
+      .pipe(
+        tap(() => {
+          const user = this.currentUser();
+          if (user) {
+            this.currentUser.set({ ...user, deleteRequestedAt: null });
+          }
+        }),
+      );
   }
 
   /** Clear local state and redirect to login without making an HTTP call. */

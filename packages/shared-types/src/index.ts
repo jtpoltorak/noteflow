@@ -70,6 +70,16 @@ export interface UserDto {
   id: number;
   email: string;
   darkMode: boolean;
+  deleteRequestedAt: string | null;
+}
+
+export interface CloseAccountDto {
+  password: string;
+}
+
+export interface AccountClosureStatusDto {
+  deleteRequestedAt: string;
+  deletionDate: string;
 }
 
 export interface NotebookDto {
