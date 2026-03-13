@@ -29,6 +29,7 @@ import Image from '@tiptap/extension-image';
 import Typography from '@tiptap/extension-typography';
 import DragHandle from '@tiptap/extension-drag-handle';
 import { CodeBlockWithLanguage } from './code-block-language.extension';
+import Youtube from '@tiptap/extension-youtube';
 
 /**
  * Wraps Typography so every input rule checks a live flag before firing.
@@ -90,6 +91,7 @@ import {
   faImage,
   faPaintbrush,
 } from '@fortawesome/free-solid-svg-icons';
+import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { ImageService } from '../../../../core/services/image.service';
 import { EditorPreferencesService } from '../../../../core/services/editor-preferences.service';
@@ -576,6 +578,13 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Insert image"
         ><fa-icon [icon]="faImage" size="sm" /></button>
+
+        <!-- YouTube -->
+        <button
+          (mousedown)="$event.preventDefault(); insertYouTubeVideo()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Embed YouTube video"
+        ><fa-icon [icon]="faYoutube" size="sm" /></button>
       </div>
     }
 
@@ -829,6 +838,7 @@ export class TiptapEditor implements OnDestroy {
   protected faDroplet = faDroplet;
   protected faEraser = faEraser;
   protected faImage = faImage;
+  protected faYoutube = faYoutube;
 
   toggleToolbar(): void {
     this.prefs.toggleToolbar();
@@ -1042,6 +1052,12 @@ export class TiptapEditor implements OnDestroy {
     input.click();
   }
 
+  protected insertYouTubeVideo(): void {
+    const url = prompt('Enter a YouTube URL:');
+    if (!url?.trim()) return;
+    this.editor.chain().focus().setYoutubeVideo({ src: url.trim() }).run();
+  }
+
   private uploadAndInsertImages(files: File[]): void {
     const id = this.noteId();
     if (!id) return;
@@ -1091,6 +1107,7 @@ export class TiptapEditor implements OnDestroy {
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private slashImageHandler: (() => void) | null = null;
   private slashNoteLinkHandler: (() => void) | null = null;
+  private slashYouTubeHandler: (() => void) | null = null;
   private noteLinkClickHandler: ((e: Event) => void) | null = null;
 
   constructor() {
@@ -1164,6 +1181,10 @@ export class TiptapEditor implements OnDestroy {
     // Listen for slash-command note link insertion
     this.slashNoteLinkHandler = () => this.openNoteLinkPicker();
     this.editor.view.dom.addEventListener('slash-insert-note-link', this.slashNoteLinkHandler);
+
+    // Listen for slash-command YouTube insertion
+    this.slashYouTubeHandler = () => this.insertYouTubeVideo();
+    this.editor.view.dom.addEventListener('slash-insert-youtube', this.slashYouTubeHandler);
 
     // Listen for note link clicks
     this.noteLinkClickHandler = (e: Event) => {
@@ -1251,6 +1272,12 @@ export class TiptapEditor implements OnDestroy {
         },
       }),
       SmartTypography.configure({ isEnabled: () => this.prefs.typographyMode() }),
+      Youtube.configure({
+        nocookie: true,
+        addPasteHandler: true,
+        controls: true,
+        modestBranding: true,
+      }),
       DragHandle.configure({
         render: () => {
           const el = document.createElement('div');
@@ -1295,6 +1322,9 @@ export class TiptapEditor implements OnDestroy {
     }
     if (this.slashNoteLinkHandler) {
       this.editor?.view.dom.removeEventListener('slash-insert-note-link', this.slashNoteLinkHandler);
+    }
+    if (this.slashYouTubeHandler) {
+      this.editor?.view.dom.removeEventListener('slash-insert-youtube', this.slashYouTubeHandler);
     }
     if (this.noteLinkClickHandler) {
       this.editor?.view.dom.removeEventListener('note-link-clicked', this.noteLinkClickHandler);

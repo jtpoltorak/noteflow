@@ -48,6 +48,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'table', label: 'Table', description: 'Insert a table' },
   { id: 'image', label: 'Image', description: 'Upload an image' },
   { id: 'note-link', label: 'Link to Note', description: 'Link to another note' },
+  { id: 'youtube', label: 'YouTube', description: 'Embed a YouTube video' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -93,6 +94,9 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
       break;
     case 'note-link':
       editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-note-link', { bubbles: true }));
+      break;
+    case 'youtube':
+      editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-youtube', { bubbles: true }));
       break;
   }
 }

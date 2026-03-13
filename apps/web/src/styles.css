@@ -503,6 +503,28 @@ html.dark {
   outline-offset: 2px;
 }
 
+/* ── TipTap YouTube Embed ────────────────────────────────────── */
+.noteflow-editor div[data-youtube-video] {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0.75rem 0;
+  cursor: default;
+}
+
+.noteflow-editor div[data-youtube-video] iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border: none;
+  border-radius: 0.5rem;
+}
+
+.noteflow-editor div[data-youtube-video].ProseMirror-selectednode iframe {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 /* Resize handle container — show handles on hover or selection */
 .noteflow-editor [data-resize-container] {
   display: inline-flex !important;
