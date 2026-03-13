@@ -56,19 +56,80 @@ import { APP_VERSION } from '../../../version';
           <li><strong>Numbered List</strong> &mdash; ordered list</li>
           <li><strong>Todo List</strong> &mdash; checklist with toggleable items</li>
           <li><strong>Quote</strong> &mdash; blockquote</li>
-          <li><strong>Code Block</strong> &mdash; preformatted code</li>
+          <li><strong>Code Block</strong> &mdash; syntax-highlighted code with language selector</li>
           <li><strong>Divider</strong> &mdash; horizontal rule</li>
+          <li><strong>Table</strong> &mdash; insert a 3&times;3 table</li>
+          <li><strong>Image</strong> &mdash; upload an image</li>
+          <li><strong>Link to Note</strong> &mdash; link to another note in your notebooks</li>
+          <li><strong>YouTube</strong> &mdash; embed a YouTube video</li>
         </ul>
       </section>
 
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Text Formatting</h3>
-        <p>Toggle the formatting toolbar using the toolbar button in the editor header for quick access to text styles, formatting, lists, and block types &mdash; including undo and redo. You can also select text to see a contextual bubble menu with inline formatting options.</p>
+        <p class="mb-1">Toggle the formatting toolbar using the toolbar button in the editor header for quick access to text styles, formatting, lists, and block types &mdash; including undo and redo. You can also select text to see a contextual bubble menu with inline formatting options.</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li><strong>Text color</strong> &mdash; pick from a palette of colours in the toolbar or bubble menu</li>
+          <li><strong>Highlight</strong> &mdash; multicolour text highlight</li>
+          <li><strong>Smart typography</strong> &mdash; auto-converts straight quotes to curly quotes, hyphens to em dashes, etc. Toggle on/off in Settings</li>
+        </ul>
       </section>
 
       <section class="mb-5">
-        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Font Style</h3>
-        <p>Switch between serif and sans-serif fonts using the font toggle button in the editor toolbar. Your choice applies to the current editing session.</p>
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Font &amp; Display</h3>
+        <p class="mb-1">Customise the editor appearance:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Switch between <strong>serif and sans-serif</strong> fonts in the editor toolbar</li>
+          <li>Choose a <strong>font size</strong> (default, large, XL, XXL) in Settings &gt; General</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Code Blocks</h3>
+        <p class="mb-1">Insert a code block via the toolbar, <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/code</kbd> slash command, or by typing <code>\`\`\`</code> at the start of a line.</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Syntax highlighting for 33+ languages</li>
+          <li>Use the dropdown in the top-right corner to pick a language, or leave it on <strong>Auto-detect</strong></li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">YouTube Videos</h3>
+        <p class="mb-1">Embed YouTube videos in your notes:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click the YouTube icon in the toolbar and paste a URL</li>
+          <li>Use the <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/youtube</kbd> slash command</li>
+          <li>Or simply paste a YouTube link &mdash; it auto-embeds</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Images</h3>
+        <p class="mb-1">Add images to your notes:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Upload via the toolbar button, <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/image</kbd> slash command, or drag-and-drop / paste</li>
+          <li>Resize images using the corner drag handles</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Note Links</h3>
+        <p>Link to other notes within your notebooks using the <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/note-link</kbd> slash command or the link toolbar. Click a note link to navigate directly to it.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Find &amp; Replace</h3>
+        <p>Press <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">Ctrl+F</kbd> to find text within the current note, or <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">Ctrl+H</kbd> to open find and replace. Matches are highlighted as you type.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Quick Note</h3>
+        <p>Click the Quick Note button in the header to create a note without leaving your current view. Pick a notebook and section, give it a title, and optionally add formatted content with the mini editor.</p>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Note Metadata</h3>
+        <p>The metadata bar below the note title shows word count, estimated reading time, creation date, and last updated time. A save indicator appears when changes are being saved.</p>
       </section>
 
       <section class="mb-5">
@@ -95,8 +156,28 @@ import { APP_VERSION } from '../../../version';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Templates</h3>
+        <p class="mb-1">Start new notes from templates:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Choose a built-in template when creating a note (meeting notes, standup status, etc.)</li>
+          <li>Save any note as a <strong>custom template</strong> for reuse</li>
+          <li>Apply a template to an empty note, or rename and delete custom templates</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Move &amp; Duplicate</h3>
-        <p>Use the editor toolbar to move a note to a different section or duplicate it. The move dialog lets you pick any notebook and section as the destination.</p>
+        <p class="mb-1">Use the editor toolbar to move or duplicate notes and sections:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Move a note to any notebook and section</li>
+          <li>Move a section to another notebook</li>
+          <li>Duplicate a note within the same section</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Password Protection</h3>
+        <p>Lock individual notes with a password. Protected notes require the password to view or edit. Remove the lock at any time from the editor toolbar.</p>
       </section>
 
       <section class="mb-5">
@@ -112,7 +193,17 @@ import { APP_VERSION } from '../../../version';
 
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Import &amp; Export</h3>
-        <p>Export any note as a Markdown file using the download icon in the editor toolbar. Import a Markdown file into the current section using the import icon in the notes list header.</p>
+        <p class="mb-1">Move content in and out of NoteFlow:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Export a single note as Markdown using the download icon in the editor toolbar</li>
+          <li>Import a Markdown file into the current section using the import icon</li>
+          <li>Export all your data as a JSON or Markdown ZIP from Settings &gt; Account</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Print</h3>
+        <p>Print the current note using the print icon in the editor toolbar.</p>
       </section>
 
       <section class="mb-5">
@@ -130,9 +221,27 @@ import { APP_VERSION } from '../../../version';
         <p>Toggle dark mode using the sun/moon icon in the top-right corner of the header bar. Your preference is saved and persists across sessions.</p>
       </section>
 
-      <section>
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Drag &amp; Drop</h3>
-        <p>Reorder notebooks, sections, and notes by dragging them to a new position in their respective panels.</p>
+        <p class="mb-1">Reorder and rearrange content by dragging:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Drag notebooks, sections, and notes to reorder them in their panels</li>
+          <li>Drag blocks within the editor using the handle that appears on hover</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Install as App (PWA)</h3>
+        <p>NoteFlow can be installed as a standalone app on your device. Look for the install prompt in the header, or use your browser's "Install app" option.</p>
+      </section>
+
+      <section>
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Account &amp; Settings</h3>
+        <p class="mb-1">Access Settings from the gear icon in the navigation rail:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li><strong>General</strong> &mdash; theme, font size, smart typography, toolbar preferences</li>
+          <li><strong>Account</strong> &mdash; change password, export data, close account</li>
+        </ul>
       </section>
 
       <hr class="my-4 border-gray-200 dark:border-gray-700" />
