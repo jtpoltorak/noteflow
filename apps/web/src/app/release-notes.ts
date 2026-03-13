@@ -7,6 +7,18 @@ export interface ReleaseEntry {
 
 export const RELEASE_NOTES: ReleaseEntry[] = [
   {
+    version: '0.3.0',
+    date: '2026-03-13',
+    type: 'feature',
+    description: 'Add syntax highlighting to code blocks with a language selector dropdown (33 languages + auto-detect)',
+  },
+  {
+    version: '0.3.0',
+    date: '2026-03-13',
+    type: 'feature',
+    description: 'Embed YouTube videos via toolbar button, /youtube slash command, or by pasting a URL',
+  },
+  {
     version: '0.2.0',
     date: '2025-03-12',
     type: 'feature',
