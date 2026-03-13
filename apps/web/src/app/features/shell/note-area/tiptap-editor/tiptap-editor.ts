@@ -28,6 +28,7 @@ import { TextStyle } from '@tiptap/extension-text-style';
 import Image from '@tiptap/extension-image';
 import Typography from '@tiptap/extension-typography';
 import DragHandle from '@tiptap/extension-drag-handle';
+import { CodeBlockWithLanguage } from './code-block-language.extension';
 
 /**
  * Wraps Typography so every input rule checks a live flag before firing.
@@ -1199,7 +1200,9 @@ export class TiptapEditor implements OnDestroy {
     return [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
+        codeBlock: false,
       }),
+      CodeBlockWithLanguage,
       Underline,
       TaskList,
       TaskItem.configure({ nested: true }),

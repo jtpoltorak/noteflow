@@ -166,6 +166,126 @@ html.dark {
   font-size: inherit;
 }
 
+/* ── Code block language selector ───────────────────────────── */
+.noteflow-editor .code-block-wrapper {
+  position: relative;
+  margin: 0.5rem 0;
+}
+
+.noteflow-editor .code-block-wrapper pre {
+  margin: 0;
+}
+
+.noteflow-editor .code-block-lang-select {
+  position: absolute;
+  top: 0.375rem;
+  right: 0.5rem;
+  z-index: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0.0625rem 1.25rem 0.0625rem 0.375rem;
+  font-size: 0.6875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #9ca3af;
+  cursor: pointer;
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%239ca3af'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.375rem center;
+  background-size: 8px 5px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.noteflow-editor .code-block-lang-select:hover,
+.noteflow-editor .code-block-lang-select:focus {
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.noteflow-editor .code-block-lang-select option {
+  background: white;
+  color: #374151;
+}
+
+.dark .noteflow-editor .code-block-lang-select {
+  color: #6b7280;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+}
+
+.dark .noteflow-editor .code-block-lang-select:hover,
+.dark .noteflow-editor .code-block-lang-select:focus {
+  border-color: #4b5563;
+  color: #9ca3af;
+}
+
+.dark .noteflow-editor .code-block-lang-select option {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+/* ── Syntax highlighting (light mode) ───────────────────────── */
+.noteflow-editor .hljs-comment,
+.noteflow-editor .hljs-quote { color: #6b7280; font-style: italic; }
+.noteflow-editor .hljs-keyword,
+.noteflow-editor .hljs-selector-tag,
+.noteflow-editor .hljs-built_in,
+.noteflow-editor .hljs-literal { color: #7c3aed; }
+.noteflow-editor .hljs-number,
+.noteflow-editor .hljs-attr { color: #d97706; }
+.noteflow-editor .hljs-string,
+.noteflow-editor .hljs-doctag,
+.noteflow-editor .hljs-regexp { color: #059669; }
+.noteflow-editor .hljs-title,
+.noteflow-editor .hljs-title.function_,
+.noteflow-editor .hljs-section { color: #2563eb; font-weight: 600; }
+.noteflow-editor .hljs-type,
+.noteflow-editor .hljs-title.class_ { color: #0891b2; }
+.noteflow-editor .hljs-variable,
+.noteflow-editor .hljs-template-variable { color: #dc2626; }
+.noteflow-editor .hljs-meta { color: #9ca3af; }
+.noteflow-editor .hljs-tag { color: #6b7280; }
+.noteflow-editor .hljs-name { color: #2563eb; }
+.noteflow-editor .hljs-attribute { color: #7c3aed; }
+.noteflow-editor .hljs-symbol,
+.noteflow-editor .hljs-bullet,
+.noteflow-editor .hljs-link { color: #059669; }
+.noteflow-editor .hljs-addition { color: #059669; background-color: rgba(5, 150, 105, 0.1); }
+.noteflow-editor .hljs-deletion { color: #dc2626; background-color: rgba(220, 38, 38, 0.1); }
+.noteflow-editor .hljs-emphasis { font-style: italic; }
+.noteflow-editor .hljs-strong { font-weight: 700; }
+
+/* ── Syntax highlighting (dark mode) ────────────────────────── */
+.dark .noteflow-editor .hljs-comment,
+.dark .noteflow-editor .hljs-quote { color: #6b7280; }
+.dark .noteflow-editor .hljs-keyword,
+.dark .noteflow-editor .hljs-selector-tag,
+.dark .noteflow-editor .hljs-built_in,
+.dark .noteflow-editor .hljs-literal { color: #a78bfa; }
+.dark .noteflow-editor .hljs-number,
+.dark .noteflow-editor .hljs-attr { color: #fbbf24; }
+.dark .noteflow-editor .hljs-string,
+.dark .noteflow-editor .hljs-doctag,
+.dark .noteflow-editor .hljs-regexp { color: #34d399; }
+.dark .noteflow-editor .hljs-title,
+.dark .noteflow-editor .hljs-title.function_,
+.dark .noteflow-editor .hljs-section { color: #60a5fa; font-weight: 600; }
+.dark .noteflow-editor .hljs-type,
+.dark .noteflow-editor .hljs-title.class_ { color: #22d3ee; }
+.dark .noteflow-editor .hljs-variable,
+.dark .noteflow-editor .hljs-template-variable { color: #f87171; }
+.dark .noteflow-editor .hljs-meta { color: #6b7280; }
+.dark .noteflow-editor .hljs-tag { color: #9ca3af; }
+.dark .noteflow-editor .hljs-name { color: #60a5fa; }
+.dark .noteflow-editor .hljs-attribute { color: #a78bfa; }
+.dark .noteflow-editor .hljs-symbol,
+.dark .noteflow-editor .hljs-bullet,
+.dark .noteflow-editor .hljs-link { color: #34d399; }
+.dark .noteflow-editor .hljs-addition { color: #34d399; background-color: rgba(52, 211, 153, 0.1); }
+.dark .noteflow-editor .hljs-deletion { color: #f87171; background-color: rgba(248, 113, 113, 0.1); }
+
 .noteflow-editor code {
   background: #f3f4f6;
   border-radius: 0.25rem;
