@@ -260,6 +260,30 @@ Angular environment config lives in `apps/web/src/environments/environment.ts` �
 
 ---
 
+## Versioning & Release Checklist
+
+Every feature or bug fix that gets committed/pushed **must** include these updates:
+
+### Version bumping
+- **Features** → bump **minor** version (e.g. 0.4.0 → 0.5.0)
+- **Bug fixes** → bump **patch** version (e.g. 0.4.0 → 0.4.1)
+- **Major** version stays at `0` until the app goes live (unless explicitly told otherwise)
+- Keep these files in sync:
+  - `apps/web/src/app/version.ts` — `APP_VERSION` constant
+  - Root `package.json` — `version` field
+
+### Release notes
+- Add an entry to `apps/web/src/app/release-notes.ts`
+- New features get a new version group at the top; multiple changes in the same release share a group
+- Include version number, date (ISO 8601), and description of changes
+
+### Help panel
+- Update `apps/web/src/app/features/shell/help-panel/help-panel.ts` with documentation for new features
+- Add or update the relevant section so users can discover and learn the new functionality
+- Bug fixes only need a help panel update if they change user-facing behavior
+
+---
+
 ## Running Locally
 
 ```bash

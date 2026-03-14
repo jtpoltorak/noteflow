@@ -8,30 +8,61 @@ A web-based note-taking application inspired by Microsoft OneNote, built with An
 
 ## Features
 
-- **Notebooks, Sections & Notes** — Three-panel layout for organising notes hierarchically
-- **Rich-text editor** — TipTap (ProseMirror) editor with slash commands, bubble menu formatting, and task lists
-- **Slash commands** — Type `/` to insert headings, lists, code blocks, quotes, dividers, and todo checklists
-- **Inline formatting** — Select text to toggle bold, italic, underline, strikethrough, and inline code
-- **Global search** — Find notes across all notebooks and sections
-- **Drag-and-drop** — Reorder notes and sections via drag handles
-- **Dark mode** — System-aware theme with manual toggle
-- **Responsive** — Full mobile layout with drill-down navigation
+### Editor
+- **Rich-text editor** — TipTap (ProseMirror) with formatting toolbar, bubble menu, and block drag handles
+- **Slash commands** — Type `/` to insert headings, lists, code blocks, quotes, dividers, todos, images, YouTube videos, and note links
+- **Syntax highlighting** — Code blocks with a language selector dropdown supporting 33+ languages and auto-detect
+- **YouTube embeds** — Embed videos via toolbar button, `/youtube` slash command, or by pasting a URL
+- **Images** — Upload, drag-and-drop, or paste images with resizable drag handles
+- **Find & Replace** — In-note search with Ctrl+F / Ctrl+H
+- **Note linking** — Link between notes via `/note-link` slash command or toolbar button
+- **Smart typography** — Toggleable curly quotes, em dashes, and ellipses
+- **Text styling** — Color picker, highlight colors, inline formatting (bold, italic, underline, strikethrough, code)
+
+### Organisation
+- **Three-panel layout** — Notebooks sidebar, sections column, and notes area with editor
+- **Tags** — Organise notes with custom tags and browse by tag
+- **Favorites** — Star notes for quick access
+- **Archive** — Hide notes and restore them later
+- **Drag-and-drop** — Reorder notebooks, sections, and notes; move sections between notebooks
+- **Templates** — Built-in and custom user templates for new notes
+- **Global search** — Full-text search across all notebooks and sections
+
+### Sharing & Security
+- **Public sharing** — Share notes via unique public links with revoke support
+- **Password protection** — Lock individual notes with a password
+- **Presentation mode** — Full-screen overlay for presenting note content
+
+### Account & Data
 - **Auth** — Register, login, logout with JWT access + refresh tokens in httpOnly cookies
-- **Session restore** — Automatically restores your last-viewed notebook, section, and note on page refresh
+- **Data export** — Export all data as JSON or Markdown ZIP
+- **Print** — Print individual notes
+- **Account closure** — Self-service with 7-day grace period and reactivation
+- **Settings** — General tab (font size, smart typography) and Account tab (password change, export, closure)
+
+### Experience
+- **Dark mode** — System-aware theme with manual toggle and persistent preference
+- **Responsive** — Full mobile layout with drill-down navigation
+- **PWA** — Installable as a standalone app with install prompt
+- **Session restore** — Automatically restores your last-viewed notebook, section, and note
+- **Font sizes** — Four global size levels (default, large, XL, XXL)
+- **Quick Note** — Create notes without leaving your current view
+- **Note metadata** — Word count, reading time, timestamps, and save indicator
+- **Release notes** — Clickable version display with in-app changelog
 
 ---
 
 ## Tech Stack
 
-| Layer     | Technology                          |
-|-----------|-------------------------------------|
-| Front-end | Angular 21, Tailwind CSS 4, TipTap  |
-| Back-end  | Node.js, Express, TypeScript        |
-| Database  | SQLite (sql.js)                     |
-| Auth      | JWT (httpOnly cookies)              |
-| Validation| Zod                                 |
-| Icons     | Font Awesome 6                      |
-| Monorepo  | npm workspaces                      |
+| Layer      | Technology                          |
+|------------|-------------------------------------|
+| Front-end  | Angular 21, Tailwind CSS 4, TipTap  |
+| Back-end   | Node.js, Express, TypeScript        |
+| Database   | SQLite (sql.js)                     |
+| Auth       | JWT (httpOnly cookies)              |
+| Validation | Zod                                 |
+| Icons      | Font Awesome 6                      |
+| Monorepo   | npm workspaces                      |
 
 ---
 
@@ -99,14 +130,14 @@ npm run build --workspace=apps/web
 
 ## Environment Variables
 
-| Variable               | Description                        | Default              |
-|------------------------|------------------------------------|----------------------|
-| `PORT`                 | API server port                    | `3000`               |
-| `JWT_SECRET`           | Access token signing secret        | —                    |
-| `JWT_EXPIRES_IN`       | Access token lifetime              | `15m`                |
-| `REFRESH_TOKEN_SECRET` | Refresh token signing secret       | —                    |
+| Variable                   | Description                    | Default              |
+|----------------------------|--------------------------------|----------------------|
+| `PORT`                     | API server port                | `3000`               |
+| `JWT_SECRET`               | Access token signing secret    | —                    |
+| `JWT_EXPIRES_IN`           | Access token lifetime          | `15m`                |
+| `REFRESH_TOKEN_SECRET`     | Refresh token signing secret   | —                    |
 | `REFRESH_TOKEN_EXPIRES_IN` | Refresh token lifetime         | `7d`                 |
-| `DB_PATH`              | Path to SQLite database file       | `./data/noteflow.db` |
+| `DB_PATH`                  | Path to SQLite database file   | `./data/noteflow.db` |
 
 ---
 
@@ -114,26 +145,79 @@ npm run build --workspace=apps/web
 
 All routes prefixed with `/api/v1`. Auth routes are public; all others require a valid JWT cookie.
 
-| Method | Endpoint                              | Description              |
-|--------|---------------------------------------|--------------------------|
-| POST   | `/auth/register`                      | Create account           |
-| POST   | `/auth/login`                         | Log in (sets cookie)     |
-| POST   | `/auth/logout`                        | Log out (clears cookie)  |
-| GET    | `/auth/me`                            | Current user             |
-| GET    | `/notebooks`                          | List notebooks           |
-| POST   | `/notebooks`                          | Create notebook          |
-| GET    | `/notebooks/:id`                      | Get notebook             |
-| PUT    | `/notebooks/:id`                      | Update notebook          |
-| DELETE | `/notebooks/:id`                      | Delete notebook          |
-| GET    | `/notebooks/:notebookId/sections`     | List sections            |
-| POST   | `/notebooks/:notebookId/sections`     | Create section           |
-| PUT    | `/sections/:id`                       | Update section           |
-| DELETE | `/sections/:id`                       | Delete section           |
-| GET    | `/sections/:sectionId/notes`          | List notes               |
-| POST   | `/sections/:sectionId/notes`          | Create note              |
-| GET    | `/notes/:id`                          | Get note                 |
-| PUT    | `/notes/:id`                          | Update note              |
-| DELETE | `/notes/:id`                          | Delete note              |
+### Auth
+| Method | Endpoint                | Description                |
+|--------|-------------------------|----------------------------|
+| POST   | `/auth/register`        | Create account             |
+| POST   | `/auth/login`           | Log in (sets cookie)       |
+| POST   | `/auth/logout`          | Log out (clears cookie)    |
+| POST   | `/auth/refresh`         | Refresh access token       |
+| GET    | `/auth/me`              | Current user               |
+| PUT    | `/auth/preferences`     | Update user preferences    |
+| PUT    | `/auth/password`        | Change password            |
+| GET    | `/auth/export/json`     | Export all data as JSON    |
+| GET    | `/auth/export/markdown` | Export all data as Markdown ZIP |
+| POST   | `/auth/close-account`   | Request account closure    |
+| POST   | `/auth/reactivate-account` | Cancel account closure  |
+
+### Notebooks
+| Method | Endpoint          | Description      |
+|--------|-------------------|------------------|
+| GET    | `/notebooks`      | List notebooks   |
+| POST   | `/notebooks`      | Create notebook  |
+| GET    | `/notebooks/:id`  | Get notebook     |
+| PUT    | `/notebooks/:id`  | Update notebook  |
+| DELETE | `/notebooks/:id`  | Delete notebook  |
+
+### Sections
+| Method | Endpoint                          | Description    |
+|--------|-----------------------------------|----------------|
+| GET    | `/notebooks/:notebookId/sections` | List sections  |
+| PUT    | `/sections/:id`                   | Update section |
+| DELETE | `/sections/:id`                   | Delete section |
+
+### Notes
+| Method | Endpoint                    | Description              |
+|--------|-----------------------------|--------------------------|
+| GET    | `/sections/:sectionId/notes`| List notes in section    |
+| GET    | `/notes/:id`                | Get note                 |
+| GET    | `/notes/:id/context`        | Get note with context    |
+| PUT    | `/notes/:id`                | Update note              |
+| DELETE | `/notes/:id`                | Delete note              |
+| GET    | `/notes/archived`           | List archived notes      |
+| POST   | `/notes/:id/archive`        | Archive/unarchive note   |
+| GET    | `/notes/favorites`          | List favorite notes      |
+| POST   | `/notes/:id/favorite`       | Favorite a note          |
+| POST   | `/notes/:id/unfavorite`     | Unfavorite a note        |
+| GET    | `/notes/shared`             | List shared notes        |
+| POST   | `/notes/:id/share`          | Generate share link      |
+| POST   | `/notes/:id/unshare`        | Revoke share link        |
+
+### Tags
+| Method | Endpoint                      | Description            |
+|--------|-------------------------------|------------------------|
+| GET    | `/tags`                       | List all tags          |
+| POST   | `/tags`                       | Create tag             |
+| PUT    | `/tags/:id`                   | Rename tag             |
+| DELETE | `/tags/:id`                   | Delete tag             |
+| GET    | `/tags/:id/notes`             | List notes with tag    |
+| GET    | `/notes/:id/tags`             | Get tags for a note    |
+| POST   | `/notes/:id/tags`             | Add tag to note        |
+| DELETE | `/notes/:noteId/tags/:tagId`  | Remove tag from note   |
+
+### Templates
+| Method | Endpoint         | Description       |
+|--------|------------------|--------------------|
+| GET    | `/templates`     | List templates     |
+| POST   | `/templates`     | Create template    |
+| PUT    | `/templates/:id` | Update template    |
+| DELETE | `/templates/:id` | Delete template    |
+
+### Other
+| Method | Endpoint           | Description                    |
+|--------|--------------------|--------------------------------|
+| GET    | `/search?q=...`    | Full-text search               |
+| GET    | `/shared/:token`   | View shared note (public)      |
 
 ---
 
