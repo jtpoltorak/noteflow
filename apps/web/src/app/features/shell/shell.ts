@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -110,9 +110,10 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             </button>
             <button
               (click)="onLogout()"
-              class="rounded px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              title="Sign out"
             >
-              Sign out
+              <fa-icon [icon]="faArrowRightFromBracket" size="sm" />
             </button>
           </div>
         </header>
@@ -409,6 +410,7 @@ export class Shell implements OnInit {
   protected faGear = faGear;
   protected faPlus = faPlus;
   protected faCloudArrowDown = faCloudArrowDown;
+  protected faArrowRightFromBracket = faArrowRightFromBracket;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
