@@ -2,7 +2,7 @@
 
 A web-based note-taking application inspired by Microsoft OneNote, built with Angular and Node.js.
 
-**Live demo:** [noteflow on Railway](https://api-production-9d75.up.railway.app)
+**Live demo:** [noteflow on Railway](https://mynoteflow.app)
 
 ---
 
