@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 3000;
 app.use(
   cors({
     origin: [
-      "https://web-production-ea3c8.up.railway.app",
+      "https://mynoteflow.app",
       "http://localhost:4200",
     ],
     credentials: true,
