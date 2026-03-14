@@ -6,6 +6,13 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.6.0',
+    date: '2026-03-14',
+    items: [
+      'Export individual notes as PDF via the export dropdown in the editor toolbar',
+    ],
+  },
+  {
     version: '0.5.0',
     date: '2026-03-14',
     items: [

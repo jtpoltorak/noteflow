@@ -1,7 +1,7 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faSun, faMoon, faFileExport, faDownload, faCircleCheck, faTriangleExclamation, faSliders, faUserGear } from '@fortawesome/free-solid-svg-icons';
+import { faSun, faMoon, faFileExport, faFileArrowDown, faCircleCheck, faTriangleExclamation, faSliders, faUserGear } from '@fortawesome/free-solid-svg-icons';
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -76,7 +76,7 @@ type SettingsTab = 'general' | 'account';
                   (click)="pwa.promptInstall()"
                   class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
                 >
-                  <fa-icon [icon]="faDownload" size="sm" />
+                  <fa-icon [icon]="faFileArrowDown" size="sm" />
                   Install NoteFlow
                 </button>
               </div>
@@ -353,7 +353,7 @@ export class SettingsDialog {
   protected faSun = faSun;
   protected faMoon = faMoon;
   protected faFileExport = faFileExport;
-  protected faDownload = faDownload;
+  protected faFileArrowDown = faFileArrowDown;
   protected faCircleCheck = faCircleCheck;
   protected faTriangleExclamation = faTriangleExclamation;
   protected faSliders = faSliders;

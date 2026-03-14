@@ -10,35 +10,8 @@ function downloadHtml(title: string, doc: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function exportNoteAsHtml(title: string, html: string): void {
-  const doc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-</head>
-<body>
-  <h1>${title}</h1>
-  ${html}
-</body>
-</html>`;
-
-  downloadHtml(title, doc);
-}
-
-export function exportNoteAsStyledHtml(title: string, html: string, serif = false): void {
-  const fontFamily = serif
-    ? "'Source Serif 4', 'Georgia', serif"
-    : "'Source Sans 3', 'Segoe UI', sans-serif";
-
-  const doc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title}</title>
-  <style>
+export function getStyledCss(fontFamily: string): string {
+  return `
     body {
       font-family: ${fontFamily};
       max-width: 800px;
@@ -127,14 +100,49 @@ export function exportNoteAsStyledHtml(title: string, html: string, serif = fals
     .hljs-addition { color: #059669; background-color: rgba(5, 150, 105, 0.1); }
     .hljs-deletion { color: #dc2626; background-color: rgba(220, 38, 38, 0.1); }
     .hljs-emphasis { font-style: italic; }
-    .hljs-strong { font-weight: 700; }
-  </style>
+    .hljs-strong { font-weight: 700; }`;
+}
+
+export function getFontFamily(serif: boolean): string {
+  return serif
+    ? "'Source Serif 4', 'Georgia', serif"
+    : "'Source Sans 3', 'Segoe UI', sans-serif";
+}
+
+export function exportNoteAsHtml(title: string, html: string): void {
+  const doc = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+</head>
+<body>
+  <h1>${title}</h1>
+  ${html}
+</body>
+</html>`;
+
+  downloadHtml(title, doc);
+}
+
+export function exportNoteAsStyledHtml(title: string, html: string, serif = false): void {
+  const doc = buildStyledDocument(title, html, serif);
+  downloadHtml(title, doc);
+}
+
+export function buildStyledDocument(title: string, html: string, serif: boolean): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>${getStyledCss(getFontFamily(serif))}</style>
 </head>
 <body>
   <h1 class="note-title">${title}</h1>
   ${html}
 </body>
 </html>`;
-
-  downloadHtml(title, doc);
 }

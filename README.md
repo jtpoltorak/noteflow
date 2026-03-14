@@ -35,7 +35,7 @@ A web-based note-taking application inspired by Microsoft OneNote, built with An
 
 ### Account & Data
 - **Auth** — Register, login, logout with JWT access + refresh tokens in httpOnly cookies
-- **Data export** — Export individual notes as Markdown or HTML; export all data as JSON or Markdown ZIP
+- **Data export** — Export individual notes as Markdown, HTML, or PDF; export all data as JSON or Markdown ZIP
 - **Print** — Print individual notes
 - **Account closure** — Self-service with 7-day grace period and reactivation
 - **Settings** — General tab (font size, smart typography) and Account tab (password change, export, closure)

@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -89,7 +89,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 title="Install NoteFlow app"
               >
-                <fa-icon [icon]="faDownload" size="sm" />
+                <fa-icon [icon]="faCloudArrowDown" size="sm" />
               </button>
             }
             <button
@@ -194,7 +194,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
                 title="Install NoteFlow app"
               >
-                <fa-icon [icon]="faDownload" size="sm" />
+                <fa-icon [icon]="faCloudArrowDown" size="sm" />
               </button>
             }
             <button
@@ -408,7 +408,7 @@ export class Shell implements OnInit {
   protected faTags = faTags;
   protected faGear = faGear;
   protected faPlus = faPlus;
-  protected faDownload = faDownload;
+  protected faCloudArrowDown = faCloudArrowDown;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);

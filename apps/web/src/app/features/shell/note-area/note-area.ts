@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faDownload, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faFileArrowDown, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid } from '@fortawesome/free-solid-svg-icons';
 import { EditorPreferencesService } from '../../../core/services/editor-preferences.service';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
@@ -13,6 +13,7 @@ import { MoveNoteDialog } from './move-note-dialog';
 import { PasswordDialog } from '../../../shared/password-dialog/password-dialog';
 import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
 import { exportNoteAsHtml, exportNoteAsStyledHtml } from '../../../core/utils/export-html';
+import { exportNoteAsPdf } from '../../../core/utils/export-pdf';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import { TagService } from '../../../core/services/tag.service';
 import { NoteService } from '../../../core/services/note.service';
@@ -149,7 +150,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 class="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 title="Export note"
               >
-                <fa-icon [icon]="faDownload" size="sm" />
+                <fa-icon [icon]="faFileArrowDown" size="sm" />
               </button>
               @if (exportMenuOpen()) {
                 <div (click)="exportMenuOpen.set(false)" class="fixed inset-0 z-40"></div>
@@ -166,6 +167,10 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                     (click)="exportNoteStyledHtml(); exportMenuOpen.set(false)"
                     class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                   >Export as HTML (styled)</button>
+                  <button
+                    (click)="exportNotePdf(); exportMenuOpen.set(false)"
+                    class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >Export as PDF</button>
                 </div>
               }
             </div>
@@ -601,7 +606,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                     class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                     title="Export note"
                   >
-                    <fa-icon [icon]="faDownload" size="sm" />
+                    <fa-icon [icon]="faFileArrowDown" size="sm" />
                   </button>
                   @if (exportMenuOpen()) {
                     <div (click)="exportMenuOpen.set(false)" class="fixed inset-0 z-40"></div>
@@ -618,6 +623,10 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                         (click)="exportNoteStyledHtml(); exportMenuOpen.set(false)"
                         class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                       >Export as HTML (styled)</button>
+                  <button
+                    (click)="exportNotePdf(); exportMenuOpen.set(false)"
+                    class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >Export as PDF</button>
                     </div>
                   }
                 </div>
@@ -956,7 +965,7 @@ export class NoteArea {
   protected faDesktop = faDesktop;
   protected faCopy = faCopy;
   protected faArrowRightArrowLeft = faArrowRightArrowLeft;
-  protected faDownload = faDownload;
+  protected faFileArrowDown = faFileArrowDown;
   protected faFileImport = faFileImport;
   protected faBoxArchive = faBoxArchive;
   protected faStar = faStar;
@@ -1269,6 +1278,15 @@ export class NoteArea {
     const editor = this.tiptapEditor();
     const content = editor ? editor.getHTML() : note.content;
     exportNoteAsStyledHtml(note.title, content, this.editorPrefs.serifMode());
+  }
+
+  protected exportNotePdf(): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (!note) return;
+    const editor = this.tiptapEditor();
+    const content = editor ? editor.getHTML() : note.content;
+    exportNoteAsPdf(note.title, content, this.editorPrefs.serifMode());
   }
 
   protected printNote(): void {
