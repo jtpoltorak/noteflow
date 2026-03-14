@@ -195,7 +195,7 @@ import { APP_VERSION } from '../../../version';
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Import &amp; Export</h3>
         <p class="mb-1">Move content in and out of NoteFlow:</p>
         <ul class="ml-4 list-disc space-y-0.5">
-          <li>Export a single note as Markdown using the download icon in the editor toolbar</li>
+          <li>Export a single note as Markdown, plain HTML, or styled HTML using the download icon in the editor toolbar</li>
           <li>Import a Markdown file into the current section using the import icon</li>
           <li>Export all your data as a JSON or Markdown ZIP from Settings &gt; Account</li>
         </ul>

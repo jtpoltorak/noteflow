@@ -12,6 +12,7 @@ import { PresentationView } from './presentation-view';
 import { MoveNoteDialog } from './move-note-dialog';
 import { PasswordDialog } from '../../../shared/password-dialog/password-dialog';
 import { exportNoteAsMarkdown } from '../../../core/utils/export-markdown';
+import { exportNoteAsHtml, exportNoteAsStyledHtml } from '../../../core/utils/export-html';
 import { parseMarkdownFile } from '../../../core/utils/import-markdown';
 import { TagService } from '../../../core/services/tag.service';
 import { NoteService } from '../../../core/services/note.service';
@@ -142,13 +143,32 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             >
               <fa-icon [icon]="faCopy" size="sm" />
             </button>
-            <button
-              (click)="exportNote()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-              title="Export as Markdown"
-            >
-              <fa-icon [icon]="faDownload" size="sm" />
-            </button>
+            <div class="relative ml-1">
+              <button
+                (click)="exportMenuOpen.set(!exportMenuOpen())"
+                class="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                title="Export note"
+              >
+                <fa-icon [icon]="faDownload" size="sm" />
+              </button>
+              @if (exportMenuOpen()) {
+                <div (click)="exportMenuOpen.set(false)" class="fixed inset-0 z-40"></div>
+                <div class="absolute right-0 top-full z-50 mt-1 w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+                  <button
+                    (click)="exportNote(); exportMenuOpen.set(false)"
+                    class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >Export as Markdown</button>
+                  <button
+                    (click)="exportNoteHtml(); exportMenuOpen.set(false)"
+                    class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >Export as HTML</button>
+                  <button
+                    (click)="exportNoteStyledHtml(); exportMenuOpen.set(false)"
+                    class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >Export as HTML (styled)</button>
+                </div>
+              }
+            </div>
             <button
               (click)="printNote()"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
@@ -575,13 +595,32 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 >
                   <fa-icon [icon]="faCopy" size="sm" />
                 </button>
-                <button
-                  (click)="exportNote()"
-                  class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                  title="Export as Markdown"
-                >
-                  <fa-icon [icon]="faDownload" size="sm" />
-                </button>
+                <div class="relative ml-1">
+                  <button
+                    (click)="exportMenuOpen.set(!exportMenuOpen())"
+                    class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                    title="Export note"
+                  >
+                    <fa-icon [icon]="faDownload" size="sm" />
+                  </button>
+                  @if (exportMenuOpen()) {
+                    <div (click)="exportMenuOpen.set(false)" class="fixed inset-0 z-40"></div>
+                    <div class="absolute right-0 top-full z-50 mt-1 w-44 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+                      <button
+                        (click)="exportNote(); exportMenuOpen.set(false)"
+                        class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >Export as Markdown</button>
+                      <button
+                        (click)="exportNoteHtml(); exportMenuOpen.set(false)"
+                        class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >Export as HTML</button>
+                      <button
+                        (click)="exportNoteStyledHtml(); exportMenuOpen.set(false)"
+                        class="w-full px-3 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+                      >Export as HTML (styled)</button>
+                    </div>
+                  }
+                </div>
                 <button
                   (click)="printNote()"
                   class="ml-1 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
@@ -961,6 +1000,7 @@ export class NoteArea {
   protected unlockedNoteIds = signal(new Set<number>());
   protected presentationOpen = signal(false);
   protected presentationContent = signal('');
+  protected exportMenuOpen = signal(false);
   protected editedTitle = signal('');
   protected saveStatus = signal<'idle' | 'saving'>('idle');
   protected deleting = signal(false);
@@ -1211,6 +1251,24 @@ export class NoteArea {
     const editor = this.tiptapEditor();
     const content = editor ? editor.getHTML() : note.content;
     exportNoteAsMarkdown(note.title, content);
+  }
+
+  protected exportNoteHtml(): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (!note) return;
+    const editor = this.tiptapEditor();
+    const content = editor ? editor.getHTML() : note.content;
+    exportNoteAsHtml(note.title, content);
+  }
+
+  protected exportNoteStyledHtml(): void {
+    this.saveNote();
+    const note = this.state.selectedNote();
+    if (!note) return;
+    const editor = this.tiptapEditor();
+    const content = editor ? editor.getHTML() : note.content;
+    exportNoteAsStyledHtml(note.title, content, this.editorPrefs.serifMode());
   }
 
   protected printNote(): void {
