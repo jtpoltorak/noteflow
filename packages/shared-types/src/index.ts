@@ -193,6 +193,19 @@ export interface ImageDto {
   createdAt: string;
 }
 
+// ── Audio DTOs ─────────────────────────────────────────────
+
+export interface AudioDto {
+  id: number;
+  noteId: number;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  url: string;
+  createdAt: string;
+}
+
 // ── Tag DTOs ─────────────────────────────────────────────────
 
 export interface TagDto {

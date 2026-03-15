@@ -60,6 +60,7 @@ import { APP_VERSION } from '../../../version';
           <li><strong>Divider</strong> &mdash; horizontal rule</li>
           <li><strong>Table</strong> &mdash; insert a 3&times;3 table</li>
           <li><strong>Image</strong> &mdash; upload an image</li>
+          <li><strong>Audio</strong> &mdash; upload an audio clip</li>
           <li><strong>Link to Note</strong> &mdash; link to another note in your notebooks</li>
           <li><strong>YouTube</strong> &mdash; embed a YouTube video</li>
         </ul>
@@ -100,6 +101,16 @@ import { APP_VERSION } from '../../../version';
           <li>Click the YouTube icon in the toolbar and paste a URL</li>
           <li>Use the <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/youtube</kbd> slash command</li>
           <li>Or simply paste a YouTube link &mdash; it auto-embeds</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Audio</h3>
+        <p class="mb-1">Add audio clips to your notes:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Upload via the toolbar button, <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/audio</kbd> slash command, or drag-and-drop / paste</li>
+          <li>Supported formats: MP3, WAV, OGG, WebM, M4A (up to 25 MB)</li>
+          <li>Audio plays inline with native browser controls</li>
         </ul>
       </section>
 

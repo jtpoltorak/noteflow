@@ -6,6 +6,13 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.7.0',
+    date: '2026-03-15',
+    items: [
+      'Insert audio clips into notes via toolbar button, /audio slash command, or drag-and-drop',
+    ],
+  },
+  {
     version: '0.6.0',
     date: '2026-03-14',
     items: [

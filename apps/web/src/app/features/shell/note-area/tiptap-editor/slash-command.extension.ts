@@ -49,6 +49,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'image', label: 'Image', description: 'Upload an image' },
   { id: 'note-link', label: 'Link to Note', description: 'Link to another note' },
   { id: 'youtube', label: 'YouTube', description: 'Embed a YouTube video' },
+  { id: 'audio', label: 'Audio', description: 'Upload an audio clip' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -97,6 +98,9 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
       break;
     case 'youtube':
       editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-youtube', { bubbles: true }));
+      break;
+    case 'audio':
+      editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-audio', { bubbles: true }));
       break;
   }
 }

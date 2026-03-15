@@ -30,6 +30,7 @@ import Typography from '@tiptap/extension-typography';
 import DragHandle from '@tiptap/extension-drag-handle';
 import { CodeBlockWithLanguage } from './code-block-language.extension';
 import Youtube from '@tiptap/extension-youtube';
+import Audio from '@tiptap/extension-audio';
 
 /**
  * Wraps Typography so every input rule checks a live flag before firing.
@@ -90,10 +91,12 @@ import {
   faEraser,
   faImage,
   faPaintbrush,
+  faVolumeHigh,
 } from '@fortawesome/free-solid-svg-icons';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { ImageService } from '../../../../core/services/image.service';
+import { AudioService } from '../../../../core/services/audio.service';
 import { EditorPreferencesService } from '../../../../core/services/editor-preferences.service';
 import { environment } from '../../../../../environments/environment';
 import { SlashCommandExtension } from './slash-command.extension';
@@ -585,6 +588,13 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Embed YouTube video"
         ><fa-icon [icon]="faYoutube" size="sm" /></button>
+
+        <!-- Audio -->
+        <button
+          (mousedown)="$event.preventDefault(); insertAudio()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Insert audio clip"
+        ><fa-icon [icon]="faVolumeHigh" size="sm" /></button>
       </div>
     }
 
@@ -804,6 +814,7 @@ export class TiptapEditor implements OnDestroy {
   noteLinkClicked = output<{ noteId: number; sectionId: number; notebookId: number }>();
 
   private imageService = inject(ImageService);
+  private audioService = inject(AudioService);
   private noteService = inject(NoteService);
   protected prefs = inject(EditorPreferencesService);
   editor!: Editor;
@@ -839,6 +850,7 @@ export class TiptapEditor implements OnDestroy {
   protected faEraser = faEraser;
   protected faImage = faImage;
   protected faYoutube = faYoutube;
+  protected faVolumeHigh = faVolumeHigh;
 
   toggleToolbar(): void {
     this.prefs.toggleToolbar();
@@ -1075,6 +1087,39 @@ export class TiptapEditor implements OnDestroy {
     }
   }
 
+  protected insertAudio(): void {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.mp3,.wav,.ogg,.webm,.m4a,.mp4,.flac,.aac';
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) this.uploadAndInsertAudio(file);
+    };
+    input.click();
+  }
+
+  private uploadAndInsertAudio(file: File): void {
+    const id = this.noteId();
+    if (!id) return;
+
+    this.audioService.upload(id, file).subscribe({
+      next: (audio) => {
+        const src = `${environment.apiUrl}/audio/${audio.filename}`;
+        this.editor.chain().focus().setAudio({ src }).run();
+      },
+      error: (err) => {
+        console.error('Audio upload failed:', err);
+      },
+    });
+  }
+
+  private handleDroppedFiles(files: File[]): void {
+    const images = files.filter((f) => f.type.startsWith('image/'));
+    const audios = files.filter((f) => f.type.startsWith('audio/'));
+    if (images.length) this.uploadAndInsertImages(images);
+    for (const audio of audios) this.uploadAndInsertAudio(audio);
+  }
+
   // Bubble menu state
   protected bubbleMenuVisible = signal(false);
   protected bubbleMenuPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
@@ -1108,6 +1153,7 @@ export class TiptapEditor implements OnDestroy {
   private slashImageHandler: (() => void) | null = null;
   private slashNoteLinkHandler: (() => void) | null = null;
   private slashYouTubeHandler: (() => void) | null = null;
+  private slashAudioHandler: (() => void) | null = null;
   private noteLinkClickHandler: ((e: Event) => void) | null = null;
 
   constructor() {
@@ -1186,6 +1232,10 @@ export class TiptapEditor implements OnDestroy {
     this.slashYouTubeHandler = () => this.insertYouTubeVideo();
     this.editor.view.dom.addEventListener('slash-insert-youtube', this.slashYouTubeHandler);
 
+    // Listen for slash-command audio insertion
+    this.slashAudioHandler = () => this.insertAudio();
+    this.editor.view.dom.addEventListener('slash-insert-audio', this.slashAudioHandler);
+
     // Listen for note link clicks
     this.noteLinkClickHandler = (e: Event) => {
       const noteId = (e as CustomEvent).detail?.noteId as number | undefined;
@@ -1262,13 +1312,19 @@ export class TiptapEditor implements OnDestroy {
           alwaysPreserveAspectRatio: true,
         },
       }),
+      Audio.configure({
+        controls: true,
+      }),
       FileHandler.configure({
-        allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+        allowedMimeTypes: [
+          'image/png', 'image/jpeg', 'image/gif', 'image/webp',
+          'audio/mpeg', 'audio/wav', 'audio/wave', 'audio/x-wav', 'audio/ogg', 'audio/webm', 'audio/mp4',
+        ],
         onDrop: (_editor, files) => {
-          this.uploadAndInsertImages(files);
+          this.handleDroppedFiles(files);
         },
         onPaste: (_editor, files) => {
-          this.uploadAndInsertImages(files);
+          this.handleDroppedFiles(files);
         },
       }),
       SmartTypography.configure({ isEnabled: () => this.prefs.typographyMode() }),
@@ -1325,6 +1381,9 @@ export class TiptapEditor implements OnDestroy {
     }
     if (this.slashYouTubeHandler) {
       this.editor?.view.dom.removeEventListener('slash-insert-youtube', this.slashYouTubeHandler);
+    }
+    if (this.slashAudioHandler) {
+      this.editor?.view.dom.removeEventListener('slash-insert-audio', this.slashAudioHandler);
     }
     if (this.noteLinkClickHandler) {
       this.editor?.view.dom.removeEventListener('note-link-clicked', this.noteLinkClickHandler);

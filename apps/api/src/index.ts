@@ -13,6 +13,7 @@ import noteRoutes from "./routes/note.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import shareRoutes from "./routes/share.routes.js";
 import imageRoutes from "./routes/image.routes.js";
+import audioRoutes from "./routes/audio.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
 import { startAccountPurgeCron } from "./cron/account-purge.cron.js";
@@ -44,6 +45,7 @@ app.use("/api/v1", shareRoutes);
 // Serve uploaded images without auth (referenced by <img> tags in note content)
 ensureUploadDir();
 app.use("/api/v1/images", express.static(getUploadDir()));
+app.use("/api/v1/audio", express.static(getUploadDir()));
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
@@ -51,6 +53,7 @@ app.use("/api/v1", requireAuth, tagRoutes);
 app.use("/api/v1", requireAuth, templateRoutes);
 app.use("/api/v1", requireAuth, noteRoutes);
 app.use("/api/v1", requireAuth, imageRoutes);
+app.use("/api/v1", requireAuth, audioRoutes);
 app.use("/api/v1/search", requireAuth, searchRoutes);
 
 // ── Error handling (must be last) ─────────────────────────────
