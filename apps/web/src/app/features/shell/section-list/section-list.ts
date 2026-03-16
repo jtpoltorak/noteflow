@@ -106,7 +106,7 @@ import type { SectionDto } from '@noteflow/shared-types';
                 <button
                   (click)="startDeleting(sec.id, $event)"
                   class="rounded p-0.5 text-gray-400 hover:text-red-600"
-                  title="Delete"
+                  title="Move to Recycle Bin"
                 >
                   <fa-icon [icon]="faTrash" size="xs" />
                 </button>

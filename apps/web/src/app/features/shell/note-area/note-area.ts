@@ -198,7 +198,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="startDeleting()"
               class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:text-red-600"
-              title="Delete note"
+              title="Move to Recycle Bin"
             >
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
@@ -655,7 +655,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="startDeleting()"
                   class="ml-1 rounded p-1 text-gray-400 hover:text-red-600"
-                  title="Delete note"
+                  title="Move to Recycle Bin"
                 >
                   <fa-icon [icon]="faTrash" size="sm" />
                 </button>
@@ -829,6 +829,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <div class="px-4">
                   <app-confirm-dialog
                     message="Move this note to the Recycle Bin?"
+                    confirmLabel="Move to Recycle Bin"
                     (confirmed)="confirmDelete()"
                     (cancelled)="deleting.set(false)"
                   ></app-confirm-dialog>
