@@ -179,12 +179,21 @@ export class TreeStateService {
       // Find parent section and notebook
       const secId = node.parentId;
       if (secId) {
-        // Find the notebook that owns this section
         const nbId = this.findNotebookForSection(secId);
         if (nbId !== null) {
           this.state.selectedNotebookId.set(nbId);
+          // Sync sections from tree cache so state.selectedSection() works
+          const cachedSections = this.sectionCache().get(nbId);
+          if (cachedSections) {
+            this.state.sections.set(cachedSections);
+          }
         }
         this.state.selectedSectionId.set(secId);
+        // Sync notes from tree cache so the editor can find the note
+        const cachedNotes = this.noteCache().get(secId);
+        if (cachedNotes) {
+          this.state.notes.set(cachedNotes);
+        }
       }
       this.state.selectNote(node.id);
     }
