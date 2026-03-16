@@ -14,6 +14,7 @@ import searchRoutes from "./routes/search.routes.js";
 import shareRoutes from "./routes/share.routes.js";
 import imageRoutes from "./routes/image.routes.js";
 import audioRoutes from "./routes/audio.routes.js";
+import recycleBinRoutes from "./routes/recycle-bin.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
 import { startAccountPurgeCron } from "./cron/account-purge.cron.js";
@@ -54,6 +55,7 @@ app.use("/api/v1", requireAuth, templateRoutes);
 app.use("/api/v1", requireAuth, noteRoutes);
 app.use("/api/v1", requireAuth, imageRoutes);
 app.use("/api/v1", requireAuth, audioRoutes);
+app.use("/api/v1/recycle-bin", requireAuth, recycleBinRoutes);
 app.use("/api/v1/search", requireAuth, searchRoutes);
 
 // ── Error handling (must be last) ─────────────────────────────

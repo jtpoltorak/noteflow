@@ -3,6 +3,8 @@ import { Observable, Subscription } from 'rxjs';
 import { NotebookService } from '../../core/services/notebook.service';
 import { SectionService } from '../../core/services/section.service';
 import { NoteService } from '../../core/services/note.service';
+import { RecycleBinService } from '../../core/services/recycle-bin.service';
+import { ToastService } from '../../shared/toast/toast.service';
 import type { NotebookDto, SectionDto, NoteDto } from '@noteflow/shared-types';
 
 @Injectable()
@@ -10,6 +12,8 @@ export class ShellStateService {
   private notebookSvc = inject(NotebookService);
   private sectionSvc = inject(SectionService);
   private noteSvc = inject(NoteService);
+  private recycleBinSvc = inject(RecycleBinService);
+  private toast = inject(ToastService);
 
   // ── Data arrays ───────────────────────────────────────────────
   readonly notebooks = signal<NotebookDto[]>([]);
@@ -137,6 +141,7 @@ export class ShellStateService {
   }
 
   deleteNotebook(id: number): void {
+    const nb = this.notebooks().find((n) => n.id === id);
     this.notebookSvc.delete(id).subscribe(() => {
       this.notebooks.update((list) => list.filter((n) => n.id !== id));
       if (this.selectedNotebookId() === id) {
@@ -146,7 +151,15 @@ export class ShellStateService {
         this.sections.set([]);
         this.notes.set([]);
       }
+      this.toast.show(
+        `"${nb?.title ?? 'Notebook'}" moved to Recycle Bin`,
+        { label: 'Undo', callback: () => this.undoDeleteNotebook(id) }
+      );
     });
+  }
+
+  private undoDeleteNotebook(id: number): void {
+    this.recycleBinSvc.restoreNotebook(id).subscribe(() => this.loadNotebooks());
   }
 
   // ── Section CRUD ──────────────────────────────────────────────
@@ -181,12 +194,26 @@ export class ShellStateService {
   }
 
   deleteSection(id: number): void {
+    const sec = this.sections().find((s) => s.id === id);
+    const nbId = this.selectedNotebookId();
     this.sectionSvc.delete(id).subscribe(() => {
       this.sections.update((list) => list.filter((s) => s.id !== id));
       if (this.selectedSectionId() === id) {
         this.selectedSectionId.set(null);
         this.selectedNoteId.set(null);
         this.notes.set([]);
+      }
+      this.toast.show(
+        `"${sec?.title ?? 'Section'}" moved to Recycle Bin`,
+        { label: 'Undo', callback: () => this.undoDeleteSection(id, nbId) }
+      );
+    });
+  }
+
+  private undoDeleteSection(id: number, notebookId: number | null): void {
+    this.recycleBinSvc.restoreSection(id).subscribe(() => {
+      if (notebookId && this.selectedNotebookId() === notebookId) {
+        this.loadSections(notebookId);
       }
     });
   }
@@ -288,10 +315,24 @@ export class ShellStateService {
   }
 
   deleteNote(id: number): void {
+    const note = this.notes().find((n) => n.id === id);
+    const secId = this.selectedSectionId();
     this.noteSvc.delete(id).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== id));
       if (this.selectedNoteId() === id) {
         this.selectedNoteId.set(null);
+      }
+      this.toast.show(
+        `"${note?.title ?? 'Note'}" moved to Recycle Bin`,
+        { label: 'Undo', callback: () => this.undoDeleteNote(id, secId) }
+      );
+    });
+  }
+
+  private undoDeleteNote(id: number, sectionId: number | null): void {
+    this.recycleBinSvc.restoreNote(id).subscribe(() => {
+      if (sectionId && this.selectedSectionId() === sectionId) {
+        this.loadNotes(sectionId);
       }
     });
   }

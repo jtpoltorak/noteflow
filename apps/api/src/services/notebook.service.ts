@@ -15,7 +15,7 @@ function rowToNotebook(row: unknown[]): NotebookDto {
 export function getAllNotebooks(userId: number): NotebookDto[] {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE userId = ? ORDER BY "order" ASC, id ASC',
+    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE userId = ? AND deletedAt IS NULL ORDER BY "order" ASC, id ASC',
     [userId]
   );
   if (result.length === 0) return [];
@@ -25,7 +25,7 @@ export function getAllNotebooks(userId: number): NotebookDto[] {
 export function getNotebookById(id: number, userId: number): NotebookDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE id = ? AND userId = ?',
+    'SELECT id, title, "order", createdAt, updatedAt FROM Notebook WHERE id = ? AND userId = ? AND deletedAt IS NULL',
     [id, userId]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -82,6 +82,27 @@ export function deleteNotebook(id: number, userId: number): void {
   getNotebookById(id, userId);
 
   const db = getDb();
-  db.run("DELETE FROM Notebook WHERE id = ?", [id]);
+  const now = new Date().toISOString();
+  // Soft-delete the notebook and cascade to its sections and notes
+  db.run("UPDATE Notebook SET deletedAt = ? WHERE id = ?", [now, id]);
+  db.run("UPDATE Section SET deletedAt = ? WHERE notebookId = ? AND deletedAt IS NULL", [now, id]);
+  db.run(
+    "UPDATE Note SET deletedAt = ? WHERE sectionId IN (SELECT id FROM Section WHERE notebookId = ?) AND deletedAt IS NULL",
+    [now, id]
+  );
   saveDb();
+}
+
+/** Internal: get a notebook by id regardless of deletedAt status. Used by recycle-bin. */
+export function getNotebookByIdIncludeDeleted(id: number, userId: number): NotebookDto & { deletedAt: string | null } {
+  const db = getDb();
+  const result = db.exec(
+    'SELECT id, title, "order", createdAt, updatedAt, deletedAt FROM Notebook WHERE id = ? AND userId = ?',
+    [id, userId]
+  );
+  if (result.length === 0 || result[0].values.length === 0) {
+    throw new AppError(404, "Notebook not found", "NOT_FOUND");
+  }
+  const row = result[0].values[0];
+  return { ...rowToNotebook(row), deletedAt: (row[5] as string | null) ?? null };
 }

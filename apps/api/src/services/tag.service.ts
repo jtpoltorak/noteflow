@@ -17,7 +17,7 @@ export function getUserTags(userId: number): TagWithCountDto[] {
     `SELECT t.id, t.name, COUNT(nt.noteId) AS noteCount
      FROM Tag t
      LEFT JOIN NoteTag nt ON nt.tagId = t.id
-     LEFT JOIN Note n ON n.id = nt.noteId AND n.archivedAt IS NULL
+     LEFT JOIN Note n ON n.id = nt.noteId AND n.archivedAt IS NULL AND n.deletedAt IS NULL
      WHERE t.userId = ?
      GROUP BY t.id
      ORDER BY t.name COLLATE NOCASE ASC`,
@@ -48,7 +48,7 @@ export function getNotesByTag(tagId: number, userId: number): TaggedNoteDto[] {
      JOIN Note n ON n.id = nt.noteId
      JOIN Section s ON s.id = n.sectionId
      JOIN Notebook nb ON nb.id = s.notebookId
-     WHERE nt.tagId = ? AND nb.userId = ? AND n.archivedAt IS NULL
+     WHERE nt.tagId = ? AND nb.userId = ? AND n.archivedAt IS NULL AND n.deletedAt IS NULL
      ORDER BY n.updatedAt DESC`,
     [tagId, userId]
   );

@@ -1,6 +1,6 @@
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
-import { getNotebookById } from "./notebook.service.js";
+import { getNotebookById, getNotebookByIdIncludeDeleted } from "./notebook.service.js";
 import type { SectionDto } from "@noteflow/shared-types";
 
 function rowToSection(row: unknown[]): SectionDto {
@@ -20,7 +20,7 @@ export function getSectionsByNotebook(notebookId: number, userId: number): Secti
 
   const db = getDb();
   const result = db.exec(
-    'SELECT id, notebookId, title, "order", createdAt, updatedAt FROM Section WHERE notebookId = ? ORDER BY "order" ASC, id ASC',
+    'SELECT id, notebookId, title, "order", createdAt, updatedAt FROM Section WHERE notebookId = ? AND deletedAt IS NULL ORDER BY "order" ASC, id ASC',
     [notebookId]
   );
   if (result.length === 0) return [];
@@ -31,7 +31,7 @@ export function getSectionsByNotebook(notebookId: number, userId: number): Secti
 export function getSectionById(id: number, userId: number): SectionDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, notebookId, title, "order", createdAt, updatedAt FROM Section WHERE id = ?',
+    'SELECT id, notebookId, title, "order", createdAt, updatedAt FROM Section WHERE id = ? AND deletedAt IS NULL',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -108,6 +108,28 @@ export function deleteSection(id: number, userId: number): void {
   getSectionById(id, userId); // verifies ownership
 
   const db = getDb();
-  db.run("DELETE FROM Section WHERE id = ?", [id]);
+  const now = new Date().toISOString();
+  // Soft-delete the section and cascade to its notes
+  db.run("UPDATE Section SET deletedAt = ? WHERE id = ?", [now, id]);
+  db.run("UPDATE Note SET deletedAt = ? WHERE sectionId = ? AND deletedAt IS NULL", [now, id]);
   saveDb();
+}
+
+/** Internal: get a section by id regardless of deletedAt status. Used by recycle-bin. */
+export function getSectionByIdIncludeDeleted(id: number, userId: number): SectionDto & { deletedAt: string | null } {
+  const db = getDb();
+  const result = db.exec(
+    'SELECT id, notebookId, title, "order", createdAt, updatedAt, deletedAt FROM Section WHERE id = ?',
+    [id]
+  );
+  if (result.length === 0 || result[0].values.length === 0) {
+    throw new AppError(404, "Section not found", "NOT_FOUND");
+  }
+  const row = result[0].values[0];
+  const section = rowToSection(row);
+
+  // Verify ownership through notebook (include deleted notebooks)
+  getNotebookByIdIncludeDeleted(section.notebookId, userId);
+
+  return { ...section, deletedAt: (row[6] as string | null) ?? null };
 }

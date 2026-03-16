@@ -6,6 +6,16 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.8.0',
+    date: '2026-03-16',
+    items: [
+      'Recycle Bin for notebooks, sections, and notes — deleted items are soft-deleted and can be restored for up to 30 days',
+      'Undo delete with a toast notification that appears after moving items to the Recycle Bin',
+      'Restore or permanently delete items from the Recycle Bin panel in the navigation rail',
+      'Empty Recycle Bin to permanently remove all deleted items at once',
+    ],
+  },
+  {
     version: '0.7.0',
     date: '2026-03-15',
     items: [

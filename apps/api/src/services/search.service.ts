@@ -25,6 +25,7 @@ export function searchNotes(userId: number, query: string, includeArchived: bool
   const likePattern = `%${query}%`;
 
   const archiveFilter = includeArchived ? "" : "AND n.archivedAt IS NULL";
+  const deletedFilter = "AND n.deletedAt IS NULL AND s.deletedAt IS NULL AND nb.deletedAt IS NULL";
 
   const result = db.exec(
     `SELECT n.id, n.title, n.content, n.sectionId, n.updatedAt,
@@ -36,6 +37,7 @@ export function searchNotes(userId: number, query: string, includeArchived: bool
      WHERE nb.userId = ?
        AND (n.title LIKE ? OR n.content LIKE ?)
        ${archiveFilter}
+       ${deletedFilter}
      ORDER BY n.updatedAt DESC
      LIMIT 50`,
     [userId, likePattern, likePattern]

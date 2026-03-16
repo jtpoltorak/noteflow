@@ -30,7 +30,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL ORDER BY "order" ASC, id ASC',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE sectionId = ? AND archivedAt IS NULL AND deletedAt IS NULL ORDER BY "order" ASC, id ASC',
     [sectionId]
   );
   if (result.length === 0) return [];
@@ -41,7 +41,7 @@ export function getNotesBySection(sectionId: number, userId: number): NoteDto[] 
 function getNoteRaw(id: number, userId: number): NoteDto {
   const db = getDb();
   const result = db.exec(
-    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE id = ?',
+    'SELECT id, sectionId, title, content, "order", archivedAt, favoritedAt, shareToken, passwordHash, createdAt, updatedAt FROM Note WHERE id = ? AND deletedAt IS NULL',
     [id]
   );
   if (result.length === 0 || result[0].values.length === 0) {
@@ -130,7 +130,8 @@ export function deleteNote(id: number, userId: number): void {
   getNoteRaw(id, userId); // verifies ownership
 
   const db = getDb();
-  db.run("DELETE FROM Note WHERE id = ?", [id]);
+  const now = new Date().toISOString();
+  db.run("UPDATE Note SET deletedAt = ? WHERE id = ?", [now, id]);
   saveDb();
 }
 
@@ -204,7 +205,7 @@ export function getFavoriteNotes(userId: number): FavoriteNoteDto[] {
      FROM Note n
      JOIN Section s ON s.id = n.sectionId
      JOIN Notebook nb ON nb.id = s.notebookId
-     WHERE nb.userId = ? AND n.favoritedAt IS NOT NULL AND n.archivedAt IS NULL
+     WHERE nb.userId = ? AND n.favoritedAt IS NOT NULL AND n.archivedAt IS NULL AND n.deletedAt IS NULL
      ORDER BY n.favoritedAt DESC`,
     [userId]
   );
@@ -231,7 +232,7 @@ export function getArchivedNotes(userId: number): ArchivedNoteDto[] {
      FROM Note n
      JOIN Section s ON s.id = n.sectionId
      JOIN Notebook nb ON nb.id = s.notebookId
-     WHERE nb.userId = ? AND n.archivedAt IS NOT NULL
+     WHERE nb.userId = ? AND n.archivedAt IS NOT NULL AND n.deletedAt IS NULL
      ORDER BY n.archivedAt DESC`,
     [userId]
   );
@@ -274,7 +275,7 @@ export function unshareNote(id: number, userId: number): void {
 export function getNoteByShareToken(token: string): SharedNoteDto {
   const db = getDb();
   const result = db.exec(
-    "SELECT title, content, updatedAt, archivedAt FROM Note WHERE shareToken = ?",
+    "SELECT title, content, updatedAt, archivedAt FROM Note WHERE shareToken = ? AND deletedAt IS NULL",
     [token]
   );
 
@@ -304,7 +305,7 @@ export function getSharedNotes(userId: number): SharedNoteListDto[] {
      FROM Note n
      JOIN Section s ON s.id = n.sectionId
      JOIN Notebook nb ON nb.id = s.notebookId
-     WHERE nb.userId = ? AND n.shareToken IS NOT NULL AND n.archivedAt IS NULL
+     WHERE nb.userId = ? AND n.shareToken IS NOT NULL AND n.archivedAt IS NULL AND n.deletedAt IS NULL
      ORDER BY n.updatedAt DESC`,
     [userId]
   );
