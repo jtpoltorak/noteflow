@@ -116,7 +116,8 @@ import type { SectionDto } from '@noteflow/shared-types';
 
           @if (deletingId() === sec.id) {
             <app-confirm-dialog
-              [message]="'Delete ' + sec.title + ' and all its notes?'"
+              [message]="'Move ' + sec.title + ' and all its notes to the Recycle Bin?'"
+              confirmLabel="Move to Recycle Bin"
               (confirmed)="confirmDelete(sec.id)"
               (cancelled)="deletingId.set(null)"
             ></app-confirm-dialog>

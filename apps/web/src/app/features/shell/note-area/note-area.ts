@@ -371,7 +371,8 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
           @if (deleting()) {
             <div class="px-4">
               <app-confirm-dialog
-                message="Delete this note?"
+                message="Move this note to the Recycle Bin?"
+                confirmLabel="Move to Recycle Bin"
                 (confirmed)="confirmDelete()"
                 (cancelled)="deleting.set(false)"
               ></app-confirm-dialog>
@@ -827,7 +828,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               @if (deleting()) {
                 <div class="px-4">
                   <app-confirm-dialog
-                    message="Delete this note?"
+                    message="Move this note to the Recycle Bin?"
                     (confirmed)="confirmDelete()"
                     (cancelled)="deleting.set(false)"
                   ></app-confirm-dialog>

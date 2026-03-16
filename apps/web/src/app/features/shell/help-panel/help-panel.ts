@@ -203,6 +203,18 @@ import { APP_VERSION } from '../../../version';
       </section>
 
       <section class="mb-5">
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Recycle Bin</h3>
+        <p class="mb-1">When you delete a notebook, section, or note, it moves to the Recycle Bin instead of being permanently removed.</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Open the Recycle Bin from the trash icon at the bottom of the navigation rail</li>
+          <li>Deleted items are kept for <strong>30 days</strong> before automatic permanent deletion</li>
+          <li>Restore any item to put it back where it was</li>
+          <li>Permanently delete individual items, or empty the entire bin</li>
+          <li>A toast notification with an <strong>Undo</strong> button appears after every delete</li>
+        </ul>
+      </section>
+
+      <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Import &amp; Export</h3>
         <p class="mb-1">Move content in and out of NoteFlow:</p>
         <ul class="ml-4 list-disc space-y-0.5">

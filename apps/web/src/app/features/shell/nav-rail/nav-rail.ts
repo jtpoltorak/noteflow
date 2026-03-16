@@ -1,8 +1,8 @@
 import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStar, faStickyNote, faMagnifyingGlass, faShareNodes, faTags, faBoxArchive } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faStickyNote, faMagnifyingGlass, faShareNodes, faTags, faBoxArchive, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 
-export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | 'archive';
+export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | 'archive' | 'recycle-bin';
 
 @Component({
   selector: 'app-nav-rail',
@@ -62,13 +62,23 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
       <div class="flex-1"></div>
       <button
         (click)="modeChange.emit('archive')"
-        class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+        class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'archive'
           ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Archive"
       >
         <fa-icon [icon]="faBoxArchive" />
+      </button>
+      <button
+        (click)="modeChange.emit('recycle-bin')"
+        class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
+        [class]="mode() === 'recycle-bin'
+          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+        title="Recycle Bin"
+      >
+        <fa-icon [icon]="faTrashCan" />
       </button>
     </nav>
   `,
@@ -83,4 +93,5 @@ export class NavRail {
   protected faTags = faTags;
   protected faMagnifyingGlass = faMagnifyingGlass;
   protected faBoxArchive = faBoxArchive;
+  protected faTrashCan = faTrashCan;
 }

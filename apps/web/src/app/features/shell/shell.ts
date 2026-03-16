@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -20,6 +20,9 @@ import { ArchivePanel } from './archive-panel/archive-panel';
 import { FavoritesPanel } from './favorites-panel/favorites-panel';
 import { SharedPanel } from './shared-panel/shared-panel';
 import { TagsPanel } from './tags-panel/tags-panel';
+import { RecycleBinPanel } from './recycle-bin-panel/recycle-bin-panel';
+import { ToastContainer } from '../../shared/toast/toast-container';
+import { ToastService } from '../../shared/toast/toast.service';
 import { QuickNoteDialog, type QuickNoteResult } from '../../shared/quick-note-dialog/quick-note-dialog';
 import { ReleaseNotesDialog } from '../../shared/release-notes-dialog/release-notes-dialog';
 import { PwaService } from '../../core/services/pwa.service';
@@ -27,11 +30,11 @@ import { PwaUpdateService } from '../../core/services/pwa-update.service';
 import type { SearchResultDto } from '@noteflow/shared-types';
 import { APP_VERSION } from '../../version';
 
-export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags';
+export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'search' | 'archive' | 'favorites' | 'shared' | 'tags' | 'recycle-bin';
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, QuickNoteDialog, ReleaseNotesDialog],
+  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, RecycleBinPanel, QuickNoteDialog, ReleaseNotesDialog, ToastContainer],
   providers: [ShellStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -189,6 +192,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             >
               <fa-icon [icon]="faBoxArchive" size="sm" />
             </button>
+            <button
+              (click)="toggleMobileRecycleBin()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-blue-500]="mobilePanel() === 'recycle-bin'"
+              [class.dark:text-blue-400]="mobilePanel() === 'recycle-bin'"
+              title="Recycle Bin"
+            >
+              <fa-icon [icon]="faTrashCan" size="sm" />
+            </button>
             @if (pwa.canInstall()) {
               <button
                 (click)="pwa.promptInstall()"
@@ -251,6 +263,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <!-- Archive panel -->
             <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
               <app-archive-panel />
+            </aside>
+          } @else if (shellMode() === 'recycle-bin' && !editorFullscreen()) {
+            <!-- Recycle bin panel -->
+            <aside class="flex w-96 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+              <app-recycle-bin-panel />
             </aside>
           } @else {
             <!-- Left panel: Notebooks -->
@@ -352,6 +369,11 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <app-tags-panel (resultClicked)="onMobileTagNoteClicked($event)" />
               </div>
             }
+            @case ('recycle-bin') {
+              <div class="flex min-h-0 w-full flex-col bg-gray-50 dark:bg-gray-900">
+                <app-recycle-bin-panel />
+              </div>
+            }
           }
         </div>
 
@@ -387,6 +409,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
     <app-settings-dialog [open]="showSettings()" (closed)="showSettings.set(false)" />
     <app-quick-note-dialog [open]="showQuickNote()" (closed)="showQuickNote.set(false)" (created)="onQuickNoteCreated($event)" />
     <app-release-notes-dialog [open]="showReleaseNotes()" (closed)="showReleaseNotes.set(false)" />
+    <app-toast-container />
   `,
 })
 export class Shell implements OnInit {
@@ -411,6 +434,7 @@ export class Shell implements OnInit {
   protected faPlus = faPlus;
   protected faCloudArrowDown = faCloudArrowDown;
   protected faArrowRightFromBracket = faArrowRightFromBracket;
+  protected faTrashCan = faTrashCan;
 
   // Desktop panel state
   protected notebooksCollapsed = signal(false);
@@ -472,6 +496,8 @@ export class Shell implements OnInit {
         return 'Shared';
       case 'tags':
         return 'Tags';
+      case 'recycle-bin':
+        return 'Recycle Bin';
     }
   });
 
@@ -479,8 +505,8 @@ export class Shell implements OnInit {
     // Auto-advance mobile panel when selections change on compact viewports
     effect(() => {
       if (!this.vp.isCompact()) return;
-      // Skip auto-advance when in search/archive/favorites/shared/tags mode — they handle navigation themselves
-      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive' || this.mobilePanel() === 'favorites' || this.mobilePanel() === 'shared' || this.mobilePanel() === 'tags') return;
+      // Skip auto-advance when in search/archive/favorites/shared/tags/recycle-bin mode — they handle navigation themselves
+      if (this.mobilePanel() === 'search' || this.mobilePanel() === 'archive' || this.mobilePanel() === 'favorites' || this.mobilePanel() === 'shared' || this.mobilePanel() === 'tags' || this.mobilePanel() === 'recycle-bin') return;
       if (this.cameFromSearch) return;
 
       const nbId = this.state.selectedNotebookId();
@@ -626,6 +652,14 @@ export class Shell implements OnInit {
     }
   }
 
+  protected toggleMobileRecycleBin(): void {
+    if (this.mobilePanel() === 'recycle-bin') {
+      this.mobilePanel.set('notebooks');
+    } else {
+      this.mobilePanel.set('recycle-bin');
+    }
+  }
+
   protected onMobileSearchResultClicked(result: SearchResultDto): void {
     this.cameFromSearch = true;
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
@@ -672,6 +706,9 @@ export class Shell implements OnInit {
         this.mobilePanel.set('notebooks');
         break;
       case 'tags':
+        this.mobilePanel.set('notebooks');
+        break;
+      case 'recycle-bin':
         this.mobilePanel.set('notebooks');
         break;
     }

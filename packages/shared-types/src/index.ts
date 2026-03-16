@@ -230,6 +230,38 @@ export interface TaggedNoteDto {
   updatedAt: string;
 }
 
+// ── Recycle Bin DTOs ────────────────────────────────────────────
+
+export interface DeletedNotebookDto {
+  id: number;
+  title: string;
+  deletedAt: string;
+}
+
+export interface DeletedSectionDto {
+  id: number;
+  title: string;
+  notebookId: number;
+  notebookTitle: string;
+  deletedAt: string;
+}
+
+export interface DeletedNoteDto {
+  id: number;
+  title: string;
+  sectionId: number;
+  sectionTitle: string;
+  notebookId: number;
+  notebookTitle: string;
+  deletedAt: string;
+}
+
+export interface RecycleBinDto {
+  notebooks: DeletedNotebookDto[];
+  sections: DeletedSectionDto[];
+  notes: DeletedNoteDto[];
+}
+
 // ── Note Link DTOs ──────────────────────────────────────────────
 
 export interface NoteLinkContextDto {
