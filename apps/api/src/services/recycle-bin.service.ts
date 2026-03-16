@@ -105,7 +105,7 @@ export function restoreSection(id: number, userId: number): void {
   saveDb();
 }
 
-export function restoreNote(id: number, userId: number): void {
+export function restoreNote(id: number, userId: number, targetSectionId?: number): void {
   const db = getDb();
   const result = db.exec(
     "SELECT id, sectionId FROM Note WHERE id = ? AND deletedAt IS NOT NULL",
@@ -114,29 +114,45 @@ export function restoreNote(id: number, userId: number): void {
   if (result.length === 0 || result[0].values.length === 0) {
     throw new AppError(404, "Deleted note not found", "NOT_FOUND");
   }
-  const sectionId = result[0].values[0][1] as number;
+  const originalSectionId = result[0].values[0][1] as number;
 
-  // Verify ownership through section → notebook
-  const secResult = db.exec("SELECT notebookId FROM Section WHERE id = ?", [sectionId]);
+  // Verify ownership through original section → notebook
+  const secResult = db.exec("SELECT notebookId FROM Section WHERE id = ?", [originalSectionId]);
   if (secResult.length === 0 || secResult[0].values.length === 0) {
     throw new AppError(404, "Section not found", "NOT_FOUND");
   }
   const notebookId = secResult[0].values[0][0] as number;
-  const nbResult = db.exec("SELECT userId, deletedAt FROM Notebook WHERE id = ?", [notebookId]);
+  const nbResult = db.exec("SELECT userId FROM Notebook WHERE id = ?", [notebookId]);
   if (nbResult.length === 0 || nbResult[0].values.length === 0 || nbResult[0].values[0][0] !== userId) {
     throw new AppError(404, "Note not found", "NOT_FOUND");
   }
 
-  // Also restore parent section and notebook if they were deleted
-  if (nbResult[0].values[0][1]) {
-    db.run("UPDATE Notebook SET deletedAt = NULL WHERE id = ?", [notebookId]);
-  }
-  const secDeletedResult = db.exec("SELECT deletedAt FROM Section WHERE id = ?", [sectionId]);
-  if (secDeletedResult.length > 0 && secDeletedResult[0].values[0][0]) {
-    db.run("UPDATE Section SET deletedAt = NULL WHERE id = ?", [sectionId]);
+  // If a target section is specified, verify it belongs to the user and is not deleted
+  if (targetSectionId) {
+    const targetSecResult = db.exec(
+      "SELECT s.id FROM Section s JOIN Notebook nb ON nb.id = s.notebookId WHERE s.id = ? AND nb.userId = ? AND s.deletedAt IS NULL AND nb.deletedAt IS NULL",
+      [targetSectionId, userId]
+    );
+    if (targetSecResult.length === 0 || targetSecResult[0].values.length === 0) {
+      throw new AppError(400, "Target section not found or is deleted", "INVALID_TARGET");
+    }
   }
 
-  db.run("UPDATE Note SET deletedAt = NULL WHERE id = ?", [id]);
+  const restoreToSectionId = targetSectionId ?? originalSectionId;
+
+  // If restoring to original location, also restore parent section/notebook if deleted
+  if (!targetSectionId) {
+    const nbDeletedResult = db.exec("SELECT deletedAt FROM Notebook WHERE id = ?", [notebookId]);
+    if (nbDeletedResult.length > 0 && nbDeletedResult[0].values[0][0]) {
+      db.run("UPDATE Notebook SET deletedAt = NULL WHERE id = ?", [notebookId]);
+    }
+    const secDeletedResult = db.exec("SELECT deletedAt FROM Section WHERE id = ?", [originalSectionId]);
+    if (secDeletedResult.length > 0 && secDeletedResult[0].values[0][0]) {
+      db.run("UPDATE Section SET deletedAt = NULL WHERE id = ?", [originalSectionId]);
+    }
+  }
+
+  db.run("UPDATE Note SET deletedAt = NULL, sectionId = ? WHERE id = ?", [restoreToSectionId, id]);
   saveDb();
 }
 

@@ -23,8 +23,8 @@ export class RecycleBinService {
     return this.http.post<void>(`${this.base}/restore/section/${id}`, {});
   }
 
-  restoreNote(id: number): Observable<void> {
-    return this.http.post<void>(`${this.base}/restore/note/${id}`, {});
+  restoreNote(id: number, sectionId?: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/restore/note/${id}`, sectionId ? { sectionId } : {});
   }
 
   permanentlyDeleteNotebook(id: number): Observable<void> {

@@ -78,6 +78,18 @@ export class ShellStateService {
     });
   }
 
+  /** Reload sections for the currently selected notebook. */
+  reloadCurrentSections(): void {
+    const nbId = this.selectedNotebookId();
+    if (nbId) this.loadSections(nbId);
+  }
+
+  /** Reload notes for the currently selected section (no-op if sectionId doesn't match). */
+  reloadCurrentNotes(): void {
+    const secId = this.selectedSectionId();
+    if (secId) this.loadNotes(secId);
+  }
+
   private loadNotes(sectionId: number): void {
     this.notesSub?.unsubscribe();
     this.loadingNotes.set(true);

@@ -1,14 +1,15 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBook, faLayerGroup, faStickyNote, faTrashArrowUp, faTrash, faSpinner, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faLayerGroup, faStickyNote, faTrashArrowUp, faTrash, faSpinner, faRecycle } from '@fortawesome/free-solid-svg-icons';
 import { RecycleBinService } from '../../../core/services/recycle-bin.service';
 import { ShellStateService } from '../shell-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { RestoreLocationDialog, type RestoreLocationResult } from '../../../shared/restore-location-dialog/restore-location-dialog';
 import type { DeletedNotebookDto, DeletedSectionDto, DeletedNoteDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-recycle-bin-panel',
-  imports: [FaIconComponent, ConfirmDialog],
+  imports: [FaIconComponent, ConfirmDialog, RestoreLocationDialog],
   host: { class: 'flex min-h-0 flex-1 flex-col overflow-hidden' },
   template: `
     <div class="flex h-full flex-col">
@@ -21,7 +22,7 @@ import type { DeletedNotebookDto, DeletedSectionDto, DeletedNoteDto } from '@not
             class="rounded p-1 text-xs text-gray-400 hover:text-red-600 dark:hover:text-red-400"
             title="Empty recycle bin"
           >
-            <fa-icon [icon]="faTrashCan" size="sm" />
+            <fa-icon [icon]="faTrash" size="sm" />
           </button>
         }
       </div>
@@ -46,7 +47,7 @@ import type { DeletedNotebookDto, DeletedSectionDto, DeletedNoteDto } from '@not
           </div>
         } @else if (totalItems() === 0) {
           <div class="flex flex-col items-center justify-center gap-2 py-12 text-gray-400">
-            <fa-icon [icon]="faTrash" size="2x" class="text-gray-300 dark:text-gray-600" />
+            <fa-icon [icon]="faRecycle" size="2x" class="text-gray-300 dark:text-gray-600" />
             <p class="text-sm">Recycle bin is empty</p>
           </div>
         } @else {
@@ -173,6 +174,15 @@ import type { DeletedNotebookDto, DeletedSectionDto, DeletedNoteDto } from '@not
         }
       </div>
     </div>
+
+    <app-restore-location-dialog
+      [open]="!!restoringNote()"
+      [noteTitle]="restoringNote()?.title ?? ''"
+      [defaultNotebookId]="restoringNote()?.notebookId ?? null"
+      [defaultSectionId]="restoringNote()?.sectionId ?? null"
+      (confirmed)="onRestoreNoteConfirmed($event)"
+      (cancelled)="restoringNote.set(null)"
+    />
   `,
 })
 export class RecycleBinPanel implements OnInit {
@@ -184,7 +194,7 @@ export class RecycleBinPanel implements OnInit {
   protected faStickyNote = faStickyNote;
   protected faTrashArrowUp = faTrashArrowUp;
   protected faTrash = faTrash;
-  protected faTrashCan = faTrashCan;
+  protected faRecycle = faRecycle;
   protected faSpinner = faSpinner;
 
   protected notebooks = signal<DeletedNotebookDto[]>([]);
@@ -193,6 +203,7 @@ export class RecycleBinPanel implements OnInit {
   protected loading = signal(false);
   protected confirmingEmpty = signal(false);
   protected confirmingPermanentDelete = signal<{ type: 'notebook' | 'section' | 'note'; id: number; title: string } | null>(null);
+  protected restoringNote = signal<DeletedNoteDto | null>(null);
 
   protected totalItems = () => this.notebooks().length + this.sections().length + this.notes().length;
 
@@ -235,12 +246,21 @@ export class RecycleBinPanel implements OnInit {
     this.recycleBinSvc.restoreSection(sec.id).subscribe(() => {
       this.sections.update((list) => list.filter((s) => s.id !== sec.id));
       this.state.loadNotebooks();
+      this.state.reloadCurrentSections();
     });
   }
 
   protected onRestoreNote(note: DeletedNoteDto): void {
-    this.recycleBinSvc.restoreNote(note.id).subscribe(() => {
+    this.restoringNote.set(note);
+  }
+
+  protected onRestoreNoteConfirmed(result: RestoreLocationResult): void {
+    const note = this.restoringNote();
+    if (!note) return;
+    this.restoringNote.set(null);
+    this.recycleBinSvc.restoreNote(note.id, result.sectionId).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== note.id));
+      this.state.reloadCurrentNotes();
     });
   }
 

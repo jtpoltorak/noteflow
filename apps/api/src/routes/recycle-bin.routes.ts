@@ -32,7 +32,8 @@ router.post("/restore/section/:id", (req: Request, res: Response) => {
 
 // POST /recycle-bin/restore/note/:id
 router.post("/restore/note/:id", (req: Request, res: Response) => {
-  restoreNote(Number(req.params.id), req.user!.id);
+  const targetSectionId = req.body?.sectionId ? Number(req.body.sectionId) : undefined;
+  restoreNote(Number(req.params.id), req.user!.id, targetSectionId);
   res.json({ data: null, message: "Note restored" });
 });
 

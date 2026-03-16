@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStar, faStickyNote, faMagnifyingGlass, faShareNodes, faTags, faBoxArchive, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faStar, faStickyNote, faMagnifyingGlass, faShareNodes, faTags, faBoxArchive, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | 'archive' | 'recycle-bin';
 
@@ -78,7 +78,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Recycle Bin"
       >
-        <fa-icon [icon]="faTrashCan" />
+        <fa-icon [icon]="faTrash" />
       </button>
     </nav>
   `,
@@ -93,5 +93,5 @@ export class NavRail {
   protected faTags = faTags;
   protected faMagnifyingGlass = faMagnifyingGlass;
   protected faBoxArchive = faBoxArchive;
-  protected faTrashCan = faTrashCan;
+  protected faTrash = faTrash;
 }
