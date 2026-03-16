@@ -62,6 +62,11 @@ import type { TreeNode } from './tree-node.model';
           [class.dark:hover:bg-gray-700]="!isSelected(node)"
           (click)="onNodeClick(node, $event)"
         >
+          <!-- Pass-through connector line for level-2 nodes when parent section isn't last -->
+          @if (node.level === 2 && !node.parentIsLastChild) {
+            <span class="tree-passthrough-line" style="left: 14px"></span>
+          }
+
           <!-- Expand/collapse toggle -->
           @if (node.expandable) {
             <button

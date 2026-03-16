@@ -8,6 +8,7 @@ export interface TreeNode {
   expandable: boolean;      // true for notebooks/sections
   parentId: number | null;  // null for notebooks
   isLastChild: boolean;     // for connector line termination
+  parentIsLastChild?: boolean; // for level-2: whether parent section is last in notebook
   isLocked?: boolean;
   favoritedAt?: string | null;
 }

@@ -77,6 +77,7 @@ export class TreeStateService {
                 expandable: false,
                 parentId: sec.id,
                 isLastChild: noi === notes.length - 1,
+                parentIsLastChild: isLastSec,
                 isLocked: note.isLocked,
                 favoritedAt: note.favoritedAt,
               });

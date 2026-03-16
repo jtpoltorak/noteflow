@@ -732,10 +732,24 @@ html.dark {
   left: 34px;
 }
 
+/* Pass-through line for level-2 nodes (continues the level-1 vertical line through note rows) */
+.tree-passthrough-line {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background-color: #d1d5db; /* gray-300 */
+  pointer-events: none;
+}
+
 /* Dark mode connector lines */
 .dark .tree-node[data-level="1"]::before,
 .dark .tree-node[data-level="2"]::before,
 .dark .tree-node[data-level="1"]::after,
 .dark .tree-node[data-level="2"]::after {
+  background-color: #4b5563; /* gray-600 */
+}
+
+.dark .tree-passthrough-line {
   background-color: #4b5563; /* gray-600 */
 }
