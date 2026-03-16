@@ -8,6 +8,8 @@ import { ShellStateService } from './shell-state.service';
 import { NotebookList } from './notebook-list/notebook-list';
 import { SectionList } from './section-list/section-list';
 import { NoteArea } from './note-area/note-area';
+import { NoteTree } from './note-tree/note-tree';
+import { TreeStateService } from './note-tree/tree-state.service';
 import { AboutDialog } from '../../shared/about-dialog/about-dialog';
 import { FeedbackDialog } from '../../shared/feedback-dialog/feedback-dialog';
 import { LegalDialog } from '../../shared/legal-dialog/legal-dialog';
@@ -34,8 +36,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, RecycleBinPanel, QuickNoteDialog, ReleaseNotesDialog, ToastContainer],
-  providers: [ShellStateService],
+  imports: [NotebookList, SectionList, NoteArea, NoteTree, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, RecycleBinPanel, QuickNoteDialog, ReleaseNotesDialog, ToastContainer],
+  providers: [ShellStateService, TreeStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
 
@@ -270,40 +272,21 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <app-recycle-bin-panel />
             </aside>
           } @else {
-            <!-- Left panel: Notebooks -->
+            <!-- Tree panel -->
             @if (!editorFullscreen()) {
-              @if (notebooksCollapsed()) {
+              @if (treeCollapsed()) {
                 <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
                   <button
-                    (click)="notebooksCollapsed.set(false)"
+                    (click)="treeCollapsed.set(false)"
                     class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                    title="Expand notebooks"
+                    title="Expand tree"
                   >
                     <fa-icon [icon]="faChevronRight" size="xs" />
                   </button>
                 </div>
               } @else {
-                <aside class="flex w-56 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
-                  <app-notebook-list (collapse)="notebooksCollapsed.set(true)" />
-                </aside>
-              }
-            }
-
-            <!-- Middle panel: Sections -->
-            @if (!editorFullscreen()) {
-              @if (sectionsCollapsed()) {
-                <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-                  <button
-                    (click)="sectionsCollapsed.set(false)"
-                    class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                    title="Expand sections"
-                  >
-                    <fa-icon [icon]="faChevronRight" size="xs" />
-                  </button>
-                </div>
-              } @else {
-                <aside class="flex w-52 flex-col border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-                  <app-section-list (collapse)="sectionsCollapsed.set(true)" />
+                <aside class="flex w-72 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                  <app-note-tree (collapse)="treeCollapsed.set(true)" />
                 </aside>
               }
             }
@@ -311,7 +294,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
           <!-- Main area: Notes + Editor -->
           <main class="flex min-h-0 min-w-0 flex-1 flex-col bg-white dark:bg-gray-800">
-            <app-note-area [collapsed]="notesCollapsed()" [hideNotesList]="shellMode() === 'search'" [fullscreen]="editorFullscreen()" (toggleCollapsed)="notesCollapsed.set(!notesCollapsed())" (toggleFullscreen)="editorFullscreen.set(!editorFullscreen())" />
+            <app-note-area [fullscreen]="editorFullscreen()" (toggleFullscreen)="editorFullscreen.set(!editorFullscreen())" />
           </main>
 
           @if (helpOpen() && !editorFullscreen()) {
@@ -419,6 +402,7 @@ export class Shell implements OnInit {
   protected pwa = inject(PwaService);
   protected pwaUpdate = inject(PwaUpdateService);
   private state = inject(ShellStateService);
+  private treeState = inject(TreeStateService);
 
   protected faMoon = faMoon;
   protected faSun = faSun;
@@ -437,9 +421,7 @@ export class Shell implements OnInit {
   protected faTrashCan = faTrashCan;
 
   // Desktop panel state
-  protected notebooksCollapsed = signal(false);
-  protected sectionsCollapsed = signal(false);
-  protected notesCollapsed = signal(false);
+  protected treeCollapsed = signal(false);
   protected editorFullscreen = signal(false);
   protected shellMode = signal<ShellMode>('favorites');
 
@@ -539,6 +521,7 @@ export class Shell implements OnInit {
 
   protected onQuickNoteCreated(result: QuickNoteResult): void {
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.treeState.expandToNote(result.notebookId, result.sectionId);
     this.shellMode.set('notes');
     if (this.vp.isCompact()) {
       this.cameFromSearch = true;
@@ -563,6 +546,7 @@ export class Shell implements OnInit {
 
   protected onSearchResultClicked(result: SearchResultDto): void {
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.treeState.expandToNote(result.notebookId, result.sectionId);
     this.searchPanelRef()?.setSelectedNoteId(result.noteId);
   }
 
@@ -570,6 +554,7 @@ export class Shell implements OnInit {
 
   protected onFavoriteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.treeState.expandToNote(result.notebookId, result.sectionId);
     this.shellMode.set('notes');
   }
 
@@ -577,6 +562,7 @@ export class Shell implements OnInit {
 
   protected onTagNoteClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.treeState.expandToNote(result.notebookId, result.sectionId);
     this.shellMode.set('notes');
   }
 
@@ -584,6 +570,7 @@ export class Shell implements OnInit {
 
   protected onSharedClicked(result: { notebookId: number; sectionId: number; noteId: number }): void {
     this.state.selectNoteFromSearch(result.notebookId, result.sectionId, result.noteId);
+    this.treeState.expandToNote(result.notebookId, result.sectionId);
     this.shellMode.set('notes');
   }
 

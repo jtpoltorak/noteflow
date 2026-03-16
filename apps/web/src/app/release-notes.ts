@@ -6,6 +6,16 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.9.0',
+    date: '2026-03-16',
+    items: [
+      'Collapsible tree view replacing the three-panel layout — browse notebooks, sections, and notes in a single hierarchical tree',
+      'Create, rename, and delete notebooks, sections, and notes directly from the tree with inline inputs',
+      'Connector lines showing parent-child relationships with Preline-style vertical and horizontal connectors',
+      'Tree nodes expand on click and load children on demand for fast navigation',
+    ],
+  },
+  {
     version: '0.8.0',
     date: '2026-03-16',
     items: [

@@ -24,11 +24,12 @@ import { APP_VERSION } from '../../../version';
     <div class="min-h-0 flex-1 overflow-y-auto px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
       <section class="mb-5">
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Getting Started</h3>
-        <p class="mb-1">NoteFlow organises your notes into a three-level hierarchy:</p>
+        <p class="mb-1">NoteFlow organises your notes into a collapsible tree view:</p>
         <ol class="ml-4 list-decimal space-y-0.5">
-          <li>Create a <strong>Notebook</strong> in the left panel</li>
-          <li>Add <strong>Sections</strong> to group related notes</li>
-          <li>Write <strong>Notes</strong> inside each section</li>
+          <li>Create a <strong>Notebook</strong> using the + button at the top of the tree</li>
+          <li>Expand a notebook and add <strong>Sections</strong> using the + icon on hover</li>
+          <li>Expand a section and create <strong>Notes</strong> the same way</li>
+          <li>Click any note in the tree to open it in the editor</li>
         </ol>
       </section>
 
@@ -235,8 +236,15 @@ import { APP_VERSION } from '../../../version';
       </section>
 
       <section class="mb-5">
-        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Panels</h3>
-        <p>Each panel can be collapsed using the chevron icon in its header. Click the arrow on the collapsed strip to expand it again. Use the expand icon to enter full-screen editor mode.</p>
+        <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Tree View</h3>
+        <p class="mb-1">The tree panel shows your full notebook hierarchy:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Click <strong>+</strong> / <strong>&minus;</strong> to expand or collapse notebooks and sections</li>
+          <li>Hover over any item to see action buttons: add child, rename, or delete</li>
+          <li>Connector lines show the parent-child structure</li>
+          <li>Collapse the entire tree panel with the chevron in its header</li>
+          <li>Use the expand icon in the editor to enter full-screen mode</li>
+        </ul>
       </section>
 
       <section class="mb-5">

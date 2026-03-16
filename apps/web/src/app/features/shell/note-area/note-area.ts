@@ -1,5 +1,5 @@
 import { Component, DestroyRef, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
-import { CdkDropList, CdkDrag, CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faFileArrowDown, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid } from '@fortawesome/free-solid-svg-icons';
 import { EditorPreferencesService } from '../../../core/services/editor-preferences.service';
@@ -23,7 +23,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
 
 @Component({
   selector: 'app-note-area',
-  imports: [FaIconComponent, ConfirmDialog, CdkDropList, CdkDrag, TiptapEditor, PresentationView, MoveNoteDialog, PasswordDialog, TemplatePicker],
+  imports: [FaIconComponent, ConfirmDialog, TiptapEditor, PresentationView, MoveNoteDialog, PasswordDialog, TemplatePicker],
   host: { class: 'flex min-h-0 min-w-0 flex-1 flex-col' },
   template: `
     <!-- ── Mobile: notes list only ─────────────────────────── -->
@@ -447,85 +447,14 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
       </div>
     }
 
-    <!-- ── Desktop: original layout ────────────────────────── -->
+    <!-- ── Desktop: editor only ────────────────────────────── -->
     @if (!mobileMode()) {
-      @if (!state.selectedSectionId()) {
+      @if (!state.selectedNoteId()) {
         <div class="flex flex-1 items-center justify-center">
-          <p class="text-gray-400">Select a section to see notes</p>
+          <p class="text-gray-400">Select a note to edit</p>
         </div>
       } @else {
         <div class="flex flex-1 overflow-hidden">
-          <!-- Note list: collapsed strip or full panel -->
-          @if (!fullscreen() && !hideNotesList()) {
-            @if (collapsed()) {
-              <div class="flex w-8 flex-col items-center border-r border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-                <button
-                  (click)="toggleCollapsed.emit()"
-                  class="mt-2 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                  title="Expand notes"
-                >
-                  <fa-icon [icon]="faChevronRight" size="xs" />
-                </button>
-              </div>
-            } @else {
-              <div class="flex w-48 flex-col border-r border-gray-200 dark:border-gray-700">
-                <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
-                  <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
-                  <div class="flex items-center gap-1">
-                    <button
-                      (click)="toggleCollapsed.emit()"
-                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                      title="Collapse panel"
-                    >
-                      <fa-icon [icon]="faChevronLeft" size="xs" />
-                    </button>
-                    <button
-                      (click)="importNote()"
-                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                      title="Import Markdown"
-                    >
-                      <fa-icon [icon]="faFileImport" size="sm" />
-                    </button>
-                    <button
-                      (click)="createNote()"
-                      class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                      title="New note"
-                    >
-                      <fa-icon [icon]="faPlus" size="sm" />
-                    </button>
-                  </div>
-                </div>
-                <div class="flex-1 overflow-y-auto p-1" cdkDropList (cdkDropListDropped)="onDrop($event)">
-                  @for (note of state.notes(); track note.id) {
-                    <div
-                      cdkDrag
-                      (cdkDragStarted)="onNoteDragStarted()"
-                      (cdkDragEnded)="onNoteDragEnded($event, note.id)"
-                      class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
-                      [class.bg-blue-100]="note.id === state.selectedNoteId()"
-                      [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
-                      [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
-                      [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
-                      (click)="onItemClick(note.id)"
-                    >
-                      <div class="flex items-center">
-                        <fa-icon [icon]="faStickyNote" class="mr-2 text-gray-400" size="sm" />
-                        <span class="truncate" [title]="note.title">{{ note.title || 'Untitled' }}</span>
-                        @if (note.isLocked && !unlockedNoteIds().has(note.id)) {
-                          <fa-icon [icon]="faLock" class="ml-auto shrink-0 text-gray-400" size="xs" />
-                        }
-                      </div>
-                    </div>
-                  } @empty {
-                    <p class="px-2 py-4 text-center text-sm text-gray-400">
-                      No notes yet. Click + to create one.
-                    </p>
-                  }
-                </div>
-              </div>
-            }
-          }
-
           <!-- Editor area -->
           <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
             @if (state.selectedNote()) {
@@ -895,10 +824,6 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   </div>
                 }
               }
-            } @else {
-              <div class="flex flex-1 items-center justify-center">
-                <p class="text-gray-400">Select a note to edit</p>
-              </div>
             }
           </div>
         </div>
@@ -949,12 +874,9 @@ export class NoteArea {
   private noteSvc = inject(NoteService);
   private templateSvc = inject(TemplateService);
 
-  collapsed = input(false);
   fullscreen = input(false);
-  hideNotesList = input(false);
   mobileMode = input(false);
   showEditorOnly = input(false);
-  toggleCollapsed = output();
   toggleFullscreen = output();
 
   protected faStickyNote = faStickyNote;
