@@ -285,7 +285,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                   </button>
                 </div>
               } @else {
-                <aside class="flex w-72 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
+                <aside class="flex min-h-0 w-72 flex-col border-r border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-900">
                   <app-note-tree (collapse)="treeCollapsed.set(true)" />
                 </aside>
               }

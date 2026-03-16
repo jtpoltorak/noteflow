@@ -9,6 +9,7 @@ import type { TreeNode } from './tree-node.model';
 @Component({
   selector: 'app-note-tree',
   imports: [FaIconComponent, ConfirmDialog],
+  host: { class: 'flex min-h-0 flex-1 flex-col' },
   template: `
     <div class="flex items-center justify-between border-b border-gray-200 px-3 py-2 dark:border-gray-700">
       <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Notes</span>
