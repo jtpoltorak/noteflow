@@ -27,7 +27,7 @@ import { AuthService } from '../../../core/services/auth.service';
               [(ngModel)]="email"
               name="email"
               required
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="you@example.com"
             />
           </div>
@@ -41,7 +41,7 @@ import { AuthService } from '../../../core/services/auth.service';
               name="password"
               required
               autocomplete="current-password"
-              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="••••••••"
             />
           </div>
@@ -49,7 +49,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <button
             type="submit"
             [disabled]="loading()"
-            class="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            class="w-full rounded-md bg-accent-600 px-4 py-2 font-medium text-white hover:bg-accent-700 disabled:opacity-50"
           >
             {{ loading() ? 'Signing in...' : 'Sign in' }}
           </button>
@@ -57,7 +57,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <p class="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
           Don't have an account?
-          <a routerLink="/register" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Register</a>
+          <a routerLink="/register" class="font-medium text-accent-600 hover:underline dark:text-accent-400">Register</a>
         </p>
       </div>
     </div>

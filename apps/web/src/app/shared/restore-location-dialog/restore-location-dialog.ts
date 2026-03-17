@@ -24,7 +24,7 @@ export interface RestoreLocationResult {
         <div>
           <label class="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-400">Notebook</label>
           <select
-            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             [value]="selectedNotebookId()"
             (change)="onNotebookChange($event)"
           >
@@ -45,7 +45,7 @@ export interface RestoreLocationResult {
             </div>
           } @else {
             <select
-              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-accent-500 focus:ring-1 focus:ring-accent-500 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               [value]="selectedSectionId()"
               (change)="onSectionChange($event)"
               [disabled]="sections().length === 0"
@@ -79,7 +79,7 @@ export interface RestoreLocationResult {
           <button
             (click)="onConfirm()"
             [disabled]="!selectedSectionId() || selectedSectionId() === 0"
-            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            class="rounded bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Restore
           </button>

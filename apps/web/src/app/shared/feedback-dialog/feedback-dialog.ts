@@ -24,7 +24,7 @@ import { Modal } from '../modal/modal';
               id="feedback-type"
               [(ngModel)]="feedbackType"
               name="feedbackType"
-              class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             >
               <option value="general">General Feedback</option>
               <option value="enhancement">Enhancement Request</option>
@@ -40,7 +40,7 @@ import { Modal } from '../modal/modal';
               name="feedbackMessage"
               rows="4"
               required
-              class="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full resize-none rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               placeholder="Tell us what's on your mind..."
             ></textarea>
           </div>
@@ -49,7 +49,7 @@ import { Modal } from '../modal/modal';
             <button
               type="submit"
               [disabled]="!feedbackMessage.trim()"
-              class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              class="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               Submit
             </button>

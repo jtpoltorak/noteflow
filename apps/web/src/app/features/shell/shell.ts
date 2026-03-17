@@ -54,7 +54,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
       <!-- ── PWA update banner ─────────────────────────────── -->
       @if (pwaUpdate.updateAvailable()) {
-        <div class="flex items-center justify-center gap-2 bg-blue-600 px-4 py-1.5 text-sm text-white">
+        <div class="flex items-center justify-center gap-2 bg-accent-600 px-4 py-1.5 text-sm text-white">
           <span>A new version of NoteFlow is available.</span>
           <button
             (click)="pwaUpdate.activateUpdate()"
@@ -72,7 +72,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <img src="noteflow-logo.svg" alt="NoteFlow" class="h-7 dark:invert" />
             <button
               (click)="showQuickNote.set(true)"
-              class="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+              class="flex items-center gap-1.5 rounded-md bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700"
               title="Quick Note"
             >
               <fa-icon [icon]="faPlus" size="sm" />
@@ -107,8 +107,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="helpOpen.set(!helpOpen())"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="helpOpen()"
-              [class.dark:text-blue-400]="helpOpen()"
+              [class.text-accent-500]="helpOpen()"
+              [class.dark:text-accent-400]="helpOpen()"
               title="Toggle help"
             >
               <fa-icon [icon]="faCircleQuestion" size="sm" />
@@ -144,7 +144,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
           <div class="flex shrink-0 flex-wrap items-center gap-1">
             <button
               (click)="showQuickNote.set(true)"
-              class="rounded-md bg-blue-600 p-1.5 text-white hover:bg-blue-700"
+              class="rounded-md bg-accent-600 p-1.5 text-white hover:bg-accent-700"
               title="Quick Note"
             >
               <fa-icon [icon]="faPlus" size="sm" />
@@ -152,8 +152,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileFavorites()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'favorites'"
-              [class.dark:text-blue-400]="mobilePanel() === 'favorites'"
+              [class.text-accent-500]="mobilePanel() === 'favorites'"
+              [class.dark:text-accent-400]="mobilePanel() === 'favorites'"
               title="Favorites"
             >
               <fa-icon [icon]="faStar" size="sm" />
@@ -161,8 +161,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileShared()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'shared'"
-              [class.dark:text-blue-400]="mobilePanel() === 'shared'"
+              [class.text-accent-500]="mobilePanel() === 'shared'"
+              [class.dark:text-accent-400]="mobilePanel() === 'shared'"
               title="Shared"
             >
               <fa-icon [icon]="faShareNodes" size="sm" />
@@ -170,8 +170,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileTags()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'tags'"
-              [class.dark:text-blue-400]="mobilePanel() === 'tags'"
+              [class.text-accent-500]="mobilePanel() === 'tags'"
+              [class.dark:text-accent-400]="mobilePanel() === 'tags'"
               title="Tags"
             >
               <fa-icon [icon]="faTags" size="sm" />
@@ -179,8 +179,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileSearch()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'search'"
-              [class.dark:text-blue-400]="mobilePanel() === 'search'"
+              [class.text-accent-500]="mobilePanel() === 'search'"
+              [class.dark:text-accent-400]="mobilePanel() === 'search'"
               title="Search"
             >
               <fa-icon [icon]="faMagnifyingGlass" size="sm" />
@@ -188,8 +188,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileArchive()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'archive'"
-              [class.dark:text-blue-400]="mobilePanel() === 'archive'"
+              [class.text-accent-500]="mobilePanel() === 'archive'"
+              [class.dark:text-accent-400]="mobilePanel() === 'archive'"
               title="Archive"
             >
               <fa-icon [icon]="faBoxArchive" size="sm" />
@@ -197,8 +197,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="toggleMobileRecycleBin()"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="mobilePanel() === 'recycle-bin'"
-              [class.dark:text-blue-400]="mobilePanel() === 'recycle-bin'"
+              [class.text-accent-500]="mobilePanel() === 'recycle-bin'"
+              [class.dark:text-accent-400]="mobilePanel() === 'recycle-bin'"
               title="Recycle Bin"
             >
               <fa-icon [icon]="faTrashCan" size="sm" />
@@ -222,8 +222,8 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             <button
               (click)="helpOpen.set(!helpOpen())"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-blue-500]="helpOpen()"
-              [class.dark:text-blue-400]="helpOpen()"
+              [class.text-accent-500]="helpOpen()"
+              [class.dark:text-accent-400]="helpOpen()"
               title="Toggle help"
             >
               <fa-icon [icon]="faCircleQuestion" size="sm" />

@@ -1,6 +1,6 @@
 {
   "name": "noteflow",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "private": true,
   "description": "A web-based note-taking application inspired by Microsoft OneNote",
   "workspaces": [

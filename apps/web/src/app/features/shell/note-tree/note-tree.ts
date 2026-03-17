@@ -41,7 +41,7 @@ import type { TreeNode } from './tree-node.model';
             type="text"
             placeholder="Notebook name"
             maxlength="50"
-            class="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+            class="w-full rounded border border-accent-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-600 dark:bg-gray-700 dark:text-gray-100"
             (keydown.enter)="confirmCreateNotebook(notebookCreateInput.value)"
             (keydown.escape)="creatingNotebook.set(false)"
             (blur)="confirmCreateNotebook(notebookCreateInput.value)"
@@ -58,8 +58,8 @@ import type { TreeNode } from './tree-node.model';
           [attr.data-last-child]="node.isLastChild"
           class="tree-node group flex items-center rounded py-1 pr-1 text-sm cursor-pointer dark:text-gray-200"
           [style.padding-left.px]="node.level * 20 + 4 + (node.type === 'note' ? 4 : 0)"
-          [class.bg-blue-100]="isSelected(node)"
-          [class.dark:bg-blue-900/40]="isSelected(node)"
+          [class.bg-accent-100]="isSelected(node)"
+          [class.dark:bg-accent-900/40]="isSelected(node)"
           [class.hover:bg-gray-100]="!isSelected(node)"
           [class.dark:hover:bg-gray-700]="!isSelected(node)"
           (click)="onNodeClick(node, $event)"
@@ -99,7 +99,7 @@ import type { TreeNode } from './tree-node.model';
               type="text"
               [value]="node.title"
               maxlength="75"
-              class="min-w-0 flex-1 rounded border border-blue-300 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+              class="min-w-0 flex-1 rounded border border-accent-300 px-1 py-0.5 text-sm focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-600 dark:bg-gray-700 dark:text-gray-100"
               (keydown.enter)="confirmRename(node, renameInput.value)"
               (keydown.escape)="tree.editingNode.set(null)"
               (blur)="confirmRename(node, renameInput.value)"
@@ -147,7 +147,7 @@ import type { TreeNode } from './tree-node.model';
               type="text"
               [placeholder]="node.type === 'notebook' ? 'Section name' : 'Note title'"
               maxlength="75"
-              class="w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded border border-accent-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-600 dark:bg-gray-700 dark:text-gray-100"
               (keydown.enter)="confirmCreateChild(node, childCreateInput.value)"
               (keydown.escape)="tree.creatingUnder.set(null)"
               (blur)="confirmCreateChild(node, childCreateInput.value)"
@@ -311,7 +311,7 @@ export class NoteTree {
     event.stopPropagation();
     this.tree.editingNode.set({ type: node.type, id: node.id });
     setTimeout(() => {
-      const input = document.querySelector<HTMLInputElement>('input[class*="border-blue-300"]');
+      const input = document.querySelector<HTMLInputElement>('input[class*="border-accent-300"]');
       input?.focus();
       input?.select();
     });

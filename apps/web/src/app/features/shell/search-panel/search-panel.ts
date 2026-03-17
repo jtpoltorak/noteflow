@@ -35,9 +35,9 @@ import type { SearchResultDto } from '@noteflow/shared-types';
             placeholder="Search all notes…"
             (input)="onInput($event)"
             class="w-full rounded-md border border-gray-300 bg-white py-1.5 pl-8 pr-3 text-sm
-                   placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
+                   placeholder-gray-400 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500
                    dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500
-                   dark:focus:border-blue-400 dark:focus:ring-blue-400"
+                   dark:focus:border-accent-400 dark:focus:ring-accent-400"
           />
         </div>
       </div>
@@ -49,7 +49,7 @@ import type { SearchResultDto } from '@noteflow/shared-types';
             type="checkbox"
             [checked]="includeArchived()"
             (change)="onToggleArchived($event)"
-            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
+            class="rounded border-gray-300 text-accent-600 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700"
           />
           Include archived notes
         </label>
@@ -76,8 +76,8 @@ import type { SearchResultDto } from '@noteflow/shared-types';
                 <button
                   (click)="onResultClick(r)"
                   class="w-full px-3 py-2.5 text-left transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/50"
-                  [class.bg-blue-50]="selectedNoteId() === r.noteId"
-                  [class.dark:bg-blue-900/20]="selectedNoteId() === r.noteId"
+                  [class.bg-accent-50]="selectedNoteId() === r.noteId"
+                  [class.dark:bg-accent-900/20]="selectedNoteId() === r.noteId"
                 >
                   <p class="truncate text-sm font-medium text-gray-800 dark:text-gray-100" [title]="r.noteTitle">
                     {{ r.noteTitle }}

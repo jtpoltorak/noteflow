@@ -21,7 +21,7 @@ import { getSearchState } from './tiptap-editor/search-replace.extension';
           [value]="searchTerm()"
           (input)="onSearchInput($any($event.target).value)"
           (keydown)="onSearchKeyDown($event)"
-          class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+          class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 placeholder-gray-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
           placeholder="Find..."
         />
 
@@ -51,7 +51,7 @@ import { getSearchState } from './tiptap-editor/search-replace.extension';
           (mousedown)="$event.preventDefault(); toggleCaseSensitive()"
           class="rounded px-1.5 py-0.5 text-xs font-semibold transition-colors"
           [class]="caseSensitive()
-            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+            ? 'bg-accent-100 text-accent-700 dark:bg-accent-900 dark:text-accent-300'
             : 'text-gray-400 hover:bg-gray-200 dark:text-gray-500 dark:hover:bg-gray-700'"
           title="Case sensitive"
         >Aa</button>
@@ -72,7 +72,7 @@ import { getSearchState } from './tiptap-editor/search-replace.extension';
             [value]="replaceTerm()"
             (input)="onReplaceInput($any($event.target).value)"
             (keydown)="onReplaceKeyDown($event)"
-            class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+            class="min-w-0 flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 placeholder-gray-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
             placeholder="Replace..."
           />
 

@@ -55,8 +55,8 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             @for (note of state.notes(); track note.id) {
               <div
                 class="cursor-pointer rounded px-2 py-1.5 text-sm dark:text-gray-200"
-                [class.bg-blue-100]="note.id === state.selectedNoteId()"
-                [class.dark:bg-blue-900]="note.id === state.selectedNoteId()"
+                [class.bg-accent-100]="note.id === state.selectedNoteId()"
+                [class.dark:bg-accent-900]="note.id === state.selectedNoteId()"
                 [class.hover:bg-gray-100]="note.id !== state.selectedNoteId()"
                 [class.dark:hover:bg-gray-700]="note.id !== state.selectedNoteId()"
                 (click)="onItemClick(note.id)"
@@ -109,7 +109,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="sharing.set(!sharing())"
               class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-              [class]="state.selectedNote()?.shareToken ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              [class]="state.selectedNote()?.shareToken ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Share note"
             >
               <fa-icon [icon]="faShareNodes" size="sm" />
@@ -117,7 +117,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="toggleTagging()"
               class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-              [class]="noteTags().length > 0 ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+              [class]="noteTags().length > 0 ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Tags"
             >
               <fa-icon [icon]="faTag" size="sm" />
@@ -209,7 +209,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (mousedown)="$event.preventDefault()"
               (click)="toggleEditorToolbar()"
               class="ml-1.5 shrink-0 rounded p-1"
-              [class]="isEditorToolbarVisible() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [class]="isEditorToolbarVisible() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle formatting toolbar"
             >
               <fa-icon [icon]="faBars" size="sm" />
@@ -218,7 +218,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               (mousedown)="$event.preventDefault()"
               (click)="editorPrefs.toggleSerif()"
               class="ml-1 shrink-0 rounded p-1"
-              [class]="editorPrefs.serifMode() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [class]="editorPrefs.serifMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle serif font"
             >
               <fa-icon [icon]="faFont" size="sm" />
@@ -226,7 +226,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="editorPrefs.toggleMetadata()"
               class="ml-1 shrink-0 rounded p-1"
-              [class]="editorPrefs.showMetadata() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [class]="editorPrefs.showMetadata() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle note info"
             >
               <fa-icon [icon]="faCircleInfo" size="sm" />
@@ -234,7 +234,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="editorPrefs.toggleTypography()"
               class="ml-1 shrink-0 rounded p-1"
-              [class]="editorPrefs.typographyMode() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [class]="editorPrefs.typographyMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle smart typography"
             >
               <fa-icon [icon]="faQuoteLeft" size="sm" />
@@ -242,7 +242,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (click)="editorPrefs.cycleFontSize()"
               class="ml-1 shrink-0 rounded p-1"
-              [class]="editorPrefs.fontSize() !== 'default' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+              [class]="editorPrefs.fontSize() !== 'default' ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               [title]="'Font size: ' + fontSizeLabel()"
             >
               <fa-icon [icon]="faTextHeight" size="sm" />
@@ -277,11 +277,11 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               @if (noteTags().length > 0) {
                 <div class="mb-2 flex flex-wrap gap-1.5">
                   @for (tag of noteTags(); track tag.id) {
-                    <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                    <span class="inline-flex items-center gap-1 rounded-full bg-accent-100 px-2.5 py-0.5 text-xs font-medium text-accent-700 dark:bg-accent-900 dark:text-accent-300">
                       {{ tag.name }}
                       <button
                         (click)="removeTag(tag)"
-                        class="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                        class="ml-0.5 rounded-full p-0.5 hover:bg-accent-200 dark:hover:bg-accent-800"
                         title="Remove tag"
                       >
                         <fa-icon [icon]="faXmark" size="xs" />
@@ -297,7 +297,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   [value]="tagInput()"
                   (input)="tagInput.set($any($event.target).value)"
                   (keydown.enter)="addTag()"
-                  class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+                  class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-accent-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
                   placeholder="Add a tag…"
                   maxlength="30"
                 />
@@ -331,7 +331,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                     />
                     <button
                       (click)="copyShareLink()"
-                      class="shrink-0 rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
+                      class="shrink-0 rounded bg-accent-500 px-3 py-1 text-xs font-medium text-white hover:bg-accent-600"
                     >
                       {{ linkCopied() ? 'Copied!' : 'Copy link' }}
                     </button>
@@ -348,7 +348,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   <p class="text-sm text-gray-600 dark:text-gray-400">Share this note with a public link</p>
                   <button
                     (click)="createShareLink()"
-                    class="rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600"
+                    class="rounded bg-accent-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-600"
                   >
                     Create share link
                   </button>
@@ -388,7 +388,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   #mobileAccessInput
                   type="password"
                   placeholder="Enter password"
-                  class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                  class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                   (keydown.enter)="accessNote(mobileAccessInput.value, mobileAccessInput)"
                 />
                 @if (accessError()) {
@@ -396,7 +396,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 }
                 <button
                   (click)="accessNote(mobileAccessInput.value, mobileAccessInput)"
-                  class="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  class="w-full rounded bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700"
                 >
                   Unlock
                 </button>
@@ -495,7 +495,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="sharing.set(!sharing())"
                   class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  [class]="state.selectedNote()?.shareToken ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  [class]="state.selectedNote()?.shareToken ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
                   title="Share note"
                 >
                   <fa-icon [icon]="faShareNodes" size="sm" />
@@ -503,7 +503,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="toggleTagging()"
                   class="ml-1 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
-                  [class]="noteTags().length > 0 ? 'text-blue-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
+                  [class]="noteTags().length > 0 ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
                   title="Tags"
                 >
                   <fa-icon [icon]="faTag" size="sm" />
@@ -595,7 +595,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   (mousedown)="$event.preventDefault()"
                   (click)="toggleEditorToolbar()"
                   class="ml-1.5 shrink-0 rounded p-1"
-                  [class]="isEditorToolbarVisible() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [class]="isEditorToolbarVisible() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
                   title="Toggle formatting toolbar"
                 >
                   <fa-icon [icon]="faBars" size="sm" />
@@ -604,7 +604,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   (mousedown)="$event.preventDefault()"
                   (click)="editorPrefs.toggleSerif()"
                   class="ml-1 shrink-0 rounded p-1"
-                  [class]="editorPrefs.serifMode() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [class]="editorPrefs.serifMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
                   title="Toggle serif font"
                 >
                   <fa-icon [icon]="faFont" size="sm" />
@@ -612,7 +612,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="editorPrefs.toggleMetadata()"
                   class="ml-1 shrink-0 rounded p-1"
-                  [class]="editorPrefs.showMetadata() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [class]="editorPrefs.showMetadata() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
                   title="Toggle note info"
                 >
                   <fa-icon [icon]="faCircleInfo" size="sm" />
@@ -620,7 +620,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="editorPrefs.toggleTypography()"
                   class="ml-1 shrink-0 rounded p-1"
-                  [class]="editorPrefs.typographyMode() ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [class]="editorPrefs.typographyMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
                   title="Toggle smart typography"
                 >
                   <fa-icon [icon]="faQuoteLeft" size="sm" />
@@ -628,7 +628,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <button
                   (click)="editorPrefs.cycleFontSize()"
                   class="ml-1 shrink-0 rounded p-1"
-                  [class]="editorPrefs.fontSize() !== 'default' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
+                  [class]="editorPrefs.fontSize() !== 'default' ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
                   [title]="'Font size: ' + fontSizeLabel()"
                 >
                   <fa-icon [icon]="faTextHeight" size="sm" />
@@ -663,11 +663,11 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   @if (noteTags().length > 0) {
                     <div class="mb-2 flex flex-wrap gap-1.5">
                       @for (tag of noteTags(); track tag.id) {
-                        <span class="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                        <span class="inline-flex items-center gap-1 rounded-full bg-accent-100 px-2.5 py-0.5 text-xs font-medium text-accent-700 dark:bg-accent-900 dark:text-accent-300">
                           {{ tag.name }}
                           <button
                             (click)="removeTag(tag)"
-                            class="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800"
+                            class="ml-0.5 rounded-full p-0.5 hover:bg-accent-200 dark:hover:bg-accent-800"
                             title="Remove tag"
                           >
                             <fa-icon [icon]="faXmark" size="xs" />
@@ -683,7 +683,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                       [value]="tagInput()"
                       (input)="tagInput.set($any($event.target).value)"
                       (keydown.enter)="addTag()"
-                      class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-blue-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
+                      class="w-full rounded border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-accent-400 focus:outline-none dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:placeholder-gray-500"
                       placeholder="Add a tag…"
                       maxlength="30"
                     />
@@ -717,7 +717,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                         />
                         <button
                           (click)="copyShareLink()"
-                          class="shrink-0 rounded bg-blue-500 px-3 py-1 text-xs font-medium text-white hover:bg-blue-600"
+                          class="shrink-0 rounded bg-accent-500 px-3 py-1 text-xs font-medium text-white hover:bg-accent-600"
                         >
                           {{ linkCopied() ? 'Copied!' : 'Copy link' }}
                         </button>
@@ -734,7 +734,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                       <p class="text-sm text-gray-600 dark:text-gray-400">Share this note with a public link</p>
                       <button
                         (click)="createShareLink()"
-                        class="rounded bg-blue-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-600"
+                        class="rounded bg-accent-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-accent-600"
                       >
                         Create share link
                       </button>
@@ -774,7 +774,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                       #desktopAccessInput
                       type="password"
                       placeholder="Enter password"
-                      class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                      class="mb-2 w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                       (keydown.enter)="accessNote(desktopAccessInput.value, desktopAccessInput)"
                     />
                     @if (accessError()) {
@@ -782,7 +782,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                     }
                     <button
                       (click)="accessNote(desktopAccessInput.value, desktopAccessInput)"
-                      class="w-full rounded bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                      class="w-full rounded bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700"
                     >
                       Unlock
                     </button>

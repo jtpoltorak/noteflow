@@ -3,15 +3,15 @@ import { Component, input, output, signal, ElementRef, viewChild } from '@angula
 @Component({
   selector: 'app-password-dialog',
   template: `
-    <div class="mt-1 rounded border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/30">
-      <p class="mb-2 text-sm font-medium text-blue-700 dark:text-blue-300">{{ message() }}</p>
+    <div class="mt-1 rounded border border-accent-200 bg-accent-50 p-3 dark:border-accent-800 dark:bg-accent-900/30">
+      <p class="mb-2 text-sm font-medium text-accent-700 dark:text-accent-300">{{ message() }}</p>
       <input
         #passwordInput
         type="password"
         [placeholder]="placeholder()"
         minlength="4"
         maxlength="100"
-        class="mb-1 w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+        class="mb-1 w-full rounded border border-accent-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-600 dark:bg-gray-700 dark:text-gray-100"
         (keydown.enter)="submit(passwordInput.value)"
         (keydown.escape)="cancelled.emit()"
       />
@@ -21,7 +21,7 @@ import { Component, input, output, signal, ElementRef, viewChild } from '@angula
           type="password"
           placeholder="Confirm password"
           maxlength="100"
-          class="mb-1 w-full rounded border border-blue-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-blue-600 dark:bg-gray-700 dark:text-gray-100"
+          class="mb-1 w-full rounded border border-accent-300 bg-white px-2 py-1 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-600 dark:bg-gray-700 dark:text-gray-100"
           (keydown.enter)="submit(passwordInput.value, confirmInput.value)"
           (keydown.escape)="cancelled.emit()"
         />
@@ -32,7 +32,7 @@ import { Component, input, output, signal, ElementRef, viewChild } from '@angula
       <div class="flex gap-2">
         <button
           (click)="submit(passwordInput.value, confirmInputRef()?.nativeElement?.value)"
-          class="rounded bg-blue-600 px-3 py-1 text-xs font-medium text-white hover:bg-blue-700"
+          class="rounded bg-accent-600 px-3 py-1 text-xs font-medium text-white hover:bg-accent-700"
         >
           {{ submitLabel() }}
         </button>

@@ -34,8 +34,8 @@ import type { SearchResultDto } from '@noteflow/shared-types';
           @for (result of results(); track result.noteId; let i = $index) {
             <button
               class="flex w-full items-center gap-2 px-3 py-1.5 text-left transition-colors"
-              [class.bg-blue-50]="i === selectedIndex()"
-              [class.dark:bg-blue-900]="i === selectedIndex()"
+              [class.bg-accent-50]="i === selectedIndex()"
+              [class.dark:bg-accent-900]="i === selectedIndex()"
               [class.hover:bg-gray-50]="i !== selectedIndex()"
               [class.dark:hover:bg-gray-700]="i !== selectedIndex()"
               (mousedown)="$event.preventDefault()"

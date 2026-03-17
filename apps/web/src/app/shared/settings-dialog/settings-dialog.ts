@@ -5,6 +5,7 @@ import { faSun, faMoon, faFileExport, faFileArrowDown, faCircleCheck, faTriangle
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import type { AccentTheme } from '@noteflow/shared-types';
 import { EditorPreferencesService } from '../../core/services/editor-preferences.service';
 import { PwaService } from '../../core/services/pwa.service';
 import { environment } from '../../../environments/environment';
@@ -22,7 +23,7 @@ type SettingsTab = 'general' | 'account';
           (click)="tab.set('general')"
           class="flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-medium transition-colors"
           [class]="tab() === 'general'
-            ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+            ? 'border-accent-500 text-accent-600 dark:text-accent-400'
             : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
         >
           <fa-icon [icon]="faSliders" size="sm" />
@@ -32,7 +33,7 @@ type SettingsTab = 'general' | 'account';
           (click)="tab.set('account')"
           class="flex items-center gap-1.5 border-b-2 px-4 py-2 text-sm font-medium transition-colors"
           [class]="tab() === 'account'
-            ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+            ? 'border-accent-500 text-accent-600 dark:text-accent-400'
             : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
         >
           <fa-icon [icon]="faUserGear" size="sm" />
@@ -49,18 +50,36 @@ type SettingsTab = 'general' | 'account';
           <!-- Appearance -->
           <section>
             <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Appearance</h3>
-            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
-              <span class="text-sm text-gray-600 dark:text-gray-400">Theme</span>
-              <button
-                (click)="theme.toggle()"
-                class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-                [class]="theme.darkMode()
-                  ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-              >
-                <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
-                {{ theme.darkMode() ? 'Dark' : 'Light' }}
-              </button>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Theme</span>
+                <button
+                  (click)="theme.toggle()"
+                  class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                  [class]="theme.darkMode()
+                    ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                >
+                  <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
+                  {{ theme.darkMode() ? 'Dark' : 'Light' }}
+                </button>
+              </div>
+              <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+                <span class="text-sm text-gray-600 dark:text-gray-400">Accent Color</span>
+                <div class="flex gap-1.5">
+                  @for (t of accentThemes; track t.id) {
+                    <button
+                      (click)="theme.setAccent(t.id)"
+                      [title]="t.label"
+                      class="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
+                      [style.background-color]="t.color"
+                      [class]="theme.accentTheme() === t.id
+                        ? 'border-gray-900 dark:border-white scale-110'
+                        : 'border-transparent'"
+                    ></button>
+                  }
+                </div>
+              </div>
             </div>
           </section>
 
@@ -74,7 +93,7 @@ type SettingsTab = 'general' | 'account';
                 </p>
                 <button
                   (click)="pwa.promptInstall()"
-                  class="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700"
+                  class="inline-flex items-center gap-1.5 rounded-md bg-accent-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-accent-700"
                 >
                   <fa-icon [icon]="faFileArrowDown" size="sm" />
                   Install NoteFlow
@@ -106,7 +125,7 @@ type SettingsTab = 'general' | 'account';
                 <button
                   (click)="toggleSkipRecycleBin()"
                   class="relative h-5 w-9 shrink-0 rounded-full transition-colors"
-                  [class]="skipRecycleBin() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                  [class]="skipRecycleBin() ? 'bg-accent-600' : 'bg-gray-300 dark:bg-gray-600'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
@@ -129,7 +148,7 @@ type SettingsTab = 'general' | 'account';
                 <button
                   (click)="editorPrefs.toggleToolbar()"
                   class="relative h-5 w-9 rounded-full transition-colors"
-                  [class]="editorPrefs.showToolbar() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                  [class]="editorPrefs.showToolbar() ? 'bg-accent-600' : 'bg-gray-300 dark:bg-gray-600'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
@@ -142,7 +161,7 @@ type SettingsTab = 'general' | 'account';
                 <button
                   (click)="editorPrefs.toggleSerif()"
                   class="relative h-5 w-9 rounded-full transition-colors"
-                  [class]="editorPrefs.serifMode() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                  [class]="editorPrefs.serifMode() ? 'bg-accent-600' : 'bg-gray-300 dark:bg-gray-600'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
@@ -155,7 +174,7 @@ type SettingsTab = 'general' | 'account';
                 <button
                   (click)="editorPrefs.toggleMetadata()"
                   class="relative h-5 w-9 rounded-full transition-colors"
-                  [class]="editorPrefs.showMetadata() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                  [class]="editorPrefs.showMetadata() ? 'bg-accent-600' : 'bg-gray-300 dark:bg-gray-600'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
@@ -171,7 +190,7 @@ type SettingsTab = 'general' | 'account';
                 <button
                   (click)="editorPrefs.toggleTypography()"
                   class="relative h-5 w-9 shrink-0 rounded-full transition-colors"
-                  [class]="editorPrefs.typographyMode() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                  [class]="editorPrefs.typographyMode() ? 'bg-accent-600' : 'bg-gray-300 dark:bg-gray-600'"
                 >
                   <span
                     class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
@@ -184,7 +203,7 @@ type SettingsTab = 'general' | 'account';
                 <select
                   [value]="editorPrefs.fontSize()"
                   (change)="editorPrefs.setFontSize($any($event.target).value)"
-                  class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
+                  class="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm text-gray-700 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
                 >
                   <option value="default">Default</option>
                   <option value="large">Large</option>
@@ -213,21 +232,21 @@ type SettingsTab = 'general' | 'account';
                 placeholder="Current password"
                 [(ngModel)]="currentPassword"
                 name="currentPassword"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               />
               <input
                 type="password"
                 placeholder="New password (min 8 characters)"
                 [(ngModel)]="newPassword"
                 name="newPassword"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               />
               <input
                 type="password"
                 placeholder="Confirm new password"
                 [(ngModel)]="confirmPassword"
                 name="confirmPassword"
-                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               />
               @if (passwordError()) {
                 <p class="text-xs text-red-600 dark:text-red-400">{{ passwordError() }}</p>
@@ -238,7 +257,7 @@ type SettingsTab = 'general' | 'account';
               <button
                 type="submit"
                 [disabled]="changingPassword()"
-                class="rounded-md bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                class="rounded-md bg-accent-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
               >
                 {{ changingPassword() ? 'Changing...' : 'Change Password' }}
               </button>
@@ -386,6 +405,14 @@ export class SettingsDialog {
   protected faUserGear = faUserGear;
 
   protected tab = signal<SettingsTab>('general');
+
+  protected accentThemes: { id: AccentTheme; label: string; color: string }[] = [
+    { id: 'ocean',    label: 'Ocean',    color: '#3b82f6' },
+    { id: 'forest',   label: 'Forest',   color: '#10b981' },
+    { id: 'sunset',   label: 'Sunset',   color: '#f59e0b' },
+    { id: 'lavender', label: 'Lavender', color: '#8b5cf6' },
+    { id: 'rose',     label: 'Rose',     color: '#f43f5e' },
+  ];
 
   protected exportJsonUrl = `${environment.apiUrl}/auth/export/json`;
   protected exportMarkdownUrl = `${environment.apiUrl}/auth/export/markdown`;

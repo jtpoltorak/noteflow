@@ -18,9 +18,9 @@ export type SelectedTemplate = { name: string; content: string } | null;
         <!-- Blank note (default/prominent) -->
         <button
           (click)="selected.emit(null)"
-          class="flex w-full items-center gap-3 rounded-lg border-2 border-blue-200 bg-blue-50 px-4 py-3 text-left transition-colors hover:border-blue-400 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:hover:border-blue-600 dark:hover:bg-blue-900/50"
+          class="flex w-full items-center gap-3 rounded-lg border-2 border-accent-200 bg-accent-50 px-4 py-3 text-left transition-colors hover:border-accent-400 hover:bg-accent-100 dark:border-accent-800 dark:bg-accent-900/30 dark:hover:border-accent-600 dark:hover:bg-accent-900/50"
         >
-          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400">
             <fa-icon [icon]="faFile" />
           </div>
           <div>
@@ -52,7 +52,7 @@ export type SelectedTemplate = { name: string; content: string } | null;
                   </button>
                   <button
                     (click)="renameTemplate(tmpl.id, tmpl.name)"
-                    class="shrink-0 rounded p-1.5 text-gray-300 opacity-0 transition-opacity hover:text-blue-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:text-blue-400"
+                    class="shrink-0 rounded p-1.5 text-gray-300 opacity-0 transition-opacity hover:text-accent-500 group-hover:opacity-100 dark:text-gray-600 dark:hover:text-accent-400"
                     title="Rename template"
                   >
                     <fa-icon [icon]="faPen" size="xs" />

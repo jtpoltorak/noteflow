@@ -11,7 +11,7 @@ import { ToastService } from './toast.service';
           @if (toast.action) {
             <button
               (click)="toast.action!.callback(); toastSvc.dismiss(toast.id)"
-              class="font-semibold text-blue-300 hover:text-blue-200"
+              class="font-semibold text-accent-300 hover:text-accent-200"
             >{{ toast.action!.label }}</button>
           }
           <button

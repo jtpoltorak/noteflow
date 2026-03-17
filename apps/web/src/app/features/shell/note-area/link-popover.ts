@@ -24,7 +24,7 @@ export type LinkPopoverResult =
           (click)="mode.set('url')"
           class="flex flex-1 items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors"
           [class]="mode() === 'url'
-            ? 'border-b-2 border-blue-500 text-blue-600 dark:text-blue-400'
+            ? 'border-b-2 border-accent-500 text-accent-600 dark:text-accent-400'
             : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
         >
           <fa-icon [icon]="faGlobe" size="xs" />
@@ -51,7 +51,7 @@ export type LinkPopoverResult =
             [value]="urlValue()"
             (input)="urlValue.set($any($event.target).value)"
             (keydown)="onUrlKeyDown($event)"
-            class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+            class="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-sm text-gray-800 placeholder-gray-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
             placeholder="https://..."
           />
           <div class="mt-1.5 flex justify-end gap-1.5">
@@ -62,7 +62,7 @@ export type LinkPopoverResult =
             <button
               (click)="submitUrl()"
               [disabled]="!urlValue().trim()"
-              class="rounded bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-40"
+              class="rounded bg-accent-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-accent-700 disabled:opacity-40"
             >Apply</button>
           </div>
         </div>

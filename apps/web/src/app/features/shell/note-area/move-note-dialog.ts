@@ -24,10 +24,10 @@ import type { NotebookDto, SectionDto } from '@noteflow/shared-types';
               <button
                 (click)="selectNotebook(nb)"
                 class="flex w-full items-center rounded px-3 py-2 text-sm transition-colors"
-                [class.bg-blue-50]="selectedNotebookId() === nb.id"
-                [class.dark:bg-blue-900/30]="selectedNotebookId() === nb.id"
-                [class.text-blue-700]="selectedNotebookId() === nb.id"
-                [class.dark:text-blue-300]="selectedNotebookId() === nb.id"
+                [class.bg-accent-50]="selectedNotebookId() === nb.id"
+                [class.dark:bg-accent-900/30]="selectedNotebookId() === nb.id"
+                [class.text-accent-700]="selectedNotebookId() === nb.id"
+                [class.dark:text-accent-300]="selectedNotebookId() === nb.id"
                 [class.text-gray-700]="selectedNotebookId() !== nb.id"
                 [class.dark:text-gray-200]="selectedNotebookId() !== nb.id"
                 [class.hover:bg-gray-100]="selectedNotebookId() !== nb.id"
@@ -60,10 +60,10 @@ import type { NotebookDto, SectionDto } from '@noteflow/shared-types';
                         <button
                           (click)="selectSection(sec)"
                           class="flex w-full items-center rounded px-3 py-1.5 text-sm transition-colors"
-                          [class.bg-blue-100]="selectedSectionId() === sec.id"
-                          [class.dark:bg-blue-900/40]="selectedSectionId() === sec.id"
-                          [class.text-blue-700]="selectedSectionId() === sec.id"
-                          [class.dark:text-blue-300]="selectedSectionId() === sec.id"
+                          [class.bg-accent-100]="selectedSectionId() === sec.id"
+                          [class.dark:bg-accent-900/40]="selectedSectionId() === sec.id"
+                          [class.text-accent-700]="selectedSectionId() === sec.id"
+                          [class.dark:text-accent-300]="selectedSectionId() === sec.id"
                           [class.text-gray-600]="selectedSectionId() !== sec.id"
                           [class.dark:text-gray-300]="selectedSectionId() !== sec.id"
                           [class.hover:bg-gray-100]="selectedSectionId() !== sec.id"
@@ -91,7 +91,7 @@ import type { NotebookDto, SectionDto } from '@noteflow/shared-types';
         <div class="mt-4 flex justify-end border-t border-gray-200 pt-3 dark:border-gray-700">
           <button
             (click)="moved.emit(selectedSectionId()!)"
-            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            class="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Move here
           </button>

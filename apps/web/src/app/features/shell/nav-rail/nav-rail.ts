@@ -13,7 +13,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('favorites')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'favorites'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Favorites"
       >
@@ -23,7 +23,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('notes')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'notes'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Notes"
       >
@@ -33,7 +33,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('shared')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'shared'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Shared"
       >
@@ -43,7 +43,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('tags')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'tags'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Tags"
       >
@@ -53,7 +53,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('search')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'search'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Search"
       >
@@ -64,7 +64,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('archive')"
         class="flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'archive'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Archive"
       >
@@ -74,7 +74,7 @@ export type ShellMode = 'favorites' | 'notes' | 'shared' | 'tags' | 'search' | '
         (click)="modeChange.emit('recycle-bin')"
         class="mb-2 flex h-10 w-10 items-center justify-center rounded-lg transition-colors"
         [class]="mode() === 'recycle-bin'
-          ? 'bg-white text-blue-600 shadow-sm dark:bg-gray-700 dark:text-blue-400'
+          ? 'bg-white text-accent-600 shadow-sm dark:bg-gray-700 dark:text-accent-400'
           : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
         title="Recycle Bin"
       >

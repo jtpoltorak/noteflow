@@ -21,10 +21,10 @@ import type { NotebookDto } from '@noteflow/shared-types';
             <button
               (click)="selectedId.set(nb.id)"
               class="flex w-full items-center rounded px-3 py-2 text-sm transition-colors"
-              [class.bg-blue-50]="selectedId() === nb.id"
-              [class.dark:bg-blue-900/30]="selectedId() === nb.id"
-              [class.text-blue-700]="selectedId() === nb.id"
-              [class.dark:text-blue-300]="selectedId() === nb.id"
+              [class.bg-accent-50]="selectedId() === nb.id"
+              [class.dark:bg-accent-900/30]="selectedId() === nb.id"
+              [class.text-accent-700]="selectedId() === nb.id"
+              [class.dark:text-accent-300]="selectedId() === nb.id"
               [class.text-gray-700]="selectedId() !== nb.id"
               [class.dark:text-gray-200]="selectedId() !== nb.id"
               [class.hover:bg-gray-100]="selectedId() !== nb.id"
@@ -43,7 +43,7 @@ import type { NotebookDto } from '@noteflow/shared-types';
         <div class="mt-4 flex justify-end border-t border-gray-200 pt-3 dark:border-gray-700">
           <button
             (click)="moved.emit(selectedId()!)"
-            class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            class="rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
           >
             Move here
           </button>

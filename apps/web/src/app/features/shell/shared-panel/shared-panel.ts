@@ -49,7 +49,7 @@ import type { SharedNoteListDto } from '@noteflow/shared-types';
                     class="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                     [title]="copiedId() === note.id ? 'Copied!' : 'Copy share link'"
                   >
-                    <fa-icon [icon]="copiedId() === note.id ? faShareNodes : faCopy" size="sm" [class]="copiedId() === note.id ? 'text-blue-500' : ''" />
+                    <fa-icon [icon]="copiedId() === note.id ? faShareNodes : faCopy" size="sm" [class]="copiedId() === note.id ? 'text-accent-500' : ''" />
                   </button>
                 </div>
               </li>

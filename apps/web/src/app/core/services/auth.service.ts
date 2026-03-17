@@ -22,7 +22,7 @@ export class AuthService {
       .get<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/me`)
       .pipe(tap((res) => {
         this.currentUser.set(res.data);
-        this.theme.init(res.data.darkMode);
+        this.theme.init(res.data.darkMode, res.data.accentTheme);
       }));
   }
 
@@ -31,7 +31,7 @@ export class AuthService {
       .post<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/register`, { email, password })
       .pipe(tap((res) => {
         this.currentUser.set(res.data);
-        this.theme.init(res.data.darkMode);
+        this.theme.init(res.data.darkMode, res.data.accentTheme);
       }));
   }
 
@@ -40,7 +40,7 @@ export class AuthService {
       .post<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/login`, { email, password })
       .pipe(tap((res) => {
         this.currentUser.set(res.data);
-        this.theme.init(res.data.darkMode);
+        this.theme.init(res.data.darkMode, res.data.accentTheme);
       }));
   }
 

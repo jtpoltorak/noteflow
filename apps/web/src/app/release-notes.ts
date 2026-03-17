@@ -6,6 +6,16 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.11.0',
+    date: '2026-03-17',
+    items: [
+      'Accent color themes — choose from Ocean (blue), Forest (green), Sunset (amber), Lavender (purple), or Rose (pink)',
+      'Theme picker with color swatches in Settings > General > Appearance',
+      'Accent colors apply across the entire app including the editor, tree view, navigation, and dialogs',
+      'Works with both light and dark modes for 10 visual combinations',
+    ],
+  },
+  {
     version: '0.10.0',
     date: '2026-03-17',
     items: [

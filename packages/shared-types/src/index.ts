@@ -66,11 +66,14 @@ export interface UpdateUserTemplateDto {
 
 // ── Response DTOs ─────────────────────────────────────────────
 
+export type AccentTheme = 'ocean' | 'forest' | 'sunset' | 'lavender' | 'rose';
+
 export interface UserDto {
   id: number;
   email: string;
   darkMode: boolean;
   skipRecycleBin: boolean;
+  accentTheme: AccentTheme;
   deleteRequestedAt: string | null;
 }
 

@@ -43,7 +43,7 @@ export interface QuickNoteResult {
             [(ngModel)]="title"
             maxlength="75"
             placeholder="Note title"
-            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+            class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
           />
         </div>
 
@@ -54,7 +54,7 @@ export interface QuickNoteResult {
             <select
               [(ngModel)]="selectedNotebookId"
               (ngModelChange)="onNotebookChange($event)"
-              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             >
               @for (nb of notebooks(); track nb.id) {
                 <option [value]="nb.id">{{ nb.title }}</option>
@@ -65,7 +65,7 @@ export interface QuickNoteResult {
             <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Section</label>
             <select
               [(ngModel)]="selectedSectionId"
-              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               [disabled]="sections().length === 0"
             >
               @for (sec of sections(); track sec.id) {
@@ -87,8 +87,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBold().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('bold')"
-                [class.dark:bg-blue-900]="editor.isActive('bold')"
+                [class.bg-accent-100]="editor.isActive('bold')"
+                [class.dark:bg-accent-900]="editor.isActive('bold')"
                 [class.text-gray-600]="!editor.isActive('bold')"
                 [class.dark:text-gray-300]="!editor.isActive('bold')"
                 [class.hover:bg-gray-200]="!editor.isActive('bold')"
@@ -98,8 +98,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleItalic().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('italic')"
-                [class.dark:bg-blue-900]="editor.isActive('italic')"
+                [class.bg-accent-100]="editor.isActive('italic')"
+                [class.dark:bg-accent-900]="editor.isActive('italic')"
                 [class.text-gray-600]="!editor.isActive('italic')"
                 [class.dark:text-gray-300]="!editor.isActive('italic')"
                 [class.hover:bg-gray-200]="!editor.isActive('italic')"
@@ -109,8 +109,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleUnderline().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('underline')"
-                [class.dark:bg-blue-900]="editor.isActive('underline')"
+                [class.bg-accent-100]="editor.isActive('underline')"
+                [class.dark:bg-accent-900]="editor.isActive('underline')"
                 [class.text-gray-600]="!editor.isActive('underline')"
                 [class.dark:text-gray-300]="!editor.isActive('underline')"
                 [class.hover:bg-gray-200]="!editor.isActive('underline')"
@@ -120,8 +120,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleStrike().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('strike')"
-                [class.dark:bg-blue-900]="editor.isActive('strike')"
+                [class.bg-accent-100]="editor.isActive('strike')"
+                [class.dark:bg-accent-900]="editor.isActive('strike')"
                 [class.text-gray-600]="!editor.isActive('strike')"
                 [class.dark:text-gray-300]="!editor.isActive('strike')"
                 [class.hover:bg-gray-200]="!editor.isActive('strike')"
@@ -134,8 +134,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleBulletList().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('bulletList')"
-                [class.dark:bg-blue-900]="editor.isActive('bulletList')"
+                [class.bg-accent-100]="editor.isActive('bulletList')"
+                [class.dark:bg-accent-900]="editor.isActive('bulletList')"
                 [class.text-gray-600]="!editor.isActive('bulletList')"
                 [class.dark:text-gray-300]="!editor.isActive('bulletList')"
                 [class.hover:bg-gray-200]="!editor.isActive('bulletList')"
@@ -145,8 +145,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleOrderedList().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('orderedList')"
-                [class.dark:bg-blue-900]="editor.isActive('orderedList')"
+                [class.bg-accent-100]="editor.isActive('orderedList')"
+                [class.dark:bg-accent-900]="editor.isActive('orderedList')"
                 [class.text-gray-600]="!editor.isActive('orderedList')"
                 [class.dark:text-gray-300]="!editor.isActive('orderedList')"
                 [class.hover:bg-gray-200]="!editor.isActive('orderedList')"
@@ -156,8 +156,8 @@ export interface QuickNoteResult {
               <button
                 (mousedown)="$event.preventDefault(); editor.chain().focus().toggleTaskList().run()"
                 class="rounded px-1.5 py-0.5"
-                [class.bg-blue-100]="editor.isActive('taskList')"
-                [class.dark:bg-blue-900]="editor.isActive('taskList')"
+                [class.bg-accent-100]="editor.isActive('taskList')"
+                [class.dark:bg-accent-900]="editor.isActive('taskList')"
                 [class.text-gray-600]="!editor.isActive('taskList')"
                 [class.dark:text-gray-300]="!editor.isActive('taskList')"
                 [class.hover:bg-gray-200]="!editor.isActive('taskList')"
@@ -186,7 +186,7 @@ export interface QuickNoteResult {
           <button
             (click)="create()"
             [disabled]="!canCreate()"
-            class="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            class="rounded bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Create
           </button>
