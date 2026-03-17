@@ -298,7 +298,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
           </main>
 
           @if (helpOpen() && !editorFullscreen()) {
-            <aside class="flex w-80 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+            <aside class="flex w-96 flex-col border-l border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
               <app-help-panel (close)="helpOpen.set(false)" (releaseNotes)="showReleaseNotes.set(true)" />
             </aside>
           }
