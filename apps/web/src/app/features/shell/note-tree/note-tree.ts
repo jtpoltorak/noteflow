@@ -56,7 +56,7 @@ import type { TreeNode } from './tree-node.model';
           [attr.data-level]="node.level"
           [attr.data-last-child]="node.isLastChild"
           class="tree-node group flex items-center rounded py-1 pr-1 text-sm cursor-pointer dark:text-gray-200"
-          [style.padding-left.px]="node.level * 20 + 4"
+          [style.padding-left.px]="node.level * 20 + 4 + (node.type === 'note' ? 4 : 0)"
           [class.bg-blue-100]="isSelected(node)"
           [class.dark:bg-blue-900/40]="isSelected(node)"
           [class.hover:bg-gray-100]="!isSelected(node)"
@@ -80,7 +80,7 @@ import type { TreeNode } from './tree-node.model';
                 <fa-icon [icon]="isExpanded(node) ? faMinus : faPlus" size="2xs" />
               }
             </button>
-          } @else {
+          } @else if (node.type !== 'note') {
             <span class="mr-0.5 h-5 w-5 shrink-0"></span>
           }
 
