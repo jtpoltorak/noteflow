@@ -19,10 +19,9 @@ import type { DeletedNotebookDto, DeletedSectionDto, DeletedNoteDto } from '@not
         @if (totalItems() > 0) {
           <button
             (click)="confirmingEmpty.set(true)"
-            class="rounded p-1 text-xs text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-            title="Empty recycle bin"
+            class="rounded px-2 py-0.5 text-xs font-medium text-red-500 hover:bg-red-50 hover:text-red-600 dark:text-red-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
           >
-            <fa-icon [icon]="faTrash" size="sm" />
+            Empty Bin
           </button>
         }
       </div>
