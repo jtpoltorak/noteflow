@@ -1,6 +1,6 @@
 import { Component, ElementRef, inject, signal, computed, viewChild, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faBook, faLayerGroup, faStickyNote, faPlus, faMinus, faPen, faTrash, faChevronLeft, faSpinner, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faBook, faLayerGroup, faStickyNote, faPlus, faMinus, faPen, faTrash, faChevronLeft, faSpinner, faLock, faAnglesDown, faAnglesUp } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { TreeStateService } from './tree-state.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -21,6 +21,13 @@ import type { TreeNode } from './tree-node.model';
           title="Collapse panel"
         >
           <fa-icon [icon]="faChevronLeft" size="xs" />
+        </button>
+        <button
+          (click)="toggleExpandAll()"
+          class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+          [title]="isAnyExpanded() ? 'Collapse all' : 'Expand all'"
+        >
+          <fa-icon [icon]="isAnyExpanded() ? faAnglesUp : faAnglesDown" size="sm" />
         </button>
         <button
           (click)="startCreatingNotebook()"
@@ -190,6 +197,10 @@ export class NoteTree {
   protected faStickyNote = faStickyNote;
   protected faPlus = faPlus;
   protected faMinus = faMinus;
+  protected faAnglesDown = faAnglesDown;
+  protected faAnglesUp = faAnglesUp;
+
+  protected isAnyExpanded = computed(() => this.tree.expandedNotebooks().size > 0);
   protected faPen = faPen;
   protected faTrash = faTrash;
   protected faChevronLeft = faChevronLeft;
@@ -235,6 +246,14 @@ export class NoteTree {
   }
 
   // ── Node interactions ───────────────────────────────────────
+
+  protected toggleExpandAll(): void {
+    if (this.isAnyExpanded()) {
+      this.tree.collapseAll();
+    } else {
+      this.tree.expandAll();
+    }
+  }
 
   protected onNodeClick(node: TreeNode, event: Event): void {
     this.tree.selectNode(node);

@@ -22,6 +22,9 @@ export class TreeStateService {
   // ── Loading indicators ──────────────────────────────────────
   readonly loadingIds = signal<Set<string>>(new Set());
 
+  // ── Expand-all flag (drives auto-expand on fetch completion) ─
+  private expandAllActive = false;
+
   // ── Inline create/rename state ──────────────────────────────
   readonly creatingUnder = signal<{ type: 'notebook' | 'section'; id: number } | null>(null);
   readonly editingNode = signal<{ type: 'notebook' | 'section' | 'note'; id: number } | null>(null);
@@ -157,6 +160,45 @@ export class TreeStateService {
     });
   }
 
+  // ── Expand / Collapse all ───────────────────────────────────
+
+  expandAll(): void {
+    this.expandAllActive = true;
+    const notebooks = this.state.notebooks();
+    const nbIds = notebooks.map((nb) => nb.id);
+
+    // Expand all notebooks and fetch sections for any not yet cached
+    this.expandedNotebooks.set(new Set(nbIds));
+    for (const id of nbIds) {
+      if (!this.sectionCache().has(id)) {
+        this.fetchSections(id);
+      }
+    }
+
+    // Expand all cached sections and fetch notes for any not yet cached
+    this.expandCachedSections();
+  }
+
+  collapseAll(): void {
+    this.expandAllActive = false;
+    this.expandedNotebooks.set(new Set());
+    this.expandedSections.set(new Set());
+  }
+
+  /** Expand all sections currently in cache and fetch their notes. */
+  private expandCachedSections(): void {
+    const allSectionIds: number[] = [];
+    for (const [, sections] of this.sectionCache()) {
+      for (const sec of sections) {
+        allSectionIds.push(sec.id);
+        if (!this.noteCache().has(sec.id)) {
+          this.fetchNotes(sec.id);
+        }
+      }
+    }
+    this.expandedSections.set(new Set(allSectionIds));
+  }
+
   // ── Selection ───────────────────────────────────────────────
 
   selectNode(node: TreeNode): void {
@@ -240,6 +282,10 @@ export class TreeStateService {
           next.delete(key);
           return next;
         });
+        // If expand-all is active, expand the newly fetched sections too
+        if (this.expandAllActive) {
+          this.expandCachedSections();
+        }
       },
       error: () => {
         this.loadingIds.update((s) => {
