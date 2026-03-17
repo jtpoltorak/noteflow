@@ -6,6 +6,15 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.10.0',
+    date: '2026-03-17',
+    items: [
+      'Automatic 30-day purge for Recycle Bin items — deleted items are permanently removed after 30 days (runs daily)',
+      '"Delete items immediately" setting in Settings > General > Storage — skip the Recycle Bin and permanently delete items right away',
+      'Dynamic confirmation dialogs and toast messages that adapt based on your delete preference',
+    ],
+  },
+  {
     version: '0.9.0',
     date: '2026-03-16',
     items: [

@@ -212,6 +212,7 @@ import { APP_VERSION } from '../../../version';
           <li>Restore any item to put it back where it was</li>
           <li>Permanently delete individual items, or empty the entire bin</li>
           <li>A toast notification with an <strong>Undo</strong> button appears after every delete</li>
+          <li>Enable <strong>"Delete items immediately"</strong> in Settings &gt; General &gt; Storage to skip the Recycle Bin and permanently delete items right away</li>
         </ul>
       </section>
 

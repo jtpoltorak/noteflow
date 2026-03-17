@@ -4,6 +4,7 @@ import { NotebookService } from '../../core/services/notebook.service';
 import { SectionService } from '../../core/services/section.service';
 import { NoteService } from '../../core/services/note.service';
 import { RecycleBinService } from '../../core/services/recycle-bin.service';
+import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../shared/toast/toast.service';
 import type { NotebookDto, SectionDto, NoteDto } from '@noteflow/shared-types';
 
@@ -13,6 +14,7 @@ export class ShellStateService {
   private sectionSvc = inject(SectionService);
   private noteSvc = inject(NoteService);
   private recycleBinSvc = inject(RecycleBinService);
+  private auth = inject(AuthService);
   private toast = inject(ToastService);
 
   // ── Data arrays ───────────────────────────────────────────────
@@ -154,7 +156,8 @@ export class ShellStateService {
 
   deleteNotebook(id: number): void {
     const nb = this.notebooks().find((n) => n.id === id);
-    this.notebookSvc.delete(id).subscribe(() => {
+    const permanent = this.auth.user()?.skipRecycleBin ?? false;
+    this.notebookSvc.delete(id, permanent).subscribe(() => {
       this.notebooks.update((list) => list.filter((n) => n.id !== id));
       if (this.selectedNotebookId() === id) {
         this.selectedNotebookId.set(null);
@@ -163,10 +166,14 @@ export class ShellStateService {
         this.sections.set([]);
         this.notes.set([]);
       }
-      this.toast.show(
-        `"${nb?.title ?? 'Notebook'}" moved to Recycle Bin`,
-        { label: 'Undo', callback: () => this.undoDeleteNotebook(id) }
-      );
+      if (permanent) {
+        this.toast.show(`"${nb?.title ?? 'Notebook'}" permanently deleted`);
+      } else {
+        this.toast.show(
+          `"${nb?.title ?? 'Notebook'}" moved to Recycle Bin`,
+          { label: 'Undo', callback: () => this.undoDeleteNotebook(id) }
+        );
+      }
     });
   }
 
@@ -208,17 +215,22 @@ export class ShellStateService {
   deleteSection(id: number): void {
     const sec = this.sections().find((s) => s.id === id);
     const nbId = this.selectedNotebookId();
-    this.sectionSvc.delete(id).subscribe(() => {
+    const permanent = this.auth.user()?.skipRecycleBin ?? false;
+    this.sectionSvc.delete(id, permanent).subscribe(() => {
       this.sections.update((list) => list.filter((s) => s.id !== id));
       if (this.selectedSectionId() === id) {
         this.selectedSectionId.set(null);
         this.selectedNoteId.set(null);
         this.notes.set([]);
       }
-      this.toast.show(
-        `"${sec?.title ?? 'Section'}" moved to Recycle Bin`,
-        { label: 'Undo', callback: () => this.undoDeleteSection(id, nbId) }
-      );
+      if (permanent) {
+        this.toast.show(`"${sec?.title ?? 'Section'}" permanently deleted`);
+      } else {
+        this.toast.show(
+          `"${sec?.title ?? 'Section'}" moved to Recycle Bin`,
+          { label: 'Undo', callback: () => this.undoDeleteSection(id, nbId) }
+        );
+      }
     });
   }
 
@@ -329,15 +341,20 @@ export class ShellStateService {
   deleteNote(id: number): void {
     const note = this.notes().find((n) => n.id === id);
     const secId = this.selectedSectionId();
-    this.noteSvc.delete(id).subscribe(() => {
+    const permanent = this.auth.user()?.skipRecycleBin ?? false;
+    this.noteSvc.delete(id, permanent).subscribe(() => {
       this.notes.update((list) => list.filter((n) => n.id !== id));
       if (this.selectedNoteId() === id) {
         this.selectedNoteId.set(null);
       }
-      this.toast.show(
-        `"${note?.title ?? 'Note'}" moved to Recycle Bin`,
-        { label: 'Undo', callback: () => this.undoDeleteNote(id, secId) }
-      );
+      if (permanent) {
+        this.toast.show(`"${note?.title ?? 'Note'}" permanently deleted`);
+      } else {
+        this.toast.show(
+          `"${note?.title ?? 'Note'}" moved to Recycle Bin`,
+          { label: 'Undo', callback: () => this.undoDeleteNote(id, secId) }
+        );
+      }
     });
   }
 

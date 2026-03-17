@@ -46,7 +46,8 @@ router.put("/sections/:id", validate(updateSchema), (req: Request, res: Response
 
 // DELETE /sections/:id
 router.delete("/sections/:id", (req: Request, res: Response) => {
-  deleteSection(Number(req.params.id), req.user!.id);
+  const permanent = req.query.permanent === "true";
+  deleteSection(Number(req.params.id), req.user!.id, permanent);
   res.json({ data: null, message: "Section deleted" });
 });
 

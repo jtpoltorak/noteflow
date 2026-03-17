@@ -33,8 +33,9 @@ export class NoteService {
       .pipe(map((r) => r.data));
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/notes/${id}`);
+  delete(id: number, permanent = false): Observable<void> {
+    const url = permanent ? `${this.api}/notes/${id}?permanent=true` : `${this.api}/notes/${id}`;
+    return this.http.delete<void>(url);
   }
 
   archive(id: number): Observable<void> {

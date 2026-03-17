@@ -89,6 +89,13 @@ export class AuthService {
       );
   }
 
+  /** Update user preferences and refresh local state. */
+  updatePreferences(prefs: { darkMode?: boolean; skipRecycleBin?: boolean }): Observable<ApiSuccessResponse<UserDto>> {
+    return this.http
+      .put<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/preferences`, prefs)
+      .pipe(tap((res) => this.currentUser.set(res.data)));
+  }
+
   /** Clear local state and redirect to login without making an HTTP call. */
   clearAndRedirect(): void {
     this.currentUser.set(null);

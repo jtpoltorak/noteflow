@@ -25,7 +25,8 @@ export class NotebookService {
     return this.http.put<ApiSuccessResponse<NotebookDto>>(`${this.base}/${id}`, updates).pipe(map((r) => r.data));
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.base}/${id}`);
+  delete(id: number, permanent = false): Observable<void> {
+    const url = permanent ? `${this.base}/${id}?permanent=true` : `${this.base}/${id}`;
+    return this.http.delete<void>(url);
   }
 }

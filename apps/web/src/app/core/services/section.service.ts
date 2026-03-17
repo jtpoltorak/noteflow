@@ -27,7 +27,8 @@ export class SectionService {
       .pipe(map((r) => r.data));
   }
 
-  delete(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.api}/sections/${id}`);
+  delete(id: number, permanent = false): Observable<void> {
+    const url = permanent ? `${this.api}/sections/${id}?permanent=true` : `${this.api}/sections/${id}`;
+    return this.http.delete<void>(url);
   }
 }

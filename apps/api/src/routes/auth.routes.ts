@@ -31,6 +31,7 @@ const loginSchema = z.object({
 
 const preferencesSchema = z.object({
   darkMode: z.boolean().optional(),
+  skipRecycleBin: z.boolean().optional(),
 });
 
 const changePasswordSchema = z.object({

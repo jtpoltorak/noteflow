@@ -126,12 +126,16 @@ export function updateNote(
   return { ...existing, sectionId, title, content, order, updatedAt: now };
 }
 
-export function deleteNote(id: number, userId: number): void {
+export function deleteNote(id: number, userId: number, permanent = false): void {
   getNoteRaw(id, userId); // verifies ownership
 
   const db = getDb();
-  const now = new Date().toISOString();
-  db.run("UPDATE Note SET deletedAt = ? WHERE id = ?", [now, id]);
+  if (permanent) {
+    db.run("DELETE FROM Note WHERE id = ?", [id]);
+  } else {
+    const now = new Date().toISOString();
+    db.run("UPDATE Note SET deletedAt = ? WHERE id = ?", [now, id]);
+  }
   saveDb();
 }
 

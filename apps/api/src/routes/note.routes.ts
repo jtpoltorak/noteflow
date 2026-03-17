@@ -182,7 +182,8 @@ router.put("/notes/:id", validate(updateSchema), (req: Request, res: Response) =
 
 // DELETE /notes/:id
 router.delete("/notes/:id", (req: Request, res: Response) => {
-  deleteNote(Number(req.params.id), req.user!.id);
+  const permanent = req.query.permanent === "true";
+  deleteNote(Number(req.params.id), req.user!.id, permanent);
   res.json({ data: null, message: "Note deleted" });
 });
 

@@ -70,6 +70,7 @@ export interface UserDto {
   id: number;
   email: string;
   darkMode: boolean;
+  skipRecycleBin: boolean;
   deleteRequestedAt: string | null;
 }
 

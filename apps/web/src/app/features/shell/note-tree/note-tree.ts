@@ -1,8 +1,9 @@
-import { Component, ElementRef, inject, signal, viewChild, output } from '@angular/core';
+import { Component, ElementRef, inject, signal, computed, viewChild, output } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import { faBook, faLayerGroup, faStickyNote, faPlus, faMinus, faPen, faTrash, faChevronLeft, faSpinner, faLock } from '@fortawesome/free-solid-svg-icons';
 import { ShellStateService } from '../shell-state.service';
 import { TreeStateService } from './tree-state.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import type { TreeNode } from './tree-node.model';
 
@@ -130,7 +131,7 @@ import type { TreeNode } from './tree-node.model';
               <button
                 (click)="startDeleting(node, $event)"
                 class="rounded p-0.5 text-gray-400 hover:text-red-600"
-                title="Move to Recycle Bin"
+                [title]="skipRecycleBin() ? 'Delete permanently' : 'Move to Recycle Bin'"
               >
                 <fa-icon [icon]="faTrash" size="xs" />
               </button>
@@ -159,7 +160,7 @@ import type { TreeNode } from './tree-node.model';
           <div [style.padding-left.px]="node.level * 20 + 4">
             <app-confirm-dialog
               [message]="getDeleteMessage(node)"
-              confirmLabel="Move to Recycle Bin"
+              [confirmLabel]="skipRecycleBin() ? 'Delete permanently' : 'Move to Recycle Bin'"
               (confirmed)="confirmDelete(node)"
               (cancelled)="deletingNode.set(null)"
             />
@@ -178,8 +179,11 @@ import type { TreeNode } from './tree-node.model';
 export class NoteTree {
   protected state = inject(ShellStateService);
   protected tree = inject(TreeStateService);
+  private auth = inject(AuthService);
 
   collapse = output();
+
+  protected skipRecycleBin = computed(() => this.auth.user()?.skipRecycleBin ?? false);
 
   protected faBook = faBook;
   protected faLayerGroup = faLayerGroup;
@@ -337,9 +341,20 @@ export class NoteTree {
   }
 
   protected getDeleteMessage(node: TreeNode): string {
-    if (node.type === 'notebook') return `Move "${node.title}" and all its sections to the Recycle Bin?`;
-    if (node.type === 'section') return `Move "${node.title}" and all its notes to the Recycle Bin?`;
-    return `Move "${node.title}" to the Recycle Bin?`;
+    const perm = this.skipRecycleBin();
+    if (node.type === 'notebook') {
+      return perm
+        ? `Permanently delete "${node.title}" and all its sections? This cannot be undone.`
+        : `Move "${node.title}" and all its sections to the Recycle Bin?`;
+    }
+    if (node.type === 'section') {
+      return perm
+        ? `Permanently delete "${node.title}" and all its notes? This cannot be undone.`
+        : `Move "${node.title}" and all its notes to the Recycle Bin?`;
+    }
+    return perm
+      ? `Permanently delete "${node.title}"? This cannot be undone.`
+      : `Move "${node.title}" to the Recycle Bin?`;
   }
 
   protected confirmDelete(node: TreeNode): void {

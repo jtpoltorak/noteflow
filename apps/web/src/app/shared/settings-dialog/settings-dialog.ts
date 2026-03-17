@@ -94,6 +94,32 @@ type SettingsTab = 'general' | 'account';
             </section>
           }
 
+          <!-- Storage -->
+          <section>
+            <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Storage</h3>
+            <div class="space-y-1">
+              <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+                <div>
+                  <span class="text-sm text-gray-600 dark:text-gray-400">Delete items immediately</span>
+                  <p class="text-[11px] text-gray-400 dark:text-gray-500">Skip the Recycle Bin and permanently delete items right away.</p>
+                </div>
+                <button
+                  (click)="toggleSkipRecycleBin()"
+                  class="relative h-5 w-9 shrink-0 rounded-full transition-colors"
+                  [class]="skipRecycleBin() ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'"
+                >
+                  <span
+                    class="absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform"
+                    [class.translate-x-4]="skipRecycleBin()"
+                  ></span>
+                </button>
+              </div>
+              <p class="px-1 text-[11px] text-gray-400 dark:text-gray-500">
+                Items in the Recycle Bin are automatically purged after 30 days.
+              </p>
+            </div>
+          </section>
+
           <!-- Editor -->
           <section>
             <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Editor</h3>
@@ -379,6 +405,8 @@ export class SettingsDialog {
   protected showClosureConfirm = signal(false);
   protected reactivating = signal(false);
 
+  protected skipRecycleBin = computed(() => this.auth.user()?.skipRecycleBin ?? false);
+
   protected closurePending = computed(() => !!this.auth.user()?.deleteRequestedAt);
   protected closureDeletionDate = computed(() => {
     const deleteRequestedAt = this.auth.user()?.deleteRequestedAt;
@@ -387,6 +415,11 @@ export class SettingsDialog {
     d.setDate(d.getDate() + 7);
     return d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
   });
+
+  protected toggleSkipRecycleBin(): void {
+    const next = !this.skipRecycleBin();
+    this.auth.updatePreferences({ skipRecycleBin: next }).subscribe();
+  }
 
   protected onRequestClosure(): void {
     this.closureError.set('');

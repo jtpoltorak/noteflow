@@ -77,19 +77,24 @@ export function updateNotebook(
   return { ...existing, title, order, updatedAt: now };
 }
 
-export function deleteNotebook(id: number, userId: number): void {
+export function deleteNotebook(id: number, userId: number, permanent = false): void {
   // Verify ownership
   getNotebookById(id, userId);
 
   const db = getDb();
-  const now = new Date().toISOString();
-  // Soft-delete the notebook and cascade to its sections and notes
-  db.run("UPDATE Notebook SET deletedAt = ? WHERE id = ?", [now, id]);
-  db.run("UPDATE Section SET deletedAt = ? WHERE notebookId = ? AND deletedAt IS NULL", [now, id]);
-  db.run(
-    "UPDATE Note SET deletedAt = ? WHERE sectionId IN (SELECT id FROM Section WHERE notebookId = ?) AND deletedAt IS NULL",
-    [now, id]
-  );
+  if (permanent) {
+    // Hard delete — cascade via FK handles sections and notes
+    db.run("DELETE FROM Notebook WHERE id = ?", [id]);
+  } else {
+    const now = new Date().toISOString();
+    // Soft-delete the notebook and cascade to its sections and notes
+    db.run("UPDATE Notebook SET deletedAt = ? WHERE id = ?", [now, id]);
+    db.run("UPDATE Section SET deletedAt = ? WHERE notebookId = ? AND deletedAt IS NULL", [now, id]);
+    db.run(
+      "UPDATE Note SET deletedAt = ? WHERE sectionId IN (SELECT id FROM Section WHERE notebookId = ?) AND deletedAt IS NULL",
+      [now, id]
+    );
+  }
   saveDb();
 }
 

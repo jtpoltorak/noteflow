@@ -61,14 +61,14 @@ export function register(email: string, password: string): UserDto {
   const id = result[0].values[0][0] as number;
   const darkMode = (result[0].values[0][1] as number) === 1;
 
-  return { id, email, darkMode, deleteRequestedAt: null };
+  return { id, email, darkMode, skipRecycleBin: false, deleteRequestedAt: null };
 }
 
 export function login(email: string, password: string): UserDto {
   const db = getDb();
 
   const result = db.exec(
-    "SELECT id, email, passwordHash, darkMode, deleteRequestedAt FROM User WHERE email = ?",
+    "SELECT id, email, passwordHash, darkMode, deleteRequestedAt, skipRecycleBin FROM User WHERE email = ?",
     [email]
   );
 
@@ -82,19 +82,20 @@ export function login(email: string, password: string): UserDto {
   const passwordHash = row[2] as string;
   const darkMode = (row[3] as number) === 1;
   const deleteRequestedAt = (row[4] as string | null) ?? null;
+  const skipRecycleBin = (row[5] as number) === 1;
 
   const valid = bcrypt.compareSync(password, passwordHash);
   if (!valid) {
     throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
   }
 
-  return { id, email: userEmail, darkMode, deleteRequestedAt };
+  return { id, email: userEmail, darkMode, skipRecycleBin, deleteRequestedAt };
 }
 
 export function getUserById(id: number): UserDto {
   const db = getDb();
 
-  const result = db.exec("SELECT id, email, darkMode, deleteRequestedAt FROM User WHERE id = ?", [id]);
+  const result = db.exec("SELECT id, email, darkMode, deleteRequestedAt, skipRecycleBin FROM User WHERE id = ?", [id]);
 
   if (result.length === 0 || result[0].values.length === 0) {
     throw new AppError(404, "User not found", "NOT_FOUND");
@@ -105,18 +106,22 @@ export function getUserById(id: number): UserDto {
     id: row[0] as number,
     email: row[1] as string,
     darkMode: (row[2] as number) === 1,
+    skipRecycleBin: (row[4] as number) === 1,
     deleteRequestedAt: (row[3] as string | null) ?? null,
   };
 }
 
-export function updatePreferences(userId: number, prefs: { darkMode?: boolean }): UserDto {
+export function updatePreferences(userId: number, prefs: { darkMode?: boolean; skipRecycleBin?: boolean }): UserDto {
   const db = getDb();
 
   if (prefs.darkMode !== undefined) {
     db.run("UPDATE User SET darkMode = ? WHERE id = ?", [prefs.darkMode ? 1 : 0, userId]);
-    saveDb();
+  }
+  if (prefs.skipRecycleBin !== undefined) {
+    db.run("UPDATE User SET skipRecycleBin = ? WHERE id = ?", [prefs.skipRecycleBin ? 1 : 0, userId]);
   }
 
+  saveDb();
   return getUserById(userId);
 }
 

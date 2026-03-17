@@ -43,7 +43,8 @@ router.put("/:id", validate(updateSchema), (req: Request, res: Response) => {
 });
 
 router.delete("/:id", (req: Request, res: Response) => {
-  deleteNotebook(Number(req.params.id), req.user!.id);
+  const permanent = req.query.permanent === "true";
+  deleteNotebook(Number(req.params.id), req.user!.id, permanent);
   res.json({ data: null, message: "Notebook deleted" });
 });
 
