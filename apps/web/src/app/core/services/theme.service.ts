@@ -1,14 +1,14 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import type { ApiSuccessResponse, UserDto, AccentTheme } from '@noteflow/shared-types';
+import type { ApiSuccessResponse, UserDto, ColorTheme } from '@noteflow/shared-types';
 
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private http = inject(HttpClient);
 
   readonly darkMode = signal(false);
-  readonly accentTheme = signal<AccentTheme>('ocean');
+  readonly colorTheme = signal<ColorTheme>('default');
 
   constructor() {
     // Use system preference as initial default (before server pref loads)
@@ -18,13 +18,13 @@ export class ThemeService {
     }
   }
 
-  /** Load server-side preference (called after login/register/loadUser). */
-  init(darkMode: boolean, accentTheme?: AccentTheme): void {
+  /** Load server-side preferences (called after login/register/loadUser). */
+  init(darkMode: boolean, colorTheme?: ColorTheme): void {
     this.darkMode.set(darkMode);
     this.applyDarkClass(darkMode);
-    if (accentTheme) {
-      this.accentTheme.set(accentTheme);
-      this.applyAccent(accentTheme);
+    if (colorTheme) {
+      this.colorTheme.set(colorTheme);
+      this.applyTheme(colorTheme);
     }
   }
 
@@ -38,12 +38,12 @@ export class ThemeService {
       .subscribe();
   }
 
-  /** Set accent theme and persist to server. */
-  setAccent(theme: AccentTheme): void {
-    this.accentTheme.set(theme);
-    this.applyAccent(theme);
+  /** Set color theme and persist to server. */
+  setTheme(theme: ColorTheme): void {
+    this.colorTheme.set(theme);
+    this.applyTheme(theme);
     this.http
-      .put<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/preferences`, { accentTheme: theme })
+      .put<ApiSuccessResponse<UserDto>>(`${environment.apiUrl}/auth/preferences`, { colorTheme: theme })
       .subscribe();
   }
 
@@ -55,11 +55,11 @@ export class ThemeService {
     }
   }
 
-  private applyAccent(theme: AccentTheme): void {
-    if (theme === 'ocean') {
-      document.documentElement.removeAttribute('data-accent');
+  private applyTheme(theme: ColorTheme): void {
+    if (theme === 'default') {
+      document.documentElement.removeAttribute('data-theme');
     } else {
-      document.documentElement.setAttribute('data-accent', theme);
+      document.documentElement.setAttribute('data-theme', theme);
     }
   }
 }

@@ -5,7 +5,7 @@ import { faSun, faMoon, faFileExport, faFileArrowDown, faCircleCheck, faTriangle
 import { Modal } from '../modal/modal';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
-import type { AccentTheme } from '@noteflow/shared-types';
+import type { ColorTheme } from '@noteflow/shared-types';
 import { EditorPreferencesService } from '../../core/services/editor-preferences.service';
 import { PwaService } from '../../core/services/pwa.service';
 import { environment } from '../../../environments/environment';
@@ -50,36 +50,38 @@ type SettingsTab = 'general' | 'account';
           <!-- Appearance -->
           <section>
             <h3 class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">Appearance</h3>
-            <div class="space-y-1">
-              <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Theme</span>
+            <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
+              <span class="text-sm text-gray-600 dark:text-gray-400">Light / Dark</span>
+              <button
+                (click)="theme.toggle()"
+                class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                [class]="theme.darkMode()
+                  ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+              >
+                <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
+                {{ theme.darkMode() ? 'Dark' : 'Light' }}
+              </button>
+            </div>
+            <p class="mb-1.5 mt-2 text-xs text-gray-500 dark:text-gray-400">Color Theme</p>
+            <div class="grid grid-cols-4 gap-1.5">
+              @for (t of colorThemes; track t.id) {
                 <button
-                  (click)="theme.toggle()"
-                  class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
-                  [class]="theme.darkMode()
-                    ? 'bg-gray-700 text-yellow-300 hover:bg-gray-600'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                  (click)="theme.setTheme(t.id)"
+                  [title]="t.label"
+                  class="flex flex-col items-center gap-1 rounded-lg border-2 px-1 py-1.5 text-[10px] font-medium transition-all hover:scale-[1.03]"
+                  [class]="theme.colorTheme() === t.id
+                    ? 'border-accent-500 bg-accent-50 dark:bg-accent-950/30'
+                    : 'border-gray-200 hover:border-gray-300 dark:border-gray-600 dark:hover:border-gray-500'"
                 >
-                  <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" size="sm" />
-                  {{ theme.darkMode() ? 'Dark' : 'Light' }}
+                  <div class="flex h-5 w-full overflow-hidden rounded">
+                    <span class="flex-1" [style.background-color]="t.light"></span>
+                    <span class="flex-1" [style.background-color]="t.dark"></span>
+                    <span class="w-2.5" [style.background-color]="t.accent"></span>
+                  </div>
+                  <span class="text-gray-600 dark:text-gray-400">{{ t.label }}</span>
                 </button>
-              </div>
-              <div class="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-600">
-                <span class="text-sm text-gray-600 dark:text-gray-400">Accent Color</span>
-                <div class="flex gap-1.5">
-                  @for (t of accentThemes; track t.id) {
-                    <button
-                      (click)="theme.setAccent(t.id)"
-                      [title]="t.label"
-                      class="h-6 w-6 rounded-full border-2 transition-transform hover:scale-110"
-                      [style.background-color]="t.color"
-                      [class]="theme.accentTheme() === t.id
-                        ? 'border-gray-900 dark:border-white scale-110'
-                        : 'border-transparent'"
-                    ></button>
-                  }
-                </div>
-              </div>
+              }
             </div>
           </section>
 
@@ -406,12 +408,19 @@ export class SettingsDialog {
 
   protected tab = signal<SettingsTab>('general');
 
-  protected accentThemes: { id: AccentTheme; label: string; color: string }[] = [
-    { id: 'ocean',    label: 'Ocean',    color: '#3b82f6' },
-    { id: 'forest',   label: 'Forest',   color: '#10b981' },
-    { id: 'sunset',   label: 'Sunset',   color: '#f59e0b' },
-    { id: 'lavender', label: 'Lavender', color: '#8b5cf6' },
-    { id: 'rose',     label: 'Rose',     color: '#f43f5e' },
+  protected colorThemes: { id: ColorTheme; label: string; light: string; dark: string; accent: string }[] = [
+    { id: 'default',     label: 'Default',     light: '#f9fafb', dark: '#111827', accent: '#3b82f6' },
+    { id: 'nord',        label: 'Nord',        light: '#e5e9f0', dark: '#2e3440', accent: '#5e81ac' },
+    { id: 'solarized',   label: 'Solarized',   light: '#fdf6e3', dark: '#073642', accent: '#2aa198' },
+    { id: 'dracula',     label: 'Dracula',     light: '#f8f8f2', dark: '#282a36', accent: '#ff79c6' },
+    { id: 'catppuccin',  label: 'Catppuccin',  light: '#ede5ed', dark: '#1e1e2e', accent: '#cba6f7' },
+    { id: 'rose-pine',   label: 'Rosé Pine',   light: '#faf4ed', dark: '#191724', accent: '#f6c177' },
+    { id: 'tokyo-night', label: 'Tokyo Night', light: '#e0e0ed', dark: '#1a1b26', accent: '#7aa2f7' },
+    { id: 'gruvbox',     label: 'Gruvbox',     light: '#fbf1c7', dark: '#282828', accent: '#fe8019' },
+    { id: 'everforest',  label: 'Everforest',  light: '#f3ead3', dark: '#272e27', accent: '#a7c080' },
+    { id: 'one-dark',    label: 'One Dark',    light: '#dcdfe4', dark: '#282c34', accent: '#56b6c2' },
+    { id: 'moonlight',   label: 'Moonlight',   light: '#dfe1f0', dark: '#1b1d2b', accent: '#82aaff' },
+    { id: 'kanagawa',    label: 'Kanagawa',    light: '#e0d9b6', dark: '#1f1f28', accent: '#7e9cd8' },
   ];
 
   protected exportJsonUrl = `${environment.apiUrl}/auth/export/json`;

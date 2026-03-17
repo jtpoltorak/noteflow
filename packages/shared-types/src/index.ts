@@ -66,14 +66,14 @@ export interface UpdateUserTemplateDto {
 
 // ── Response DTOs ─────────────────────────────────────────────
 
-export type AccentTheme = 'ocean' | 'forest' | 'sunset' | 'lavender' | 'rose';
+export type ColorTheme = 'default' | 'nord' | 'solarized' | 'dracula' | 'catppuccin' | 'rose-pine' | 'tokyo-night' | 'gruvbox' | 'everforest' | 'one-dark' | 'moonlight' | 'kanagawa';
 
 export interface UserDto {
   id: number;
   email: string;
   darkMode: boolean;
   skipRecycleBin: boolean;
-  accentTheme: AccentTheme;
+  colorTheme: ColorTheme;
   deleteRequestedAt: string | null;
 }
 

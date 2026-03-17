@@ -6,13 +6,13 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
-    version: '0.11.0',
+    version: '0.12.0',
     date: '2026-03-17',
     items: [
-      'Accent color themes — choose from Ocean (blue), Forest (green), Sunset (amber), Lavender (purple), or Rose (pink)',
-      'Theme picker with color swatches in Settings > General > Appearance',
-      'Accent colors apply across the entire app including the editor, tree view, navigation, and dialogs',
-      'Works with both light and dark modes for 10 visual combinations',
+      '12 color themes — Default, Nord, Solarized, Dracula, Catppuccin, Rosé Pine, Tokyo Night, Gruvbox, Everforest, One Dark, Moonlight, and Kanagawa',
+      'Each theme customizes the full UI palette (backgrounds, borders, text) plus accent colors',
+      'Theme picker with visual previews in Settings > General > Appearance',
+      'All themes work with both light and dark modes for 24 visual combinations',
     ],
   },
   {

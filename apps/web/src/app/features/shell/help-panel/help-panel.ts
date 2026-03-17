@@ -252,8 +252,9 @@ import { APP_VERSION } from '../../../version';
         <h3 class="mb-1.5 font-semibold text-gray-900 dark:text-gray-100">Appearance</h3>
         <ul class="ml-4 list-disc space-y-0.5">
           <li>Toggle <strong>dark mode</strong> using the sun/moon icon in the top-right corner, or in Settings &gt; Appearance</li>
-          <li>Choose an <strong>accent color</strong> in Settings &gt; General &gt; Appearance: Ocean, Forest, Sunset, Lavender, or Rose</li>
-          <li>Accent colors and dark/light mode combine for 10 visual variations</li>
+          <li>Choose a <strong>color theme</strong> in Settings &gt; General &gt; Appearance from 12 curated palettes including Nord, Dracula, Catppuccin, Tokyo Night, and more</li>
+          <li>Each theme changes the full UI palette (backgrounds, borders, text, and accent colors)</li>
+          <li>Themes and dark/light mode combine for 24 visual variations</li>
           <li>Your preferences are saved to your account and persist across devices</li>
         </ul>
       </section>

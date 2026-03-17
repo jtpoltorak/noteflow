@@ -32,7 +32,7 @@ const loginSchema = z.object({
 const preferencesSchema = z.object({
   darkMode: z.boolean().optional(),
   skipRecycleBin: z.boolean().optional(),
-  accentTheme: z.enum(['ocean', 'forest', 'sunset', 'lavender', 'rose']).optional(),
+  colorTheme: z.enum(['default', 'nord', 'solarized', 'dracula', 'catppuccin', 'rose-pine', 'tokyo-night', 'gruvbox', 'everforest', 'one-dark', 'moonlight', 'kanagawa']).optional(),
 });
 
 const changePasswordSchema = z.object({

@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Accent Color Theme System ────────────────────────────────── */
+/* ── Theme System ─────────────────────────────────────────────── */
 @theme inline {
   --color-accent-50:  var(--accent-50);
   --color-accent-100: var(--accent-100);
@@ -17,79 +17,155 @@
   --color-accent-950: var(--accent-950);
 }
 
-/* Ocean (default) — Tailwind blue */
+/* Default — standard Tailwind gray + blue accent */
 :root {
-  --accent-50:  #eff6ff;
-  --accent-100: #dbeafe;
-  --accent-200: #bfdbfe;
-  --accent-300: #93c5fd;
-  --accent-400: #60a5fa;
-  --accent-500: #3b82f6;
-  --accent-600: #2563eb;
-  --accent-700: #1d4ed8;
-  --accent-800: #1e40af;
-  --accent-900: #1e3a8a;
-  --accent-950: #172554;
+  --accent-50:  #eff6ff;  --accent-100: #dbeafe;  --accent-200: #bfdbfe;
+  --accent-300: #93c5fd;  --accent-400: #60a5fa;  --accent-500: #3b82f6;
+  --accent-600: #2563eb;  --accent-700: #1d4ed8;  --accent-800: #1e40af;
+  --accent-900: #1e3a8a;  --accent-950: #172554;
 }
 
-/* Forest — Tailwind emerald */
-html[data-accent="forest"] {
-  --accent-50:  #ecfdf5;
-  --accent-100: #d1fae5;
-  --accent-200: #a7f3d0;
-  --accent-300: #6ee7b7;
-  --accent-400: #34d399;
-  --accent-500: #10b981;
-  --accent-600: #059669;
-  --accent-700: #047857;
-  --accent-800: #065f46;
-  --accent-900: #064e3b;
-  --accent-950: #022c22;
+/* ── Nord — cool blue-gray + frost blue ──────────────────────── */
+html[data-theme="nord"] {
+  --color-gray-50:  #f0f4f8;  --color-gray-100: #e5e9f0;
+  --color-gray-200: #d8dee9;  --color-gray-300: #b0bac9;
+  --color-gray-400: #7b8faa;  --color-gray-500: #606f85;
+  --color-gray-600: #4c566a;  --color-gray-700: #434c5e;
+  --color-gray-800: #3b4252;  --color-gray-900: #2e3440;
+  --accent-50:  #eef6fa;  --accent-100: #d4ecf5;  --accent-200: #aed9ec;
+  --accent-300: #88c0d0;  --accent-400: #6fb3c4;  --accent-500: #5e81ac;
+  --accent-600: #4e6e96;  --accent-700: #3f5b7e;  --accent-800: #334a66;
+  --accent-900: #283a50;  --accent-950: #1c2a3a;
 }
 
-/* Sunset — Tailwind amber */
-html[data-accent="sunset"] {
-  --accent-50:  #fffbeb;
-  --accent-100: #fef3c7;
-  --accent-200: #fde68a;
-  --accent-300: #fcd34d;
-  --accent-400: #fbbf24;
-  --accent-500: #f59e0b;
-  --accent-600: #d97706;
-  --accent-700: #b45309;
-  --accent-800: #92400e;
-  --accent-900: #78350f;
-  --accent-950: #451a03;
+/* ── Solarized — warm tan + teal ─────────────────────────────── */
+html[data-theme="solarized"] {
+  --color-gray-50:  #fdf6e3;  --color-gray-100: #f5efdc;
+  --color-gray-200: #eee8d5;  --color-gray-300: #ddd5c1;
+  --color-gray-400: #b8ad99;  --color-gray-500: #93a1a1;
+  --color-gray-600: #839496;  --color-gray-700: #657b83;
+  --color-gray-800: #586e75;  --color-gray-900: #073642;
+  --accent-50:  #f0fdfa;  --accent-100: #ccfbef;  --accent-200: #99f6e4;
+  --accent-300: #5eead4;  --accent-400: #2dd4bf;  --accent-500: #2aa198;
+  --accent-600: #0d9488;  --accent-700: #0f766e;  --accent-800: #115e59;
+  --accent-900: #134e4a;  --accent-950: #042f2e;
 }
 
-/* Lavender — Tailwind violet */
-html[data-accent="lavender"] {
-  --accent-50:  #f5f3ff;
-  --accent-100: #ede9fe;
-  --accent-200: #ddd6fe;
-  --accent-300: #c4b5fd;
-  --accent-400: #a78bfa;
-  --accent-500: #8b5cf6;
-  --accent-600: #7c3aed;
-  --accent-700: #6d28d9;
-  --accent-800: #5b21b6;
-  --accent-900: #4c1d95;
-  --accent-950: #2e1065;
+/* ── Dracula — purple-tinted dark + pink ─────────────────────── */
+html[data-theme="dracula"] {
+  --color-gray-50:  #f8f8f2;  --color-gray-100: #efeee8;
+  --color-gray-200: #d6d3cb;  --color-gray-300: #bbb7ad;
+  --color-gray-400: #9490a0;  --color-gray-500: #7970a9;
+  --color-gray-600: #6272a4;  --color-gray-700: #44475a;
+  --color-gray-800: #383a4c;  --color-gray-900: #282a36;
+  --accent-50:  #fff1f6;  --accent-100: #ffe4ee;  --accent-200: #ffc9dd;
+  --accent-300: #ff99c2;  --accent-400: #ff79c6;  --accent-500: #f55da0;
+  --accent-600: #e33d84;  --accent-700: #c42868;  --accent-800: #a12355;
+  --accent-900: #7f1d45;  --accent-950: #4d0a28;
 }
 
-/* Rose — Tailwind rose */
-html[data-accent="rose"] {
-  --accent-50:  #fff1f2;
-  --accent-100: #ffe4e6;
-  --accent-200: #fecdd3;
-  --accent-300: #fda4af;
-  --accent-400: #fb7185;
-  --accent-500: #f43f5e;
-  --accent-600: #e11d48;
-  --accent-700: #be123c;
-  --accent-800: #9f1239;
-  --accent-900: #881337;
-  --accent-950: #4c0519;
+/* ── Catppuccin — soft lavender-gray + mauve ──────────────────── */
+html[data-theme="catppuccin"] {
+  --color-gray-50:  #f5f0f5;  --color-gray-100: #ede5ed;
+  --color-gray-200: #d9d0d9;  --color-gray-300: #bbb0bc;
+  --color-gray-400: #9a8e9f;  --color-gray-500: #7f7486;
+  --color-gray-600: #6c5f76;  --color-gray-700: #585068;
+  --color-gray-800: #45394b;  --color-gray-900: #1e1e2e;
+  --accent-50:  #faf5ff;  --accent-100: #f3e8ff;  --accent-200: #e9d5ff;
+  --accent-300: #d8b4fe;  --accent-400: #cba6f7;  --accent-500: #b47ee5;
+  --accent-600: #9d5cd0;  --accent-700: #8644b2;  --accent-800: #6f3895;
+  --accent-900: #5b2d79;  --accent-950: #3b1757;
+}
+
+/* ── Rosé Pine — muted dusty mauve + gold ────────────────────── */
+html[data-theme="rose-pine"] {
+  --color-gray-50:  #faf4ed;  --color-gray-100: #f2e9de;
+  --color-gray-200: #e0d6cc;  --color-gray-300: #cec4b8;
+  --color-gray-400: #9893a5;  --color-gray-500: #797593;
+  --color-gray-600: #6e6a86;  --color-gray-700: #524f67;
+  --color-gray-800: #3e3a50;  --color-gray-900: #191724;
+  --accent-50:  #fefce8;  --accent-100: #fef9c3;  --accent-200: #fef08a;
+  --accent-300: #fde047;  --accent-400: #f6c177;  --accent-500: #eab308;
+  --accent-600: #ca8a04;  --accent-700: #a16207;  --accent-800: #854d0e;
+  --accent-900: #713f12;  --accent-950: #422006;
+}
+
+/* ── Tokyo Night — deep indigo + violet-blue ─────────────────── */
+html[data-theme="tokyo-night"] {
+  --color-gray-50:  #f0f0f5;  --color-gray-100: #e0e0ed;
+  --color-gray-200: #c0c0d8;  --color-gray-300: #9aa1bc;
+  --color-gray-400: #7982a9;  --color-gray-500: #565f89;
+  --color-gray-600: #414868;  --color-gray-700: #3b4261;
+  --color-gray-800: #24283b;  --color-gray-900: #1a1b26;
+  --accent-50:  #eef2ff;  --accent-100: #e0e7ff;  --accent-200: #c7d2fe;
+  --accent-300: #a5b4fc;  --accent-400: #7aa2f7;  --accent-500: #6366f1;
+  --accent-600: #5553e2;  --accent-700: #4338ca;  --accent-800: #3730a3;
+  --accent-900: #312e81;  --accent-950: #1e1b4b;
+}
+
+/* ── Gruvbox — warm brown + orange ───────────────────────────── */
+html[data-theme="gruvbox"] {
+  --color-gray-50:  #fbf1c7;  --color-gray-100: #f2e5bc;
+  --color-gray-200: #ebdbb2;  --color-gray-300: #d5c4a1;
+  --color-gray-400: #bdae93;  --color-gray-500: #a89984;
+  --color-gray-600: #928374;  --color-gray-700: #665c54;
+  --color-gray-800: #504945;  --color-gray-900: #282828;
+  --accent-50:  #fff7ed;  --accent-100: #ffedd5;  --accent-200: #fed7aa;
+  --accent-300: #fdba74;  --accent-400: #fe8019;  --accent-500: #f97316;
+  --accent-600: #ea580c;  --accent-700: #c2410c;  --accent-800: #9a3412;
+  --accent-900: #7c2d12;  --accent-950: #431407;
+}
+
+/* ── Everforest — sage green + soft green ────────────────────── */
+html[data-theme="everforest"] {
+  --color-gray-50:  #f3ead3;  --color-gray-100: #e9dfc4;
+  --color-gray-200: #d8cfb5;  --color-gray-300: #bdc0a0;
+  --color-gray-400: #9da99a;  --color-gray-500: #859289;
+  --color-gray-600: #708478;  --color-gray-700: #5c6a5e;
+  --color-gray-800: #414b43;  --color-gray-900: #272e27;
+  --accent-50:  #f0fdf4;  --accent-100: #dcfce7;  --accent-200: #bbf7d0;
+  --accent-300: #a7c080;  --accent-400: #8db86e;  --accent-500: #6daa58;
+  --accent-600: #539e3c;  --accent-700: #3e8428;  --accent-800: #356e22;
+  --accent-900: #2d5a1e;  --accent-950: #143210;
+}
+
+/* ── One Dark — cool charcoal + cyan ─────────────────────────── */
+html[data-theme="one-dark"] {
+  --color-gray-50:  #f0f1f3;  --color-gray-100: #dcdfe4;
+  --color-gray-200: #b4b8c2;  --color-gray-300: #9197a3;
+  --color-gray-400: #6b7280;  --color-gray-500: #5c6370;
+  --color-gray-600: #4b5263;  --color-gray-700: #3e4451;
+  --color-gray-800: #2c313a;  --color-gray-900: #282c34;
+  --accent-50:  #ecfeff;  --accent-100: #cffafe;  --accent-200: #a5f3fc;
+  --accent-300: #67e8f9;  --accent-400: #56b6c2;  --accent-500: #22d3ee;
+  --accent-600: #06b6d4;  --accent-700: #0891b2;  --accent-800: #0e7490;
+  --accent-900: #155e75;  --accent-950: #083344;
+}
+
+/* ── Moonlight — deep navy + sky blue ────────────────────────── */
+html[data-theme="moonlight"] {
+  --color-gray-50:  #f0f1f8;  --color-gray-100: #dfe1f0;
+  --color-gray-200: #b4b8d5;  --color-gray-300: #8f93b3;
+  --color-gray-400: #6b7194;  --color-gray-500: #555b7e;
+  --color-gray-600: #444a6e;  --color-gray-700: #383e5c;
+  --color-gray-800: #2b2f44;  --color-gray-900: #1b1d2b;
+  --accent-50:  #eff6ff;  --accent-100: #dbeafe;  --accent-200: #bfdbfe;
+  --accent-300: #93c5fd;  --accent-400: #82aaff;  --accent-500: #3b82f6;
+  --accent-600: #2563eb;  --accent-700: #1d4ed8;  --accent-800: #1e40af;
+  --accent-900: #1e3a8a;  --accent-950: #172554;
+}
+
+/* ── Kanagawa — ink blue-black + wave blue ───────────────────── */
+html[data-theme="kanagawa"] {
+  --color-gray-50:  #f2ecbc;  --color-gray-100: #e0d9b6;
+  --color-gray-200: #c8c093;  --color-gray-300: #b0a87a;
+  --color-gray-400: #8a8275;  --color-gray-500: #727169;
+  --color-gray-600: #54546d;  --color-gray-700: #363646;
+  --color-gray-800: #2a2a37;  --color-gray-900: #1f1f28;
+  --accent-50:  #eef2ff;  --accent-100: #dce4fd;  --accent-200: #bcc8f7;
+  --accent-300: #9cabee;  --accent-400: #7e9cd8;  --accent-500: #658ab8;
+  --accent-600: #4e739c;  --accent-700: #3a5c80;  --accent-800: #2a4566;
+  --accent-900: #1e3250;  --accent-950: #132138;
 }
 
 html {
@@ -112,7 +188,7 @@ a {
 }
 
 html.dark {
-  background-color: #111827; /* gray-900 */
+  background-color: var(--color-gray-900, #111827);
   color-scheme: dark;
 }
 

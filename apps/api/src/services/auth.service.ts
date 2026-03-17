@@ -3,7 +3,13 @@ import jwt, { SignOptions } from "jsonwebtoken";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import type { AuthPayload } from "../middleware/auth.middleware.js";
-import type { UserDto } from "@noteflow/shared-types";
+import type { UserDto, ColorTheme } from "@noteflow/shared-types";
+
+const VALID_THEMES = new Set<ColorTheme>(['default', 'nord', 'solarized', 'dracula', 'catppuccin', 'rose-pine', 'tokyo-night', 'gruvbox', 'everforest', 'one-dark', 'moonlight', 'kanagawa']);
+
+function mapTheme(value: string): ColorTheme {
+  return VALID_THEMES.has(value as ColorTheme) ? (value as ColorTheme) : 'default';
+}
 
 const BCRYPT_ROUNDS = 12;
 
@@ -61,7 +67,7 @@ export function register(email: string, password: string): UserDto {
   const id = result[0].values[0][0] as number;
   const darkMode = (result[0].values[0][1] as number) === 1;
 
-  return { id, email, darkMode, skipRecycleBin: false, accentTheme: 'ocean', deleteRequestedAt: null };
+  return { id, email, darkMode, skipRecycleBin: false, colorTheme: 'default', deleteRequestedAt: null };
 }
 
 export function login(email: string, password: string): UserDto {
@@ -83,14 +89,14 @@ export function login(email: string, password: string): UserDto {
   const darkMode = (row[3] as number) === 1;
   const deleteRequestedAt = (row[4] as string | null) ?? null;
   const skipRecycleBin = (row[5] as number) === 1;
-  const accentTheme = (row[6] as string) || 'ocean';
+  const colorTheme = mapTheme((row[6] as string) || 'default');
 
   const valid = bcrypt.compareSync(password, passwordHash);
   if (!valid) {
     throw new AppError(401, "Invalid email or password", "INVALID_CREDENTIALS");
   }
 
-  return { id, email: userEmail, darkMode, skipRecycleBin, accentTheme, deleteRequestedAt } as UserDto;
+  return { id, email: userEmail, darkMode, skipRecycleBin, colorTheme, deleteRequestedAt };
 }
 
 export function getUserById(id: number): UserDto {
@@ -108,12 +114,12 @@ export function getUserById(id: number): UserDto {
     email: row[1] as string,
     darkMode: (row[2] as number) === 1,
     skipRecycleBin: (row[4] as number) === 1,
-    accentTheme: (row[5] as string) || 'ocean',
+    colorTheme: mapTheme((row[5] as string) || 'default'),
     deleteRequestedAt: (row[3] as string | null) ?? null,
-  } as UserDto;
+  };
 }
 
-export function updatePreferences(userId: number, prefs: { darkMode?: boolean; skipRecycleBin?: boolean; accentTheme?: string }): UserDto {
+export function updatePreferences(userId: number, prefs: { darkMode?: boolean; skipRecycleBin?: boolean; colorTheme?: string }): UserDto {
   const db = getDb();
 
   if (prefs.darkMode !== undefined) {
@@ -122,8 +128,8 @@ export function updatePreferences(userId: number, prefs: { darkMode?: boolean; s
   if (prefs.skipRecycleBin !== undefined) {
     db.run("UPDATE User SET skipRecycleBin = ? WHERE id = ?", [prefs.skipRecycleBin ? 1 : 0, userId]);
   }
-  if (prefs.accentTheme !== undefined) {
-    db.run("UPDATE User SET accentTheme = ? WHERE id = ?", [prefs.accentTheme, userId]);
+  if (prefs.colorTheme !== undefined) {
+    db.run("UPDATE User SET accentTheme = ? WHERE id = ?", [prefs.colorTheme, userId]);
   }
 
   saveDb();
