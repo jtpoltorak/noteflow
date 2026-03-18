@@ -12,6 +12,7 @@ export const RELEASE_NOTES: ReleaseGroup[] = [
       'Manual save button added to the note toolbar — click the floppy disk icon to explicitly save your note at any time',
       'Save status feedback: icon turns to a green checkmark with "Saved" confirmation for 2 seconds after saving',
       'Auto-save continues to work behind the scenes as before',
+      'Clear formatting button in the editor toolbar — select text and click to strip all formatting back to plain text',
     ],
   },
   {

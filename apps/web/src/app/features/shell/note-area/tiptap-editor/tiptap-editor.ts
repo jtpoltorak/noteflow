@@ -92,6 +92,7 @@ import {
   faImage,
   faPaintbrush,
   faVolumeHigh,
+  faTextSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
@@ -298,6 +299,11 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           [class.dark:hover:bg-gray-700]="!editor.isActive('code')"
           title="Inline code"
         ><fa-icon [icon]="faCode" size="sm" /></button>
+        <button
+          (mousedown)="$event.preventDefault(); editor.chain().focus().unsetAllMarks().clearNodes().run()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Clear formatting"
+        ><fa-icon [icon]="faTextSlash" size="sm" /></button>
 
         <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
 
@@ -848,6 +854,7 @@ export class TiptapEditor implements OnDestroy {
   protected faHighlighter = faHighlighter;
   protected faDroplet = faDroplet;
   protected faEraser = faEraser;
+  protected faTextSlash = faTextSlash;
   protected faImage = faImage;
   protected faYoutube = faYoutube;
   protected faVolumeHigh = faVolumeHigh;

@@ -168,6 +168,7 @@ export class HelpPanel {
           <li><strong>Text color</strong> &mdash; pick from a palette of colours in the toolbar or bubble menu</li>
           <li><strong>Highlight</strong> &mdash; multicolour text highlight</li>
           <li><strong>Smart typography</strong> &mdash; auto-converts straight quotes to curly quotes, hyphens to em dashes, etc. Toggle on/off in Settings</li>
+          <li><strong>Clear formatting</strong> &mdash; select text and click the clear formatting button to strip all styles (bold, italic, colour, etc.) back to plain text</li>
         </ul>`,
     },
     {
