@@ -6,6 +6,16 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.14.0',
+    date: '2026-03-18',
+    items: [
+      'Pomodoro timer — a floating widget to help you focus with 25-minute work sessions and timed breaks',
+      'Toggle from the hourglass icon in the header; collapse to a compact pill or expand for full controls',
+      'Progress ring, start/pause/reset/skip controls, session counter, and audio chime on completion',
+      'Automatic session flow: work (25 min) → short break (5 min) → repeat, with a long break (15 min) every 4 sessions',
+    ],
+  },
+  {
     version: '0.13.0',
     date: '2026-03-18',
     items: [

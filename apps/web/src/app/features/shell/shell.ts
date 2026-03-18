@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket, faTrashCan, faUserClock } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -29,6 +29,8 @@ import { QuickNoteDialog, type QuickNoteResult } from '../../shared/quick-note-d
 import { ReleaseNotesDialog } from '../../shared/release-notes-dialog/release-notes-dialog';
 import { PwaService } from '../../core/services/pwa.service';
 import { PwaUpdateService } from '../../core/services/pwa-update.service';
+import { PomodoroService } from '../../core/services/pomodoro.service';
+import { PomodoroTimer } from './pomodoro-timer/pomodoro-timer';
 import type { SearchResultDto } from '@noteflow/shared-types';
 import { APP_VERSION } from '../../version';
 
@@ -36,7 +38,7 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
 @Component({
   selector: 'app-shell',
-  imports: [NotebookList, SectionList, NoteArea, NoteTree, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, RecycleBinPanel, QuickNoteDialog, ReleaseNotesDialog, ToastContainer],
+  imports: [NotebookList, SectionList, NoteArea, NoteTree, FaIconComponent, AboutDialog, FeedbackDialog, LegalDialog, SettingsDialog, HelpPanel, Modal, NavRail, SearchPanel, ArchivePanel, FavoritesPanel, SharedPanel, TagsPanel, RecycleBinPanel, QuickNoteDialog, ReleaseNotesDialog, ToastContainer, PomodoroTimer],
   providers: [ShellStateService, TreeStateService],
   template: `
     <div class="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -97,6 +99,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <fa-icon [icon]="faCloudArrowDown" size="sm" />
               </button>
             }
+            <button
+              (click)="pomo.toggle()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-accent-500]="pomo.isVisible()"
+              [class.dark:text-accent-400]="pomo.isVisible()"
+              title="Pomodoro timer"
+            >
+              <fa-icon [icon]="faUserClock" size="sm" />
+            </button>
             <button
               (click)="showSettings.set(true)"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -212,6 +223,15 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
                 <fa-icon [icon]="faCloudArrowDown" size="sm" />
               </button>
             }
+            <button
+              (click)="pomo.toggle()"
+              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              [class.text-accent-500]="pomo.isVisible()"
+              [class.dark:text-accent-400]="pomo.isVisible()"
+              title="Pomodoro timer"
+            >
+              <fa-icon [icon]="faUserClock" size="sm" />
+            </button>
             <button
               (click)="showSettings.set(true)"
               class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
@@ -386,6 +406,10 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
       }
     </div>
 
+    @if (pomo.isVisible()) {
+      <app-pomodoro-timer />
+    }
+
     <app-about-dialog [open]="showAbout()" (closed)="showAbout.set(false)" />
     <app-feedback-dialog [open]="showFeedback()" (closed)="showFeedback.set(false)" />
     <app-legal-dialog [open]="showLegal()" [section]="legalSection()" [title]="legalTitle()" (closed)="showLegal.set(false)" />
@@ -403,6 +427,7 @@ export class Shell implements OnInit {
   protected pwaUpdate = inject(PwaUpdateService);
   private state = inject(ShellStateService);
   private treeState = inject(TreeStateService);
+  protected pomo = inject(PomodoroService);
 
   protected faMoon = faMoon;
   protected faSun = faSun;
@@ -419,6 +444,7 @@ export class Shell implements OnInit {
   protected faCloudArrowDown = faCloudArrowDown;
   protected faArrowRightFromBracket = faArrowRightFromBracket;
   protected faTrashCan = faTrashCan;
+  protected faUserClock = faUserClock;
 
   // Desktop panel state
   protected treeCollapsed = signal(false);

@@ -372,6 +372,20 @@ export class HelpPanel {
       content: `<p>NoteFlow can be installed as a standalone app on your device for quick access and a native app experience. Look for the install prompt in the header or Settings, or use your browser's "Install app" option. Once installed, NoteFlow opens in its own window.</p>`,
     },
     {
+      id: 'pomodoro',
+      title: 'Pomodoro Timer',
+      content: `
+        <p class="mb-1">A built-in focus timer using the Pomodoro Technique. Toggle it from the hourglass icon in the header.</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li><strong>Work sessions</strong> &mdash; 25 minutes of focused work</li>
+          <li><strong>Short breaks</strong> &mdash; 5 minutes after each work session</li>
+          <li><strong>Long breaks</strong> &mdash; 15 minutes after every 4 work sessions</li>
+          <li>Start, pause, reset, or skip to the next session with the control buttons</li>
+          <li>Collapse the widget to a compact pill showing just the countdown</li>
+          <li>An audio chime plays when each session ends</li>
+        </ul>`,
+    },
+    {
       id: 'settings-general',
       title: 'Settings: General',
       content: `
