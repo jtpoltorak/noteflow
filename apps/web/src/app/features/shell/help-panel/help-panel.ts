@@ -240,7 +240,8 @@ export class HelpPanel {
     {
       id: 'metadata',
       title: 'Note Metadata',
-      content: `<p>The metadata bar below the note title shows word count, estimated reading time, creation date, and last updated time. Toggle metadata visibility in Settings &gt; General &gt; Editor. A save indicator appears when changes are being saved.</p>`,
+      content: `<p>The metadata bar below the note title shows word count, estimated reading time, creation date, and last updated time. Toggle metadata visibility in Settings &gt; General &gt; Editor.</p>
+        <p class="mt-1">Use the <strong>save button</strong> (floppy disk icon) in the note toolbar to manually save at any time. The icon turns to a green checkmark when saved successfully. Notes also auto-save automatically after you stop typing.</p>`,
     },
     {
       id: 'sharing',

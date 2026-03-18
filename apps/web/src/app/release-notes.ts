@@ -6,6 +6,15 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.13.0',
+    date: '2026-03-18',
+    items: [
+      'Manual save button added to the note toolbar — click the floppy disk icon to explicitly save your note at any time',
+      'Save status feedback: icon turns to a green checkmark with "Saved" confirmation for 2 seconds after saving',
+      'Auto-save continues to work behind the scenes as before',
+    ],
+  },
+  {
     version: '0.12.0',
     date: '2026-03-17',
     items: [

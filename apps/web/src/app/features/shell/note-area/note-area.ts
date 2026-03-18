@@ -1,7 +1,7 @@
 import { Component, DestroyRef, ElementRef, inject, signal, effect, input, output, viewChild, computed } from '@angular/core';
 import { CdkDragDrop, CdkDragEnd, moveItemInArray } from '@angular/cdk/drag-drop';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faFileArrowDown, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid } from '@fortawesome/free-solid-svg-icons';
+import { faStickyNote, faPlus, faTrash, faChevronLeft, faChevronRight, faExpand, faCompress, faDesktop, faCopy, faArrowRightArrowLeft, faFileArrowDown, faFileImport, faBoxArchive, faStar, faBars, faShareNodes, faTag, faXmark, faLock, faLockOpen, faWandMagicSparkles, faFileCirclePlus, faPrint, faCircleInfo, faFont, faQuoteLeft, faTextHeight, faCircle as faCircleSolid, faFloppyDisk, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { EditorPreferencesService } from '../../../core/services/editor-preferences.service';
 import { faStar as farStar } from '@fortawesome/free-regular-svg-icons';
 import { ShellStateService } from '../shell-state.service';
@@ -97,6 +97,17 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               class="min-w-0 flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
               placeholder="Note title"
             />
+            <!-- Save pill -->
+            <button
+              (click)="manualSave()"
+              class="ml-2 flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors"
+              [class]="saveStatus() === 'saved' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : saveStatus() === 'saving' ? 'bg-orange-100 text-orange-600 animate-pulse dark:bg-orange-900/40 dark:text-orange-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-300'"
+              [title]="saveStatus() === 'saved' ? 'Saved' : saveStatus() === 'saving' ? 'Saving...' : 'Save note'"
+            >
+              <fa-icon [icon]="saveStatus() === 'saved' ? faCheck : faFloppyDisk" size="xs" />
+              <span>{{ saveStatus() === 'saved' ? 'Saved' : saveStatus() === 'saving' ? 'Saving' : 'Save' }}</span>
+            </button>
+            <div class="ml-2 h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600"></div>
             <!-- Note actions -->
             <button
               (click)="toggleFavorite()"
@@ -421,8 +432,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                 <span>{{ readingTime() }}</span>
                 @if (saveStatus() === 'saving') {
                   <span class="ml-auto flex items-center gap-1">
-                    <fa-icon [icon]="faCircleSolid" size="xs" class="animate-pulse text-orange-600" />
+                    <fa-icon [icon]="faCircleSolid" size="xs" class="animate-pulse text-orange-500" />
                     <span>Saving...</span>
+                  </span>
+                } @else if (saveStatus() === 'saved') {
+                  <span class="ml-auto flex items-center gap-1 text-green-700 dark:text-green-400">
+                    <fa-icon [icon]="faCheck" size="xs" />
+                    <span>Saved</span>
                   </span>
                 }
               </div>
@@ -469,6 +485,17 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
                   class="min-w-0 flex-1 bg-transparent text-lg font-semibold text-gray-800 focus:outline-none dark:text-gray-100"
                   placeholder="Note title"
                 />
+                <!-- Save pill -->
+                <button
+                  (click)="manualSave()"
+                  class="ml-2 flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors"
+                  [class]="saveStatus() === 'saved' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400' : saveStatus() === 'saving' ? 'bg-orange-100 text-orange-600 animate-pulse dark:bg-orange-900/40 dark:text-orange-400' : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600 dark:hover:text-gray-300'"
+                  [title]="saveStatus() === 'saved' ? 'Saved' : saveStatus() === 'saving' ? 'Saving...' : 'Save note'"
+                >
+                  <fa-icon [icon]="saveStatus() === 'saved' ? faCheck : faFloppyDisk" size="xs" />
+                  <span>{{ saveStatus() === 'saved' ? 'Saved' : saveStatus() === 'saving' ? 'Saving' : 'Save' }}</span>
+                </button>
+                <div class="ml-2 h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600"></div>
                 <!-- Note actions -->
                 <button
                   (click)="openPresentation()"
@@ -908,6 +935,8 @@ export class NoteArea {
   protected faQuoteLeft = faQuoteLeft;
   protected faTextHeight = faTextHeight;
   protected faCircleSolid = faCircleSolid;
+  protected faFloppyDisk = faFloppyDisk;
+  protected faCheck = faCheck;
 
   protected fontSizeLabel = computed(() => {
     const labels: Record<string, string> = { default: 'Default', large: 'Large', xl: 'Extra Large', xxl: 'Extra Extra Large' };
@@ -935,7 +964,8 @@ export class NoteArea {
   protected presentationContent = signal('');
   protected exportMenuOpen = signal(false);
   protected editedTitle = signal('');
-  protected saveStatus = signal<'idle' | 'saving'>('idle');
+  protected saveStatus = signal<'idle' | 'saving' | 'saved'>('idle');
+  private savedTimer: ReturnType<typeof setTimeout> | null = null;
   protected deleting = signal(false);
 
   // Tag management
@@ -1155,7 +1185,32 @@ export class NoteArea {
       title: title || note.title,
       content: normalizedContent,
     }).subscribe({
-      next: () => this.saveStatus.set('idle'),
+      next: () => this.showSavedConfirmation(),
+      error: () => this.saveStatus.set('idle'),
+    });
+  }
+
+  private showSavedConfirmation(): void {
+    if (this.savedTimer) clearTimeout(this.savedTimer);
+    this.saveStatus.set('saved');
+    this.savedTimer = setTimeout(() => this.saveStatus.set('idle'), 2000);
+  }
+
+  protected manualSave(): void {
+    const note = this.state.selectedNote();
+    if (!note) return;
+
+    const title = this.editedTitle().trim();
+    const editor = this.tiptapEditor();
+    const content = this.pendingContent ?? editor?.getHTML() ?? '';
+    const normalizedContent = content === '<p></p>' ? '' : content;
+
+    this.saveStatus.set('saving');
+    this.state.updateNote(note.id, {
+      title: title || note.title,
+      content: normalizedContent,
+    }).subscribe({
+      next: () => this.showSavedConfirmation(),
       error: () => this.saveStatus.set('idle'),
     });
   }
