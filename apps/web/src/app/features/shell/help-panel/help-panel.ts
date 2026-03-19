@@ -157,6 +157,7 @@ export class HelpPanel {
           <li><strong>Audio</strong> &mdash; upload an audio clip</li>
           <li><strong>Link to Note</strong> &mdash; link to another note in your notebooks</li>
           <li><strong>YouTube</strong> &mdash; embed a YouTube video</li>
+          <li><strong>Math Equation</strong> &mdash; insert a LaTeX math expression</li>
         </ul>`,
     },
     {
@@ -211,6 +212,18 @@ export class HelpPanel {
           <li>Upload via the toolbar button, <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/audio</kbd> slash command, or drag-and-drop / paste</li>
           <li>Supported formats: MP3, WAV, OGG, WebM, M4A (up to 25 MB)</li>
           <li>Audio plays inline with native browser controls</li>
+        </ul>`,
+    },
+    {
+      id: 'math',
+      title: 'Math Equations',
+      content: `
+        <p class="mb-1">Insert LaTeX math expressions into your notes:</p>
+        <ul class="ml-4 list-disc space-y-0.5">
+          <li>Toolbar button (√x icon), <kbd class="rounded border border-gray-300 bg-gray-100 px-1 py-0.5 text-xs dark:border-gray-600 dark:bg-gray-700">/math</kbd> slash command, or type <code>$...$</code> delimiters</li>
+          <li>Click a rendered equation to edit the raw LaTeX source</li>
+          <li>Examples: <code>$x^2$</code>, <code>$\\frac{a}{b}$</code>, <code>$\\sum_{i=1}^n i$</code></li>
+          <li>Rendered with KaTeX &mdash; works in both light and dark mode</li>
         </ul>`,
     },
     {

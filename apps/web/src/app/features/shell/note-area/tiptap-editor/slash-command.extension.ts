@@ -50,6 +50,7 @@ const SLASH_COMMANDS: SlashCommandItem[] = [
   { id: 'note-link', label: 'Link to Note', description: 'Link to another note' },
   { id: 'youtube', label: 'YouTube', description: 'Embed a YouTube video' },
   { id: 'audio', label: 'Audio', description: 'Upload an audio clip' },
+  { id: 'math', label: 'Math Equation', description: 'LaTeX math expression' },
 ];
 
 function executeSlashCommand(editor: Editor, range: Range, commandId: string): void {
@@ -101,6 +102,9 @@ function executeSlashCommand(editor: Editor, range: Range, commandId: string): v
       break;
     case 'audio':
       editor.view.dom.dispatchEvent(new CustomEvent('slash-insert-audio', { bubbles: true }));
+      break;
+    case 'math':
+      editor.chain().focus().insertInlineMath({ latex: '' }).run();
       break;
   }
 }

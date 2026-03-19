@@ -1,6 +1,6 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCode, faHeading, faLink, faList, faListOl, faMinus, faParagraph, faQuoteLeft, faSquareCheck, faTable } from '@fortawesome/free-solid-svg-icons';
+import { faCode, faHeading, faLink, faList, faListOl, faMinus, faParagraph, faQuoteLeft, faSquareCheck, faSquareRootVariable, faTable } from '@fortawesome/free-solid-svg-icons';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 
 export interface SlashCommand {
@@ -23,6 +23,7 @@ const COMMANDS: SlashCommand[] = [
   { id: 'divider',     label: 'Divider',       description: 'Horizontal rule',  icon: faMinus },
   { id: 'table',       label: 'Table',         description: 'Insert a table',   icon: faTable },
   { id: 'note-link',   label: 'Link to Note',  description: 'Link to another note', icon: faLink },
+  { id: 'math',        label: 'Math Equation', description: 'LaTeX math expression', icon: faSquareRootVariable },
 ];
 
 @Component({

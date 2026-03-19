@@ -31,6 +31,7 @@ import DragHandle from '@tiptap/extension-drag-handle';
 import { CodeBlockWithLanguage } from './code-block-language.extension';
 import Youtube from '@tiptap/extension-youtube';
 import Audio from '@tiptap/extension-audio';
+import Mathematics from '@tiptap/extension-mathematics';
 
 /**
  * Wraps Typography so every input rule checks a live flag before firing.
@@ -93,6 +94,7 @@ import {
   faPaintbrush,
   faVolumeHigh,
   faTextSlash,
+  faSquareRootVariable,
 } from '@fortawesome/free-solid-svg-icons';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { TiptapEditorDirective } from 'ngx-tiptap';
@@ -601,6 +603,13 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
           title="Insert audio clip"
         ><fa-icon [icon]="faVolumeHigh" size="sm" /></button>
+
+        <!-- Math -->
+        <button
+          (mousedown)="$event.preventDefault(); insertMath()"
+          class="rounded px-1.5 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+          title="Insert math equation"
+        ><fa-icon [icon]="faSquareRootVariable" size="sm" /></button>
       </div>
     }
 
@@ -858,6 +867,7 @@ export class TiptapEditor implements OnDestroy {
   protected faImage = faImage;
   protected faYoutube = faYoutube;
   protected faVolumeHigh = faVolumeHigh;
+  protected faSquareRootVariable = faSquareRootVariable;
 
   toggleToolbar(): void {
     this.prefs.toggleToolbar();
@@ -1105,6 +1115,10 @@ export class TiptapEditor implements OnDestroy {
     input.click();
   }
 
+  protected insertMath(): void {
+    this.editor.chain().focus().insertInlineMath({ latex: 'E = mc^2' }).run();
+  }
+
   private uploadAndInsertAudio(file: File): void {
     const id = this.noteId();
     if (!id) return;
@@ -1322,6 +1336,7 @@ export class TiptapEditor implements OnDestroy {
       Audio.configure({
         controls: true,
       }),
+      Mathematics,
       FileHandler.configure({
         allowedMimeTypes: [
           'image/png', 'image/jpeg', 'image/gif', 'image/webp',

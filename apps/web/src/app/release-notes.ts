@@ -6,6 +6,15 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.15.0',
+    date: '2026-03-19',
+    items: [
+      'Math equations — insert LaTeX math expressions using the toolbar button, /math slash command, or by typing $...$ delimiters',
+      'Rendered with KaTeX; click any equation to edit the raw LaTeX; supports inline and display math',
+      'Full dark mode support for math rendering',
+    ],
+  },
+  {
     version: '0.14.0',
     date: '2026-03-18',
     items: [
