@@ -112,6 +112,8 @@ import { LinkPopover, type LinkPopoverResult } from '../link-popover';
 import { NoteLink } from './note-link.extension';
 import { SearchReplaceExtension } from './search-replace.extension';
 import { FindReplacePanel } from '../find-replace-panel';
+import { MathEditor } from '../math-editor';
+import type { MathEditorResult } from '../math-editor';
 import { NoteService } from '../../../../core/services/note.service';
 import type { SearchResultDto } from '@noteflow/shared-types';
 
@@ -166,7 +168,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
 
 @Component({
   selector: 'app-tiptap-editor',
-  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover, FindReplacePanel],
+  imports: [TiptapEditorDirective, FaIconComponent, SlashCommandMenu, TableToolbar, NoteLinkPicker, LinkPopover, FindReplacePanel, MathEditor],
   host: {
     class: 'relative flex min-h-0 min-w-0 flex-1 flex-col',
     '(keydown)': 'onHostKeyDown($event)',
@@ -806,6 +808,17 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
       />
     }
 
+    <!-- Math editor popover -->
+    @if (mathEditorOpen()) {
+      <app-math-editor
+        [position]="mathEditorPosition()"
+        [initialLatex]="mathEditorLatex()"
+        (selected)="onMathEditorConfirm($event)"
+        (deleted)="onMathEditorDelete()"
+        (dismissed)="mathEditorOpen.set(false)"
+      />
+    }
+
     <!-- Table toolbar (appears when cursor is inside a table) -->
     @if (tableToolbarVisible()) {
       <app-table-toolbar
@@ -1119,6 +1132,38 @@ export class TiptapEditor implements OnDestroy {
     this.editor.chain().focus().insertInlineMath({ latex: 'E = mc^2' }).run();
   }
 
+  private openMathEditor(node: { attrs: { latex: string } }, pos: number, type: 'inlineMath' | 'blockMath'): void {
+    const domNode = this.editor.view.nodeDOM(pos) as HTMLElement | null;
+    if (!domNode) return;
+    const rect = domNode.getBoundingClientRect();
+    this.mathEditorNodePos = pos;
+    this.mathEditorNodeType = type;
+    this.mathEditorLatex.set(node.attrs.latex);
+    this.mathEditorPosition.set({
+      top: rect.bottom + 4,
+      left: rect.left,
+    });
+    this.mathEditorOpen.set(true);
+  }
+
+  protected onMathEditorConfirm(result: MathEditorResult): void {
+    if (this.mathEditorNodeType === 'inlineMath') {
+      this.editor.chain().focus().updateInlineMath({ latex: result.latex, pos: this.mathEditorNodePos }).run();
+    } else {
+      this.editor.chain().focus().updateBlockMath({ latex: result.latex, pos: this.mathEditorNodePos }).run();
+    }
+    this.mathEditorOpen.set(false);
+  }
+
+  protected onMathEditorDelete(): void {
+    if (this.mathEditorNodeType === 'inlineMath') {
+      this.editor.chain().focus().deleteInlineMath({ pos: this.mathEditorNodePos }).run();
+    } else {
+      this.editor.chain().focus().deleteBlockMath({ pos: this.mathEditorNodePos }).run();
+    }
+    this.mathEditorOpen.set(false);
+  }
+
   private uploadAndInsertAudio(file: File): void {
     const id = this.noteId();
     if (!id) return;
@@ -1165,6 +1210,13 @@ export class TiptapEditor implements OnDestroy {
   protected linkPopoverOpen = signal(false);
   protected linkPopoverPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
   protected linkPopoverCurrentUrl = signal('');
+
+  // Math editor popover state
+  protected mathEditorOpen = signal(false);
+  protected mathEditorPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
+  protected mathEditorLatex = signal('');
+  private mathEditorNodePos = -1;
+  private mathEditorNodeType: 'inlineMath' | 'blockMath' = 'inlineMath';
 
   // Find & replace state
   protected findReplacePanelOpen = signal(false);
@@ -1336,7 +1388,14 @@ export class TiptapEditor implements OnDestroy {
       Audio.configure({
         controls: true,
       }),
-      Mathematics,
+      Mathematics.configure({
+        inlineOptions: {
+          onClick: (node: unknown, pos: number) => this.openMathEditor(node as { attrs: { latex: string } }, pos, 'inlineMath'),
+        },
+        blockOptions: {
+          onClick: (node: unknown, pos: number) => this.openMathEditor(node as { attrs: { latex: string } }, pos, 'blockMath'),
+        },
+      }),
       FileHandler.configure({
         allowedMimeTypes: [
           'image/png', 'image/jpeg', 'image/gif', 'image/webp',

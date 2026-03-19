@@ -922,6 +922,10 @@ html.dark {
 }
 
 /* ── KaTeX / Math ────────────────────────────────────────────── */
+.noteflow-editor .tiptap-mathematics-render--editable {
+  cursor: pointer;
+}
+
 .noteflow-editor .tiptap-mathematics-render .katex {
   font-size: 1.1em;
 }
