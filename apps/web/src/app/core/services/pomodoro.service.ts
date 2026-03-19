@@ -37,7 +37,13 @@ export class PomodoroService {
   });
 
   private intervalId: ReturnType<typeof setInterval> | null = null;
+  private endTime: number | null = null;
   private audioCtx: AudioContext | null = null;
+  private visibilityHandler = () => this.onVisibilityChange();
+
+  constructor() {
+    document.addEventListener('visibilitychange', this.visibilityHandler);
+  }
 
   toggle(): void {
     this.isVisible.set(!this.isVisible());
@@ -45,35 +51,50 @@ export class PomodoroService {
 
   start(): void {
     if (this.status() === 'running') return;
+    this.endTime = Date.now() + this.secondsRemaining() * 1000;
     this.status.set('running');
     this.intervalId = setInterval(() => this.tick(), 1000);
   }
 
   pause(): void {
+    if (this.endTime) {
+      this.secondsRemaining.set(Math.max(0, Math.ceil((this.endTime - Date.now()) / 1000)));
+    }
     this.status.set('paused');
+    this.endTime = null;
     this.clearInterval();
   }
 
   reset(): void {
     this.clearInterval();
+    this.endTime = null;
     this.status.set('idle');
     this.secondsRemaining.set(DURATIONS[this.mode()]);
   }
 
   skip(): void {
     this.clearInterval();
+    this.endTime = null;
     this.advanceSession();
   }
 
   private tick(): void {
-    const remaining = this.secondsRemaining() - 1;
+    if (!this.endTime) return;
+    const remaining = Math.ceil((this.endTime - Date.now()) / 1000);
     if (remaining <= 0) {
       this.secondsRemaining.set(0);
+      this.endTime = null;
       this.clearInterval();
       this.playChime();
       this.advanceSession();
     } else {
       this.secondsRemaining.set(remaining);
+    }
+  }
+
+  private onVisibilityChange(): void {
+    if (document.visibilityState === 'visible' && this.status() === 'running') {
+      this.tick();
     }
   }
 
