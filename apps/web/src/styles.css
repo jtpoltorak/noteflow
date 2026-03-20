@@ -212,6 +212,15 @@ html.dark {
   background: #6b7280; /* gray-500 */
 }
 
+/* ── Hidden-scrollbar utility (mobile toolbars / overflow menus) ── */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── CDK Drag-and-Drop ────────────────────────────────────────── */
 .cdk-drag-preview {
   background: white;

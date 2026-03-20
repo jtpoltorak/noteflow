@@ -6,6 +6,18 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.17.1',
+    date: '2026-03-20',
+    items: [
+      'Mobile layout improvements for iPhone and iPad mini viewports',
+      'Compact header now uses an overflow menu — Quick Note and Search stay visible, everything else in a clean dropdown',
+      'Editor formatting toolbar scrolls horizontally on phone instead of wrapping onto multiple lines',
+      'Note editor action buttons now sit on a dedicated scrollable row below the title',
+      'Footer wraps gracefully on narrow screens instead of clipping',
+      'Scroll indicators with gradient fades and tappable arrows appear on both toolbars when more buttons are available off-screen',
+    ],
+  },
+  {
     version: '0.17.0',
     date: '2026-03-20',
     items: [

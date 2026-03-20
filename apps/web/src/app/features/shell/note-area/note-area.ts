@@ -87,7 +87,8 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
     @if (mobileMode() && showEditorOnly()) {
       <div class="relative flex min-h-0 min-w-0 flex-1 flex-col">
         @if (state.selectedNote()) {
-          <div class="flex flex-wrap items-center gap-y-1 border-b border-gray-200 px-4 py-2 dark:border-gray-700">
+          <!-- Title row -->
+          <div class="flex items-center border-b border-gray-200 px-3 py-2 dark:border-gray-700">
             <input
               type="text"
               [value]="editedTitle()"
@@ -107,11 +108,33 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
               <fa-icon [icon]="saveStatus() === 'saved' ? faCheck : faFloppyDisk" size="xs" />
               <span>{{ saveStatus() === 'saved' ? 'Saved' : saveStatus() === 'saving' ? 'Saving' : 'Save' }}</span>
             </button>
-            <div class="ml-2 h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600"></div>
-            <!-- Note actions -->
+          </div>
+          <!-- Action buttons (scrollable row) -->
+          <div class="relative border-b border-gray-200 dark:border-gray-700">
+            @if (actionBarCanScrollLeft()) {
+              <button
+                (click)="scrollActionBar('left')"
+                class="absolute top-0 bottom-0 left-0 z-10 flex w-6 items-center justify-center bg-gradient-to-r from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80"
+              >
+                <span class="text-sm font-bold text-gray-400">‹</span>
+              </button>
+            }
+            @if (actionBarCanScrollRight()) {
+              <button
+                (click)="scrollActionBar('right')"
+                class="absolute top-0 right-0 bottom-0 z-10 flex w-6 items-center justify-center bg-gradient-to-l from-white via-white/80 to-transparent dark:from-gray-800 dark:via-gray-800/80"
+              >
+                <span class="text-sm font-bold text-gray-400">›</span>
+              </button>
+            }
+          <div
+            #actionBarScrollRef
+            (scroll)="onActionBarScroll()"
+            class="no-scrollbar flex items-center gap-1 overflow-x-auto px-3 py-1 [&>*]:shrink-0"
+          >
             <button
               (click)="toggleFavorite()"
-              class="ml-2 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              class="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
               [class]="state.selectedNote()?.favoritedAt ? 'text-yellow-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               [title]="state.selectedNote()?.favoritedAt ? 'Remove from favorites' : 'Add to favorites'"
             >
@@ -119,7 +142,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="sharing.set(!sharing())"
-              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              class="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
               [class]="state.selectedNote()?.shareToken ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Share note"
             >
@@ -127,7 +150,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="toggleTagging()"
-              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              class="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
               [class]="noteTags().length > 0 ? 'text-accent-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               title="Tags"
             >
@@ -135,30 +158,31 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="toggleLocking()"
-              class="ml-1 shrink-0 rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
+              class="rounded p-1 hover:bg-gray-200 dark:hover:bg-gray-700"
               [class]="state.selectedNote()?.isLocked ? 'text-yellow-500' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'"
               [title]="state.selectedNote()?.isLocked ? 'Remove password' : 'Set password'"
             >
               <fa-icon [icon]="state.selectedNote()?.isLocked ? faLock : faLockOpen" size="sm" />
             </button>
+            <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
             <button
               (click)="moving.set(true)"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Move note"
             >
               <fa-icon [icon]="faArrowRightArrowLeft" size="sm" />
             </button>
             <button
               (click)="copyNote()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Duplicate note"
             >
               <fa-icon [icon]="faCopy" size="sm" />
             </button>
-            <div class="relative ml-1">
+            <div class="relative">
               <button
                 (click)="exportMenuOpen.set(!exportMenuOpen())"
-                class="shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
                 title="Export note"
               >
                 <fa-icon [icon]="faFileArrowDown" size="sm" />
@@ -187,39 +211,38 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </div>
             <button
               (click)="printNote()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Print note"
             >
               <fa-icon [icon]="faPrint" size="sm" />
             </button>
             <button
               (click)="saveAsTemplate()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Save as template"
             >
               <fa-icon [icon]="faFileCirclePlus" size="sm" />
             </button>
             <button
               (click)="startArchiving()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+              class="rounded p-1 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
               title="Archive note"
             >
               <fa-icon [icon]="faBoxArchive" size="sm" />
             </button>
             <button
               (click)="startDeleting()"
-              class="ml-1 shrink-0 rounded p-1 text-gray-400 hover:text-red-600"
+              class="rounded p-1 text-gray-400 hover:text-red-600"
               title="Move to Recycle Bin"
             >
               <fa-icon [icon]="faTrash" size="sm" />
             </button>
-            <!-- View toggles (global) -->
-            <div class="ml-2 h-5 w-px shrink-0 bg-gray-300 dark:bg-gray-600"></div>
-            <span class="ml-2 shrink-0 text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">View</span>
+            <div class="h-4 w-px bg-gray-300 dark:bg-gray-600"></div>
+            <span class="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">View</span>
             <button
               (mousedown)="$event.preventDefault()"
               (click)="toggleEditorToolbar()"
-              class="ml-1.5 shrink-0 rounded p-1"
+              class="rounded p-1"
               [class]="isEditorToolbarVisible() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle formatting toolbar"
             >
@@ -228,7 +251,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             <button
               (mousedown)="$event.preventDefault()"
               (click)="editorPrefs.toggleSerif()"
-              class="ml-1 shrink-0 rounded p-1"
+              class="rounded p-1"
               [class]="editorPrefs.serifMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle serif font"
             >
@@ -236,7 +259,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="editorPrefs.toggleMetadata()"
-              class="ml-1 shrink-0 rounded p-1"
+              class="rounded p-1"
               [class]="editorPrefs.showMetadata() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle note info"
             >
@@ -244,7 +267,7 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="editorPrefs.toggleTypography()"
-              class="ml-1 shrink-0 rounded p-1"
+              class="rounded p-1"
               [class]="editorPrefs.typographyMode() ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               title="Toggle smart typography"
             >
@@ -252,12 +275,13 @@ import type { NoteDto, TagDto, TagWithCountDto } from '@noteflow/shared-types';
             </button>
             <button
               (click)="editorPrefs.cycleFontSize()"
-              class="ml-1 shrink-0 rounded p-1"
+              class="rounded p-1"
               [class]="editorPrefs.fontSize() !== 'default' ? 'bg-accent-100 text-accent-600 dark:bg-accent-900 dark:text-accent-400' : 'text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300'"
               [title]="'Font size: ' + fontSizeLabel()"
             >
               <fa-icon [icon]="faTextHeight" size="sm" />
             </button>
+          </div>
           </div>
 
           @if (locking()) {
@@ -938,6 +962,24 @@ export class NoteArea {
   protected faFloppyDisk = faFloppyDisk;
   protected faCheck = faCheck;
 
+  // Action bar scroll indicators
+  private actionBarScrollEl = viewChild<ElementRef<HTMLElement>>('actionBarScrollRef');
+  protected actionBarCanScrollLeft = signal(false);
+  protected actionBarCanScrollRight = signal(false);
+
+  protected onActionBarScroll(): void {
+    const el = this.actionBarScrollEl()?.nativeElement;
+    if (!el) return;
+    this.actionBarCanScrollLeft.set(el.scrollLeft > 4);
+    this.actionBarCanScrollRight.set(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }
+
+  protected scrollActionBar(direction: 'left' | 'right'): void {
+    const el = this.actionBarScrollEl()?.nativeElement;
+    if (!el) return;
+    el.scrollBy({ left: direction === 'left' ? -120 : 120, behavior: 'smooth' });
+  }
+
   protected fontSizeLabel = computed(() => {
     const labels: Record<string, string> = { default: 'Default', large: 'Large', xl: 'Extra Large', xxl: 'Extra Extra Large' };
     return labels[this.editorPrefs.fontSize()] ?? 'Default';
@@ -1038,6 +1080,13 @@ export class NoteArea {
   }
 
   constructor() {
+    // Check action bar overflow after it renders
+    effect(() => {
+      if (this.actionBarScrollEl()) {
+        setTimeout(() => this.onActionBarScroll(), 50);
+      }
+    });
+
     // Sync local editor state when the selected note OR editor instance changes.
     // The editor instance changes when toggling between mobile/desktop viewport
     // because each mode has its own <app-tiptap-editor> in a separate @if branch.

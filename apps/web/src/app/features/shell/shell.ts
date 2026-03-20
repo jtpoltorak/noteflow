@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
-import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket, faTrashCan, faUserClock } from '@fortawesome/free-solid-svg-icons';
+import { faCircleQuestion, faMoon, faSun, faChevronRight, faChevronLeft, faMagnifyingGlass, faBoxArchive, faStar, faShareNodes, faTags, faGear, faPlus, faCloudArrowDown, faArrowRightFromBracket, faTrashCan, faUserClock, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ViewportService } from '../../core/services/viewport.service';
@@ -152,40 +152,13 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
               <h1 class="truncate text-lg font-semibold text-gray-800 dark:text-gray-100" [title]="mobileBreadcrumb()">{{ mobileBreadcrumb() }}</h1>
             }
           </div>
-          <div class="flex shrink-0 flex-wrap items-center gap-1">
+          <div class="flex shrink-0 items-center gap-1">
             <button
               (click)="showQuickNote.set(true)"
               class="rounded-md bg-accent-600 p-1.5 text-white hover:bg-accent-700"
               title="Quick Note"
             >
               <fa-icon [icon]="faPlus" size="sm" />
-            </button>
-            <button
-              (click)="toggleMobileFavorites()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="mobilePanel() === 'favorites'"
-              [class.dark:text-accent-400]="mobilePanel() === 'favorites'"
-              title="Favorites"
-            >
-              <fa-icon [icon]="faStar" size="sm" />
-            </button>
-            <button
-              (click)="toggleMobileShared()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="mobilePanel() === 'shared'"
-              [class.dark:text-accent-400]="mobilePanel() === 'shared'"
-              title="Shared"
-            >
-              <fa-icon [icon]="faShareNodes" size="sm" />
-            </button>
-            <button
-              (click)="toggleMobileTags()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="mobilePanel() === 'tags'"
-              [class.dark:text-accent-400]="mobilePanel() === 'tags'"
-              title="Tags"
-            >
-              <fa-icon [icon]="faTags" size="sm" />
             </button>
             <button
               (click)="toggleMobileSearch()"
@@ -196,58 +169,58 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
             >
               <fa-icon [icon]="faMagnifyingGlass" size="sm" />
             </button>
-            <button
-              (click)="toggleMobileArchive()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="mobilePanel() === 'archive'"
-              [class.dark:text-accent-400]="mobilePanel() === 'archive'"
-              title="Archive"
-            >
-              <fa-icon [icon]="faBoxArchive" size="sm" />
-            </button>
-            <button
-              (click)="toggleMobileRecycleBin()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="mobilePanel() === 'recycle-bin'"
-              [class.dark:text-accent-400]="mobilePanel() === 'recycle-bin'"
-              title="Recycle Bin"
-            >
-              <fa-icon [icon]="faTrashCan" size="sm" />
-            </button>
-            @if (pwa.canInstall()) {
+            <!-- Overflow menu -->
+            <div class="relative">
               <button
-                (click)="pwa.promptInstall()"
+                (click)="mobileMenuOpen.set(!mobileMenuOpen())"
                 class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-                title="Install NoteFlow app"
+                title="More"
               >
-                <fa-icon [icon]="faCloudArrowDown" size="sm" />
+                <fa-icon [icon]="faEllipsisVertical" size="sm" />
               </button>
-            }
-            <button
-              (click)="pomo.toggle()"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="pomo.isVisible()"
-              [class.dark:text-accent-400]="pomo.isVisible()"
-              title="Pomodoro timer"
-            >
-              <fa-icon [icon]="faUserClock" size="sm" />
-            </button>
-            <button
-              (click)="showSettings.set(true)"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              title="Account settings"
-            >
-              <fa-icon [icon]="faGear" size="sm" />
-            </button>
-            <button
-              (click)="helpOpen.set(!helpOpen())"
-              class="rounded p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-              [class.text-accent-500]="helpOpen()"
-              [class.dark:text-accent-400]="helpOpen()"
-              title="Toggle help"
-            >
-              <fa-icon [icon]="faCircleQuestion" size="sm" />
-            </button>
+              @if (mobileMenuOpen()) {
+                <div (click)="mobileMenuOpen.set(false)" class="fixed inset-0 z-40"></div>
+                <div class="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-600 dark:bg-gray-800">
+                  <button (click)="toggleMobileFavorites(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faStar" class="w-4 text-center" size="sm" />Favorites
+                  </button>
+                  <button (click)="toggleMobileShared(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faShareNodes" class="w-4 text-center" size="sm" />Shared
+                  </button>
+                  <button (click)="toggleMobileTags(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faTags" class="w-4 text-center" size="sm" />Tags
+                  </button>
+                  <button (click)="toggleMobileArchive(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faBoxArchive" class="w-4 text-center" size="sm" />Archive
+                  </button>
+                  <button (click)="toggleMobileRecycleBin(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faTrashCan" class="w-4 text-center" size="sm" />Recycle Bin
+                  </button>
+                  <div class="my-1 border-t border-gray-200 dark:border-gray-600"></div>
+                  <button (click)="pomo.toggle(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faUserClock" class="w-4 text-center" size="sm" />Pomodoro
+                  </button>
+                  @if (pwa.canInstall()) {
+                    <button (click)="pwa.promptInstall(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                      <fa-icon [icon]="faCloudArrowDown" class="w-4 text-center" size="sm" />Install App
+                    </button>
+                  }
+                  <button (click)="showSettings.set(true); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faGear" class="w-4 text-center" size="sm" />Settings
+                  </button>
+                  <button (click)="theme.toggle(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="theme.darkMode() ? faSun : faMoon" class="w-4 text-center" size="sm" />{{ theme.darkMode() ? 'Light mode' : 'Dark mode' }}
+                  </button>
+                  <button (click)="helpOpen.set(true); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faCircleQuestion" class="w-4 text-center" size="sm" />Help
+                  </button>
+                  <div class="my-1 border-t border-gray-200 dark:border-gray-600"></div>
+                  <button (click)="onLogout(); mobileMenuOpen.set(false)" class="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700">
+                    <fa-icon [icon]="faArrowRightFromBracket" class="w-4 text-center" size="sm" />Sign out
+                  </button>
+                </div>
+              }
+            </div>
           </div>
         </header>
       }
@@ -388,19 +361,19 @@ export type MobilePanel = 'notebooks' | 'sections' | 'notes' | 'editor' | 'searc
 
       <!-- ── Footer ──────────────────────────────────────────── -->
       @if (vp.isDesktop() || mobilePanel() !== 'editor') {
-        <footer class="flex h-8 items-center gap-3 border-t border-gray-200 bg-white px-4 text-xs text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+        <footer class="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 border-t border-gray-200 bg-white px-4 py-1.5 text-xs text-gray-500 sm:h-8 sm:justify-start sm:py-0 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
           <span>&copy; {{ currentYear }} Jonathan T. Poltorak</span>
           <span class="text-gray-300 dark:text-gray-600">|</span>
           <button (click)="showReleaseNotes.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">v{{ appVersion }}</button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="hidden text-gray-300 sm:inline dark:text-gray-600">|</span>
           <button (click)="showAbout.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">About</button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="hidden text-gray-300 sm:inline dark:text-gray-600">|</span>
           <button (click)="showFeedback.set(true)" class="hover:text-gray-700 dark:hover:text-gray-200">Feedback</button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="hidden text-gray-300 sm:inline dark:text-gray-600">|</span>
           <button (click)="openLegal('terms')" class="hover:text-gray-700 dark:hover:text-gray-200">Terms</button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="hidden text-gray-300 sm:inline dark:text-gray-600">|</span>
           <button (click)="openLegal('privacy')" class="hover:text-gray-700 dark:hover:text-gray-200">Privacy</button>
-          <span class="text-gray-300 dark:text-gray-600">|</span>
+          <span class="hidden text-gray-300 sm:inline dark:text-gray-600">|</span>
           <button (click)="openLegal('disclaimer')" class="hover:text-gray-700 dark:hover:text-gray-200">Disclaimer</button>
         </footer>
       }
@@ -445,6 +418,7 @@ export class Shell implements OnInit {
   protected faArrowRightFromBracket = faArrowRightFromBracket;
   protected faTrashCan = faTrashCan;
   protected faUserClock = faUserClock;
+  protected faEllipsisVertical = faEllipsisVertical;
 
   // Desktop panel state
   protected treeCollapsed = signal(false);
@@ -481,6 +455,7 @@ export class Shell implements OnInit {
   });
 
   // ── Mobile navigation ─────────────────────────────────────────
+  protected mobileMenuOpen = signal(false);
   protected mobilePanel = signal<MobilePanel>('notebooks');
   private cameFromSearch = false;
 

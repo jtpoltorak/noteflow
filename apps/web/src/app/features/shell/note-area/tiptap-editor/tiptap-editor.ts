@@ -1,5 +1,6 @@
 import {
   Component,
+  ElementRef,
   OnDestroy,
   inject,
   input,
@@ -176,7 +177,30 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
   template: `
     <!-- Formatting toolbar -->
     @if (prefs.showToolbar()) {
-      <div class="flex flex-wrap items-center gap-0.5 border-b border-gray-200 bg-gray-50 px-2 py-1 dark:border-gray-700 dark:bg-gray-900">
+      <div class="relative border-b border-gray-200 dark:border-gray-700 sm:border-0">
+        <!-- Scroll left indicator -->
+        @if (toolbarCanScrollLeft()) {
+          <button
+            (click)="scrollToolbar('left')"
+            class="absolute top-0 bottom-0 left-0 z-10 flex w-6 items-center justify-center bg-gradient-to-r from-gray-50 via-gray-50/80 to-transparent dark:from-gray-900 dark:via-gray-900/80 sm:hidden"
+          >
+            <span class="text-sm font-bold text-gray-400">‹</span>
+          </button>
+        }
+        <!-- Scroll right indicator -->
+        @if (toolbarCanScrollRight()) {
+          <button
+            (click)="scrollToolbar('right')"
+            class="absolute top-0 right-0 bottom-0 z-10 flex w-6 items-center justify-center bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent dark:from-gray-900 dark:via-gray-900/80 sm:hidden"
+          >
+            <span class="text-sm font-bold text-gray-400">›</span>
+          </button>
+        }
+      <div
+        #toolbarScrollRef
+        (scroll)="onToolbarScroll()"
+        class="no-scrollbar flex items-center gap-0.5 overflow-x-auto bg-gray-50 px-2 py-1 [&>*]:shrink-0 sm:flex-wrap sm:overflow-visible sm:border-b sm:border-gray-200 dark:bg-gray-900 sm:dark:border-gray-700"
+      >
         <!-- Undo / Redo -->
         <button
           (mousedown)="$event.preventDefault(); editor.chain().focus().undo().run()"
@@ -197,7 +221,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Redo"
         ><fa-icon [icon]="faRotateRight" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Text style -->
         <button
@@ -245,7 +269,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Heading 3"
         >H3</button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Inline formatting -->
         <button
@@ -309,7 +333,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Clear formatting"
         ><fa-icon [icon]="faTextSlash" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Text color -->
         <div class="relative">
@@ -399,7 +423,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           }
         </div>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Superscript / Subscript -->
         <button
@@ -425,7 +449,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Subscript"
         ><fa-icon [icon]="faSubscript" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Alignment -->
         <button
@@ -462,7 +486,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Align right"
         ><fa-icon [icon]="faAlignRight" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Lists -->
         <button
@@ -499,7 +523,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Todo list"
         ><fa-icon [icon]="faSquareCheck" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Indent / Outdent -->
         <button
@@ -521,7 +545,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Indent"
         ><fa-icon [icon]="faIndent" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Block types -->
         <button
@@ -552,7 +576,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Divider"
         ><fa-icon [icon]="faMinus" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Link -->
         <button
@@ -576,7 +600,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Remove link"
         ><fa-icon [icon]="faLinkSlash" size="sm" /></button>
 
-        <div class="mx-0.5 h-5 w-px bg-gray-200 dark:bg-gray-600"></div>
+        <div class="mx-0.5 h-5 w-px shrink-0 bg-gray-200 dark:bg-gray-600"></div>
 
         <!-- Table -->
         <button
@@ -613,6 +637,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
           title="Insert math equation"
         ><fa-icon [icon]="faSquareRootVariable" size="sm" /></button>
       </div>
+      </div>
     }
 
     @if (findReplacePanelOpen()) {
@@ -624,7 +649,7 @@ function getSlashStorage(editor: Editor): SlashCommandStorage {
     }
 
     <div
-      class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden py-4 pr-4 pl-8 text-gray-700 focus:outline-none dark:text-gray-200"
+      class="noteflow-editor min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-3 py-3 text-gray-700 focus:outline-none sm:py-4 sm:pr-4 sm:pl-8 dark:text-gray-200"
       [class.serif-mode]="prefs.serifMode()"
       [class.font-large]="prefs.fontSize() === 'large'"
       [class.font-xl]="prefs.fontSize() === 'xl'"
@@ -881,6 +906,31 @@ export class TiptapEditor implements OnDestroy {
   protected faYoutube = faYoutube;
   protected faVolumeHigh = faVolumeHigh;
   protected faSquareRootVariable = faSquareRootVariable;
+
+  // Toolbar scroll indicators
+  private toolbarScrollEl = viewChild<ElementRef<HTMLElement>>('toolbarScrollRef');
+  protected toolbarCanScrollLeft = signal(false);
+  protected toolbarCanScrollRight = signal(false);
+
+  protected onToolbarScroll(): void {
+    const el = this.toolbarScrollEl()?.nativeElement;
+    if (!el) return;
+    this.toolbarCanScrollLeft.set(el.scrollLeft > 4);
+    this.toolbarCanScrollRight.set(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }
+
+  protected scrollToolbar(direction: 'left' | 'right'): void {
+    const el = this.toolbarScrollEl()?.nativeElement;
+    if (!el) return;
+    el.scrollBy({ left: direction === 'left' ? -120 : 120, behavior: 'smooth' });
+  }
+
+  private toolbarCheckTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private checkToolbarOverflow(): void {
+    if (this.toolbarCheckTimer) clearTimeout(this.toolbarCheckTimer);
+    this.toolbarCheckTimer = setTimeout(() => this.onToolbarScroll(), 50);
+  }
 
   toggleToolbar(): void {
     this.prefs.toggleToolbar();
@@ -1230,6 +1280,11 @@ export class TiptapEditor implements OnDestroy {
   private noteLinkClickHandler: ((e: Event) => void) | null = null;
 
   constructor() {
+    // Check toolbar overflow after it renders
+    effect(() => {
+      if (this.toolbarScrollEl()) this.checkToolbarOverflow();
+    });
+
     this.editor = new Editor({
       extensions: this.buildExtensions(),
       content: '',
