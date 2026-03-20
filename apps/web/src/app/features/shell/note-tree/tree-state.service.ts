@@ -242,6 +242,108 @@ export class TreeStateService {
     }
   }
 
+  // ── Tree drag-and-drop reorder/move ──────────────────────────
+
+  reorderSectionsInNotebook(notebookId: number, reordered: SectionDto[]): void {
+    this.sectionCache.update((m) => {
+      const next = new Map(m);
+      next.set(notebookId, reordered);
+      return next;
+    });
+    if (this.state.selectedNotebookId() === notebookId) {
+      this.state.sections.set(reordered);
+    }
+    reordered.forEach((sec, i) => {
+      if (sec.order !== i) {
+        this.sectionSvc.update(sec.id, { order: i }).subscribe();
+      }
+    });
+  }
+
+  reorderNotesInSection(sectionId: number, reordered: NoteDto[]): void {
+    this.noteCache.update((m) => {
+      const next = new Map(m);
+      next.set(sectionId, reordered);
+      return next;
+    });
+    if (this.state.selectedSectionId() === sectionId) {
+      this.state.notes.set(reordered);
+    }
+    reordered.forEach((note, i) => {
+      if (note.order !== i) {
+        this.noteSvc.update(note.id, { order: i }).subscribe();
+      }
+    });
+  }
+
+  moveSectionToNotebook(sectionId: number, fromNbId: number, toNbId: number, insertIndex: number): void {
+    const fromSections = [...(this.sectionCache().get(fromNbId) ?? [])];
+    const idx = fromSections.findIndex((s) => s.id === sectionId);
+    if (idx === -1) return;
+    const [section] = fromSections.splice(idx, 1);
+
+    const toSections = [...(this.sectionCache().get(toNbId) ?? [])];
+    toSections.splice(insertIndex, 0, section);
+
+    this.sectionCache.update((m) => {
+      const next = new Map(m);
+      next.set(fromNbId, fromSections);
+      next.set(toNbId, toSections);
+      return next;
+    });
+
+    if (this.state.selectedNotebookId() === fromNbId) {
+      this.state.sections.set(fromSections);
+    }
+    if (this.state.selectedSectionId() === sectionId) {
+      this.state.selectedSectionId.set(null);
+      this.state.selectedNoteId.set(null);
+      this.state.notes.set([]);
+    }
+
+    // Expand target notebook so the moved section is visible
+    this.expandedNotebooks.update((s) => new Set(s).add(toNbId));
+
+    this.sectionSvc.update(sectionId, { notebookId: toNbId }).subscribe(() => {
+      toSections.forEach((sec, i) => {
+        this.sectionSvc.update(sec.id, { order: i }).subscribe();
+      });
+    });
+  }
+
+  moveNoteToSection(noteId: number, fromSecId: number, toSecId: number, insertIndex: number): void {
+    const fromNotes = [...(this.noteCache().get(fromSecId) ?? [])];
+    const idx = fromNotes.findIndex((n) => n.id === noteId);
+    if (idx === -1) return;
+    const [note] = fromNotes.splice(idx, 1);
+
+    const toNotes = [...(this.noteCache().get(toSecId) ?? [])];
+    toNotes.splice(insertIndex, 0, note);
+
+    this.noteCache.update((m) => {
+      const next = new Map(m);
+      next.set(fromSecId, fromNotes);
+      next.set(toSecId, toNotes);
+      return next;
+    });
+
+    if (this.state.selectedSectionId() === fromSecId) {
+      this.state.notes.set(fromNotes);
+    }
+    if (this.state.selectedNoteId() === noteId) {
+      this.state.selectedNoteId.set(null);
+    }
+
+    // Expand target section so the moved note is visible
+    this.expandedSections.update((s) => new Set(s).add(toSecId));
+
+    this.noteSvc.update(noteId, { sectionId: toSecId }).subscribe(() => {
+      toNotes.forEach((n, i) => {
+        this.noteSvc.update(n.id, { order: i }).subscribe();
+      });
+    });
+  }
+
   // ── Cache invalidation ──────────────────────────────────────
 
   invalidateNotebookCache(notebookId: number): void {

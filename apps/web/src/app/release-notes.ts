@@ -6,6 +6,15 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.17.0',
+    date: '2026-03-20',
+    items: [
+      'Drag-and-drop in the tree view — reorder notebooks, sections, and notes by dragging them to a new position',
+      'Move sections between notebooks or notes between sections by dragging onto a different parent',
+      'Visual drop indicators show exactly where items will land; collapsed parents auto-expand on hover',
+    ],
+  },
+  {
     version: '0.16.0',
     date: '2026-03-20',
     items: [

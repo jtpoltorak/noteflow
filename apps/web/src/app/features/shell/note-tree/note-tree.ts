@@ -7,6 +7,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
 import type { TreeNode } from './tree-node.model';
 
+interface DropIndicator {
+  nodeType: string;
+  nodeId: number;
+  position: 'before' | 'after' | 'inside';
+}
+
 @Component({
   selector: 'app-note-tree',
   imports: [FaIconComponent, ConfirmDialog],
@@ -39,7 +45,11 @@ import type { TreeNode } from './tree-node.model';
       </div>
     </div>
 
-    <div class="flex-1 overflow-y-auto p-1" role="tree">
+    <div
+      class="flex-1 overflow-y-auto p-1"
+      role="tree"
+      (dragleave)="onTreeDragLeave($event)"
+    >
       <!-- New notebook inline input -->
       @if (creatingNotebook()) {
         <div class="px-2 py-1">
@@ -63,14 +73,31 @@ import type { TreeNode } from './tree-node.model';
           [attr.aria-level]="node.level + 1"
           [attr.data-level]="node.level"
           [attr.data-last-child]="node.isLastChild"
-          class="tree-node group flex items-center rounded py-1 pr-1 text-sm cursor-pointer dark:text-gray-200"
+          [attr.draggable]="isEditing(node) ? 'false' : 'true'"
+          class="tree-node group relative flex items-center rounded py-1 pr-1 text-sm cursor-pointer dark:text-gray-200"
           [style.padding-left.px]="node.level * 20 + 4 + (node.type === 'note' ? 4 : 0)"
-          [class.bg-accent-100]="isSelected(node)"
-          [class.dark:bg-accent-900/40]="isSelected(node)"
-          [class.hover:bg-gray-100]="!isSelected(node)"
-          [class.dark:hover:bg-gray-700]="!isSelected(node)"
+          [class.bg-accent-100]="isSelected(node) && !isDropTarget(node, 'inside')"
+          [class.dark:bg-accent-900/40]="isSelected(node) && !isDropTarget(node, 'inside')"
+          [class.hover:bg-gray-100]="!isSelected(node) && !isDropTarget(node, 'inside')"
+          [class.dark:hover:bg-gray-700]="!isSelected(node) && !isDropTarget(node, 'inside')"
+          [class.opacity-40]="isDraggedNode(node)"
+          [class.bg-accent-50]="isDropTarget(node, 'inside')"
+          [class.dark:bg-accent-900/30]="isDropTarget(node, 'inside')"
           (click)="onNodeClick(node, $event)"
+          (dragstart)="onDragStart(node, $event)"
+          (dragover)="onDragOver(node, $event)"
+          (drop)="onNodeDrop(node, $event)"
+          (dragend)="onDragEnd()"
         >
+          <!-- Drop indicator line (before) -->
+          @if (isDropTarget(node, 'before')) {
+            <span class="absolute left-1 right-1 top-0 h-0.5 rounded bg-accent-500"></span>
+          }
+          <!-- Drop indicator line (after) -->
+          @if (isDropTarget(node, 'after')) {
+            <span class="absolute bottom-0 left-1 right-1 h-0.5 rounded bg-accent-500"></span>
+          }
+
           <!-- Pass-through connector line for level-2 nodes when parent section isn't last -->
           @if (node.level === 2 && !node.parentIsLastChild) {
             <span class="tree-passthrough-line" style="left: 14px"></span>
@@ -117,8 +144,8 @@ import type { TreeNode } from './tree-node.model';
             @if (node.isLocked) {
               <fa-icon [icon]="faLock" class="ml-1 shrink-0 text-gray-400" size="xs" />
             }
-            <!-- Hover actions -->
-            <div class="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100">
+            <!-- Hover actions (hidden while dragging) -->
+            <div class="flex shrink-0 gap-0.5 opacity-0 group-hover:opacity-100" [class.hidden]="draggedNode()">
               @if (node.type !== 'note') {
                 <button
                   (click)="startCreatingChild(node, $event)"
@@ -210,6 +237,11 @@ export class NoteTree {
   protected creatingNotebook = signal(false);
   protected deletingNode = signal<{ type: string; id: number } | null>(null);
 
+  // ── Drag-and-drop state ─────────────────────────────────────
+  protected draggedNode = signal<TreeNode | null>(null);
+  protected dropIndicator = signal<DropIndicator | null>(null);
+  private dragExpandTimer: ReturnType<typeof setTimeout> | null = null;
+
   private notebookCreateInputRef = viewChild<ElementRef<HTMLInputElement>>('notebookCreateInput');
   private childCreateInputRef = viewChild<ElementRef<HTMLInputElement>>('childCreateInput');
 
@@ -245,6 +277,16 @@ export class NoteTree {
     return c?.type === node.type && c?.id === node.id;
   }
 
+  protected isDraggedNode(node: TreeNode): boolean {
+    const d = this.draggedNode();
+    return d?.type === node.type && d?.id === node.id;
+  }
+
+  protected isDropTarget(node: TreeNode, position: 'before' | 'after' | 'inside'): boolean {
+    const t = this.dropIndicator();
+    return t?.nodeType === node.type && t?.nodeId === node.id && t?.position === position;
+  }
+
   // ── Node interactions ───────────────────────────────────────
 
   protected toggleExpandAll(): void {
@@ -265,6 +307,220 @@ export class NoteTree {
       this.tree.toggleNotebook(node.id);
     } else if (node.type === 'section') {
       this.tree.toggleSection(node.id);
+    }
+  }
+
+  // ── Drag-and-drop ──────────────────────────────────────────
+
+  protected onDragStart(node: TreeNode, event: DragEvent): void {
+    if (this.isEditing(node)) {
+      event.preventDefault();
+      return;
+    }
+    this.draggedNode.set(node);
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', '');
+    }
+  }
+
+  protected onDragOver(node: TreeNode, event: DragEvent): void {
+    const dragged = this.draggedNode();
+    if (!dragged) return;
+    if (dragged.type === node.type && dragged.id === node.id) {
+      this.dropIndicator.set(null);
+      return;
+    }
+
+    const position = this.calculateDropPosition(dragged, node, event);
+    if (!position) {
+      this.dropIndicator.set(null);
+      return;
+    }
+
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+    this.dropIndicator.set({ nodeType: node.type, nodeId: node.id, position });
+
+    // Auto-expand collapsed parents when hovering with 'inside' position
+    if (position === 'inside' && node.expandable && !this.isExpanded(node)) {
+      if (!this.dragExpandTimer) {
+        this.dragExpandTimer = setTimeout(() => {
+          if (node.type === 'notebook') this.tree.toggleNotebook(node.id);
+          else if (node.type === 'section') this.tree.toggleSection(node.id);
+          this.dragExpandTimer = null;
+        }, 600);
+      }
+    } else {
+      this.clearDragExpandTimer();
+    }
+  }
+
+  protected onTreeDragLeave(event: DragEvent): void {
+    const container = event.currentTarget as HTMLElement;
+    const related = event.relatedTarget as HTMLElement | null;
+    if (!related || !container.contains(related)) {
+      this.dropIndicator.set(null);
+      this.clearDragExpandTimer();
+    }
+  }
+
+  protected onNodeDrop(node: TreeNode, event: DragEvent): void {
+    event.preventDefault();
+    const dragged = this.draggedNode();
+    const indicator = this.dropIndicator();
+    this.draggedNode.set(null);
+    this.dropIndicator.set(null);
+    this.clearDragExpandTimer();
+
+    if (!dragged || !indicator) return;
+    if (indicator.nodeType !== node.type || indicator.nodeId !== node.id) return;
+
+    this.executeDrop(dragged, node, indicator.position);
+  }
+
+  protected onDragEnd(): void {
+    this.draggedNode.set(null);
+    this.dropIndicator.set(null);
+    this.clearDragExpandTimer();
+  }
+
+  private calculateDropPosition(
+    dragged: TreeNode,
+    target: TreeNode,
+    event: DragEvent,
+  ): 'before' | 'after' | 'inside' | null {
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    const y = event.clientY - rect.top;
+    const height = rect.height;
+
+    if (dragged.type === 'notebook') {
+      // Notebooks can only reorder among other notebooks
+      if (target.type !== 'notebook') return null;
+      return y < height / 2 ? 'before' : 'after';
+    }
+
+    if (dragged.type === 'section') {
+      if (target.type === 'notebook') return 'inside';
+      if (target.type === 'section') return y < height / 2 ? 'before' : 'after';
+      return null; // Can't drop section on a note
+    }
+
+    if (dragged.type === 'note') {
+      if (target.type === 'section') return 'inside';
+      if (target.type === 'note') return y < height / 2 ? 'before' : 'after';
+      return null; // Can't drop note on a notebook
+    }
+
+    return null;
+  }
+
+  private executeDrop(dragged: TreeNode, target: TreeNode, position: 'before' | 'after' | 'inside'): void {
+    if (dragged.type === 'notebook' && target.type === 'notebook') {
+      this.dropNotebook(dragged, target, position as 'before' | 'after');
+    } else if (dragged.type === 'section') {
+      if (position === 'inside' && target.type === 'notebook') {
+        this.dropSectionIntoNotebook(dragged, target.id);
+      } else if (target.type === 'section') {
+        this.dropSectionNearSection(dragged, target, position as 'before' | 'after');
+      }
+    } else if (dragged.type === 'note') {
+      if (position === 'inside' && target.type === 'section') {
+        this.dropNoteIntoSection(dragged, target.id);
+      } else if (target.type === 'note') {
+        this.dropNoteNearNote(dragged, target, position as 'before' | 'after');
+      }
+    }
+  }
+
+  private dropNotebook(dragged: TreeNode, target: TreeNode, position: 'before' | 'after'): void {
+    const notebooks = [...this.state.notebooks()];
+    const fromIndex = notebooks.findIndex((nb) => nb.id === dragged.id);
+    let toIndex = notebooks.findIndex((nb) => nb.id === target.id);
+    if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+    const [item] = notebooks.splice(fromIndex, 1);
+    if (fromIndex < toIndex) toIndex--;
+    if (position === 'after') toIndex++;
+    notebooks.splice(toIndex, 0, item);
+
+    this.state.reorderNotebooks(notebooks);
+  }
+
+  private dropSectionNearSection(dragged: TreeNode, target: TreeNode, position: 'before' | 'after'): void {
+    const fromNbId = dragged.parentId!;
+    const toNbId = target.parentId!;
+
+    if (fromNbId === toNbId) {
+      // Same notebook — reorder
+      const sections = [...(this.tree.sectionCache().get(fromNbId) ?? [])];
+      const fromIndex = sections.findIndex((s) => s.id === dragged.id);
+      let toIndex = sections.findIndex((s) => s.id === target.id);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+      const [item] = sections.splice(fromIndex, 1);
+      if (fromIndex < toIndex) toIndex--;
+      if (position === 'after') toIndex++;
+      sections.splice(toIndex, 0, item);
+
+      this.tree.reorderSectionsInNotebook(fromNbId, sections);
+    } else {
+      // Different notebook — move
+      const targetSections = [...(this.tree.sectionCache().get(toNbId) ?? [])];
+      let toIndex = targetSections.findIndex((s) => s.id === target.id);
+      if (position === 'after') toIndex++;
+
+      this.tree.moveSectionToNotebook(dragged.id, fromNbId, toNbId, toIndex);
+    }
+  }
+
+  private dropSectionIntoNotebook(dragged: TreeNode, notebookId: number): void {
+    const fromNbId = dragged.parentId!;
+    if (fromNbId === notebookId) return; // Already in this notebook
+
+    const toSections = this.tree.sectionCache().get(notebookId) ?? [];
+    this.tree.moveSectionToNotebook(dragged.id, fromNbId, notebookId, toSections.length);
+  }
+
+  private dropNoteNearNote(dragged: TreeNode, target: TreeNode, position: 'before' | 'after'): void {
+    const fromSecId = dragged.parentId!;
+    const toSecId = target.parentId!;
+
+    if (fromSecId === toSecId) {
+      // Same section — reorder
+      const notes = [...(this.tree.noteCache().get(fromSecId) ?? [])];
+      const fromIndex = notes.findIndex((n) => n.id === dragged.id);
+      let toIndex = notes.findIndex((n) => n.id === target.id);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+      const [item] = notes.splice(fromIndex, 1);
+      if (fromIndex < toIndex) toIndex--;
+      if (position === 'after') toIndex++;
+      notes.splice(toIndex, 0, item);
+
+      this.tree.reorderNotesInSection(fromSecId, notes);
+    } else {
+      // Different section — move
+      const targetNotes = [...(this.tree.noteCache().get(toSecId) ?? [])];
+      let toIndex = targetNotes.findIndex((n) => n.id === target.id);
+      if (position === 'after') toIndex++;
+
+      this.tree.moveNoteToSection(dragged.id, fromSecId, toSecId, toIndex);
+    }
+  }
+
+  private dropNoteIntoSection(dragged: TreeNode, sectionId: number): void {
+    const fromSecId = dragged.parentId!;
+    if (fromSecId === sectionId) return; // Already in this section
+
+    const toNotes = this.tree.noteCache().get(sectionId) ?? [];
+    this.tree.moveNoteToSection(dragged.id, fromSecId, sectionId, toNotes.length);
+  }
+
+  private clearDragExpandTimer(): void {
+    if (this.dragExpandTimer) {
+      clearTimeout(this.dragExpandTimer);
+      this.dragExpandTimer = null;
     }
   }
 

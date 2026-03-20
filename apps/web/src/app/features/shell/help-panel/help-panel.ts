@@ -119,6 +119,8 @@ export class HelpPanel {
           <li>Click <strong>+</strong> / <strong>&minus;</strong> to expand or collapse notebooks and sections</li>
           <li>Hover over any item to see action buttons: add child, rename, or delete</li>
           <li>Connector lines show the parent-child structure</li>
+          <li><strong>Drag and drop</strong> to reorder notebooks, sections, and notes within the tree</li>
+          <li>Drag a section onto a different notebook or a note onto a different section to move it</li>
           <li>Collapse the entire tree panel with the chevron in its header</li>
           <li>Use the expand icon in the editor to enter full-screen mode</li>
         </ul>`,
