@@ -6,6 +6,14 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.16.0',
+    date: '2026-03-20',
+    items: [
+      'Quick Note now lets you create new notebooks and sections inline — click "+ New" next to either dropdown to name and create one without leaving the dialog',
+      'After creating a new notebook, the section creation input opens automatically so you can set up both in one flow',
+    ],
+  },
+  {
     version: '0.15.0',
     date: '2026-03-19',
     items: [

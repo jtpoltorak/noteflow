@@ -249,7 +249,8 @@ export class HelpPanel {
     {
       id: 'quick-note',
       title: 'Quick Note',
-      content: `<p>Click the Quick Note button in the header to create a note without leaving your current view. Pick a notebook and section, give it a title, and optionally add formatted content with the mini editor.</p>`,
+      content: `<p>Click the Quick Note button in the header to create a note without leaving your current view. Pick a notebook and section, give it a title, and optionally add formatted content with the mini editor.</p>
+<p>Need a new notebook or section? Click the <strong>+ New</strong> link next to either dropdown to create one inline — no need to leave the dialog. When you create a new notebook, the section creation input opens automatically so you can set up both in one step.</p>`,
     },
     {
       id: 'metadata',

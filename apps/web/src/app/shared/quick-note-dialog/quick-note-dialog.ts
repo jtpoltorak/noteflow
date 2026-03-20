@@ -1,4 +1,4 @@
-import { Component, inject, input, output, effect, signal, OnDestroy } from '@angular/core';
+import { Component, inject, input, output, effect, signal, untracked, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FaIconComponent } from '@fortawesome/angular-fontawesome';
 import {
@@ -9,6 +9,9 @@ import {
   faList,
   faListOl,
   faSquareCheck,
+  faPlus,
+  faCheck,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -18,6 +21,7 @@ import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import { TiptapEditorDirective } from 'ngx-tiptap';
 import { Modal } from '../modal/modal';
+import { NotebookService } from '../../core/services/notebook.service';
 import { SectionService } from '../../core/services/section.service';
 import { NoteService } from '../../core/services/note.service';
 import { ShellStateService } from '../../features/shell/shell-state.service';
@@ -49,32 +53,120 @@ export interface QuickNoteResult {
 
         <!-- Notebook & Section side by side -->
         <div class="flex gap-3">
+          <!-- Notebook -->
           <div class="flex-1">
-            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Notebook</label>
-            <select
-              [(ngModel)]="selectedNotebookId"
-              (ngModelChange)="onNotebookChange($event)"
-              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-            >
-              @for (nb of notebooks(); track nb.id) {
-                <option [value]="nb.id">{{ nb.title }}</option>
+            <div class="mb-1 flex items-center justify-between">
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Notebook</label>
+              @if (!creatingNotebook()) {
+                <button
+                  (click)="startCreatingNotebook()"
+                  class="flex items-center gap-0.5 text-xs text-accent-600 hover:text-accent-700 dark:text-accent-400 dark:hover:text-accent-300"
+                  title="Create new notebook"
+                >
+                  <fa-icon [icon]="faPlus" size="xs" />
+                  <span>New</span>
+                </button>
               }
-            </select>
+            </div>
+            @if (creatingNotebook()) {
+              <div class="flex gap-1">
+                <input
+                  type="text"
+                  [(ngModel)]="newNotebookTitle"
+                  maxlength="75"
+                  placeholder="Notebook name"
+                  (keydown.enter)="confirmCreateNotebook()"
+                  (keydown.escape)="cancelCreateNotebook()"
+                  class="min-w-0 flex-1 rounded border border-accent-400 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+                />
+                <button
+                  (click)="confirmCreateNotebook()"
+                  [disabled]="!newNotebookTitle.trim() || savingNotebook()"
+                  class="rounded bg-accent-600 px-1.5 text-white hover:bg-accent-700 disabled:opacity-50"
+                  title="Create"
+                >
+                  <fa-icon [icon]="faCheck" size="sm" />
+                </button>
+                <button
+                  (click)="cancelCreateNotebook()"
+                  class="rounded px-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                  title="Cancel"
+                >
+                  <fa-icon [icon]="faXmark" size="sm" />
+                </button>
+              </div>
+            } @else {
+              <select
+                [(ngModel)]="selectedNotebookId"
+                (ngModelChange)="onNotebookChange($event)"
+                class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+              >
+                @if (notebooks().length === 0) {
+                  <option value="" disabled>No notebooks yet</option>
+                }
+                @for (nb of notebooks(); track nb.id) {
+                  <option [ngValue]="nb.id">{{ nb.title }}</option>
+                }
+              </select>
+            }
           </div>
+
+          <!-- Section -->
           <div class="flex-1">
-            <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Section</label>
-            <select
-              [(ngModel)]="selectedSectionId"
-              class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              [disabled]="sections().length === 0"
-            >
-              @for (sec of sections(); track sec.id) {
-                <option [value]="sec.id">{{ sec.title }}</option>
+            <div class="mb-1 flex items-center justify-between">
+              <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Section</label>
+              @if (!creatingSection() && selectedNotebookId) {
+                <button
+                  (click)="startCreatingSection()"
+                  class="flex items-center gap-0.5 text-xs text-accent-600 hover:text-accent-700 dark:text-accent-400 dark:hover:text-accent-300"
+                  title="Create new section"
+                >
+                  <fa-icon [icon]="faPlus" size="xs" />
+                  <span>New</span>
+                </button>
               }
-              @if (sections().length === 0) {
-                <option value="" disabled>No sections in this notebook</option>
-              }
-            </select>
+            </div>
+            @if (creatingSection()) {
+              <div class="flex gap-1">
+                <input
+                  type="text"
+                  [(ngModel)]="newSectionTitle"
+                  maxlength="75"
+                  placeholder="Section name"
+                  (keydown.enter)="confirmCreateSection()"
+                  (keydown.escape)="cancelCreateSection()"
+                  class="min-w-0 flex-1 rounded border border-accent-400 bg-white px-2 py-1.5 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-accent-500 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
+                />
+                <button
+                  (click)="confirmCreateSection()"
+                  [disabled]="!newSectionTitle.trim() || savingSection()"
+                  class="rounded bg-accent-600 px-1.5 text-white hover:bg-accent-700 disabled:opacity-50"
+                  title="Create"
+                >
+                  <fa-icon [icon]="faCheck" size="sm" />
+                </button>
+                <button
+                  (click)="cancelCreateSection()"
+                  class="rounded px-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+                  title="Cancel"
+                >
+                  <fa-icon [icon]="faXmark" size="sm" />
+                </button>
+              </div>
+            } @else {
+              <select
+                [(ngModel)]="selectedSectionId"
+                class="w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-accent-400 focus:outline-none focus:ring-1 focus:ring-accent-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                [disabled]="sections().length === 0 || !selectedNotebookId"
+              >
+                @if (sections().length === 0) {
+                  <option value="" disabled>No sections</option>
+                }
+                @for (sec of sections(); track sec.id) {
+                  <option [ngValue]="sec.id">{{ sec.title }}</option>
+                }
+              </select>
+            }
           </div>
         </div>
 
@@ -200,6 +292,7 @@ export class QuickNoteDialog implements OnDestroy {
   closed = output();
   created = output<QuickNoteResult>();
 
+  private notebookSvc = inject(NotebookService);
   private sectionSvc = inject(SectionService);
   private noteSvc = inject(NoteService);
   private state = inject(ShellStateService);
@@ -211,6 +304,14 @@ export class QuickNoteDialog implements OnDestroy {
   protected selectedNotebookId: number | '' = '';
   protected selectedSectionId: number | '' = '';
 
+  // Inline creation state
+  protected creatingNotebook = signal(false);
+  protected creatingSection = signal(false);
+  protected savingNotebook = signal(false);
+  protected savingSection = signal(false);
+  protected newNotebookTitle = '';
+  protected newSectionTitle = '';
+
   // Icons
   protected faBold = faBold;
   protected faItalic = faItalic;
@@ -219,6 +320,9 @@ export class QuickNoteDialog implements OnDestroy {
   protected faList = faList;
   protected faListOl = faListOl;
   protected faSquareCheck = faSquareCheck;
+  protected faPlus = faPlus;
+  protected faCheck = faCheck;
+  protected faXmark = faXmark;
 
   // Mini TipTap editor
   protected editor: Editor | null = null;
@@ -227,19 +331,24 @@ export class QuickNoteDialog implements OnDestroy {
     effect(() => {
       if (!this.open()) return;
 
-      this.title = '';
-      this.initEditor();
+      // Only track open() — read notebooks/selection without subscribing
+      // so this effect doesn't re-run when notebooks are created inline
+      untracked(() => {
+        this.title = '';
+        this.resetInlineCreation();
+        this.initEditor();
 
-      const nbs = this.notebooks();
-      if (nbs.length === 0) return;
+        const nbs = this.notebooks();
+        if (nbs.length === 0) return;
 
-      const currentNbId = this.state.selectedNotebookId();
-      const defaultNbId = currentNbId && nbs.some((n) => n.id === currentNbId) ? currentNbId : nbs[0].id;
-      this.selectedNotebookId = defaultNbId;
-      this.loadSections(defaultNbId);
+        const currentNbId = this.state.selectedNotebookId();
+        const defaultNbId = currentNbId && nbs.some((n) => n.id === currentNbId) ? currentNbId : nbs[0].id;
+        this.selectedNotebookId = defaultNbId;
+        this.loadSections(defaultNbId);
 
-      requestAnimationFrame(() => {
-        document.querySelector<HTMLInputElement>('app-quick-note-dialog input[type="text"]')?.focus();
+        requestAnimationFrame(() => {
+          document.querySelector<HTMLInputElement>('app-quick-note-dialog input[type="text"]')?.focus();
+        });
       });
     });
   }
@@ -255,11 +364,13 @@ export class QuickNoteDialog implements OnDestroy {
   protected onNotebookChange(notebookId: number): void {
     this.selectedSectionId = '';
     this.sections.set([]);
+    this.cancelCreateSection();
     this.loadSections(notebookId);
   }
 
   protected onClose(): void {
     this.destroyEditor();
+    this.resetInlineCreation();
     this.closed.emit();
   }
 
@@ -278,6 +389,85 @@ export class QuickNoteDialog implements OnDestroy {
       this.closed.emit();
     });
   }
+
+  // --- Inline notebook creation ---
+
+  protected startCreatingNotebook(): void {
+    this.newNotebookTitle = '';
+    this.creatingNotebook.set(true);
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>('app-quick-note-dialog input[placeholder="Notebook name"]')?.focus();
+    });
+  }
+
+  protected cancelCreateNotebook(): void {
+    this.creatingNotebook.set(false);
+    this.newNotebookTitle = '';
+  }
+
+  protected confirmCreateNotebook(): void {
+    const title = this.newNotebookTitle.trim();
+    if (!title) return;
+
+    this.savingNotebook.set(true);
+    this.notebookSvc.create(title).subscribe({
+      next: (notebook) => {
+        // Refresh the sidebar notebook list, then select the new notebook
+        // once the list has actually updated
+        this.notebookSvc.getAll().subscribe((list) => {
+          this.state.notebooks.set(list);
+          this.selectedNotebookId = notebook.id;
+          this.sections.set([]);
+          this.selectedSectionId = '';
+          this.creatingNotebook.set(false);
+          this.savingNotebook.set(false);
+          this.newNotebookTitle = '';
+          // New notebook has no sections — prompt to create one
+          this.startCreatingSection();
+        });
+      },
+      error: () => {
+        this.savingNotebook.set(false);
+      },
+    });
+  }
+
+  // --- Inline section creation ---
+
+  protected startCreatingSection(): void {
+    this.newSectionTitle = '';
+    this.creatingSection.set(true);
+    requestAnimationFrame(() => {
+      document.querySelector<HTMLInputElement>('app-quick-note-dialog input[placeholder="Section name"]')?.focus();
+    });
+  }
+
+  protected cancelCreateSection(): void {
+    this.creatingSection.set(false);
+    this.newSectionTitle = '';
+  }
+
+  protected confirmCreateSection(): void {
+    const title = this.newSectionTitle.trim();
+    const notebookId = Number(this.selectedNotebookId);
+    if (!title || !notebookId) return;
+
+    this.savingSection.set(true);
+    this.sectionSvc.create(notebookId, title).subscribe({
+      next: (section) => {
+        this.sections.update((prev) => [...prev, section]);
+        this.selectedSectionId = section.id;
+        this.creatingSection.set(false);
+        this.savingSection.set(false);
+        this.newSectionTitle = '';
+      },
+      error: () => {
+        this.savingSection.set(false);
+      },
+    });
+  }
+
+  // --- Editor lifecycle ---
 
   private initEditor(): void {
     this.destroyEditor();
@@ -310,5 +500,14 @@ export class QuickNoteDialog implements OnDestroy {
         this.selectedSectionId = sections[0].id;
       }
     });
+  }
+
+  private resetInlineCreation(): void {
+    this.creatingNotebook.set(false);
+    this.creatingSection.set(false);
+    this.savingNotebook.set(false);
+    this.savingSection.set(false);
+    this.newNotebookTitle = '';
+    this.newSectionTitle = '';
   }
 }
