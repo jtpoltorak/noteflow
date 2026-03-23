@@ -3,6 +3,12 @@ import { z } from "zod";
 import { validate } from "../middleware/validate.middleware.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
+  loginLimiter,
+  registerLimiter,
+  changePasswordLimiter,
+  accountClosureLimiter,
+} from "../middleware/rate-limit.middleware.js";
+import {
   register,
   login,
   getUserById,
@@ -72,7 +78,7 @@ function clearAuthCookies(res: Response): void {
 
 // ── Routes ────────────────────────────────────────────────────
 
-router.post("/register", validate(registerSchema), (req: Request, res: Response) => {
+router.post("/register", registerLimiter, validate(registerSchema), (req: Request, res: Response) => {
   const { email, password } = req.body as z.infer<typeof registerSchema>;
   const user = register(email, password);
 
@@ -80,7 +86,7 @@ router.post("/register", validate(registerSchema), (req: Request, res: Response)
   res.status(201).json({ data: user, message: "Registration successful" });
 });
 
-router.post("/login", validate(loginSchema), (req: Request, res: Response) => {
+router.post("/login", loginLimiter, validate(loginSchema), (req: Request, res: Response) => {
   const { email, password } = req.body as z.infer<typeof loginSchema>;
   const user = login(email, password);
 
@@ -122,7 +128,7 @@ router.put("/preferences", requireAuth, validate(preferencesSchema), (req: Reque
   res.json({ data: user });
 });
 
-router.put("/password", requireAuth, validate(changePasswordSchema), (req: Request, res: Response) => {
+router.put("/password", requireAuth, changePasswordLimiter, validate(changePasswordSchema), (req: Request, res: Response) => {
   const { currentPassword, newPassword } = req.body as z.infer<typeof changePasswordSchema>;
   changePassword(req.user!.id, currentPassword, newPassword);
   res.json({ data: null, message: "Password changed successfully" });
@@ -143,7 +149,7 @@ router.get("/export/markdown", requireAuth, (req: Request, res: Response) => {
 
 // ── Account closure ──────────────────────────────────────────
 
-router.post("/close-account", requireAuth, validate(closeAccountSchema), (req: Request, res: Response) => {
+router.post("/close-account", requireAuth, accountClosureLimiter, validate(closeAccountSchema), (req: Request, res: Response) => {
   const { password } = req.body as z.infer<typeof closeAccountSchema>;
   const status = requestAccountClosure(req.user!.id, password);
   res.json({ data: status, message: "Account scheduled for deletion" });
