@@ -18,6 +18,7 @@ import audioRoutes from "./routes/audio.routes.js";
 import recycleBinRoutes from "./routes/recycle-bin.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 import { globalLimiter } from "./middleware/rate-limit.middleware.js";
+import { csrfProtection } from "./middleware/csrf.middleware.js";
 import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
 import { startAccountPurgeCron } from "./cron/account-purge.cron.js";
 
@@ -61,6 +62,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1", globalLimiter);
+app.use("/api/v1", csrfProtection);
 
 // ── Routes ────────────────────────────────────────────────────
 app.get("/api/v1/health", (_req, res) => {
