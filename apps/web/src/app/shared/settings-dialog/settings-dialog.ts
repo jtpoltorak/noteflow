@@ -494,8 +494,8 @@ export class SettingsDialog {
       this.passwordError.set('Current password is required');
       return;
     }
-    if (this.newPassword.length < 8) {
-      this.passwordError.set('New password must be at least 8 characters');
+    if (this.newPassword.length < 8 || !/[a-z]/.test(this.newPassword) || !/[A-Z]/.test(this.newPassword) || !/[0-9]/.test(this.newPassword)) {
+      this.passwordError.set('Password must be at least 8 characters with one uppercase, one lowercase, and one number');
       return;
     }
     if (this.newPassword !== this.confirmPassword) {

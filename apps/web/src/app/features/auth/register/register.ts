@@ -43,8 +43,16 @@ import { AuthService } from '../../../core/services/auth.service';
               minlength="8"
               autocomplete="new-password"
               class="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
-              placeholder="At least 8 characters"
+              placeholder="Min 8 chars, uppercase, lowercase, number"
             />
+            @if (password.length > 0) {
+              <ul class="mt-1 space-y-0.5 text-xs">
+                <li [class]="password.length >= 8 ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'">At least 8 characters</li>
+                <li [class]="hasLowercase() ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'">One lowercase letter</li>
+                <li [class]="hasUppercase() ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'">One uppercase letter</li>
+                <li [class]="hasNumber() ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'">One number</li>
+              </ul>
+            }
           </div>
 
           <div>
@@ -95,7 +103,19 @@ export class Register {
     return this.confirmPassword.length > 0 && this.password !== this.confirmPassword;
   }
 
+  hasLowercase(): boolean { return /[a-z]/.test(this.password); }
+  hasUppercase(): boolean { return /[A-Z]/.test(this.password); }
+  hasNumber(): boolean { return /[0-9]/.test(this.password); }
+
+  private isPasswordStrong(): boolean {
+    return this.password.length >= 8 && this.hasLowercase() && this.hasUppercase() && this.hasNumber();
+  }
+
   onSubmit(): void {
+    if (!this.isPasswordStrong()) {
+      this.error.set('Password must be at least 8 characters with one uppercase, one lowercase, and one number.');
+      return;
+    }
     if (this.password !== this.confirmPassword) {
       this.error.set('Passwords do not match.');
       return;
