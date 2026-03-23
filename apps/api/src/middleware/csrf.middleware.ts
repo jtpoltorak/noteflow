@@ -3,11 +3,9 @@ import { Request, Response, NextFunction } from "express";
 
 const CSRF_COOKIE = "XSRF-TOKEN";
 const CSRF_HEADER = "x-xsrf-token";
+const CSRF_RESPONSE_HEADER = "X-XSRF-TOKEN";
 const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
-// Routes that don't require CSRF validation (unauthenticated or safe).
-// Paths are relative to the mount point (/api/v1), so use req.path which
-// strips the mount prefix.
 // Exact paths that skip CSRF (unauthenticated routes only)
 const CSRF_SKIP_EXACT = new Set([
   "/auth/login",
@@ -34,10 +32,13 @@ function generateToken(): string {
 /**
  * Double-submit cookie CSRF protection.
  *
- * On every response: sets a JS-readable XSRF-TOKEN cookie.
- * On mutating requests: validates that the X-XSRF-TOKEN header matches the cookie.
+ * On every response: sets a JS-readable XSRF-TOKEN cookie AND exposes the
+ * token in an X-XSRF-TOKEN response header. The response header is needed
+ * for cross-origin setups where JavaScript cannot read cookies from a
+ * different domain.
  *
- * Works with Angular's built-in XSRF support (withXsrfConfiguration).
+ * On mutating requests: validates that the X-XSRF-TOKEN request header
+ * matches the cookie value.
  */
 export function csrfProtection(req: Request, res: Response, next: NextFunction): void {
   // Always set/refresh the CSRF token cookie so the client has a valid token
@@ -46,12 +47,16 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
 
   if (!existingToken) {
     res.cookie(CSRF_COOKIE, token, {
-      httpOnly: false, // Must be readable by JavaScript
+      httpOnly: false, // Must be readable by JavaScript (same-origin)
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       path: "/",
     });
   }
+
+  // Always expose the token in a response header so cross-origin clients
+  // can read it (the cookie is unreadable cross-origin via document.cookie)
+  res.setHeader(CSRF_RESPONSE_HEADER, token);
 
   // Only validate on mutating requests
   if (!MUTATING_METHODS.has(req.method)) {

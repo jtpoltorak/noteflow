@@ -69,6 +69,7 @@ app.use(
       "http://localhost:4200",
     ],
     credentials: true,
+    exposedHeaders: ["X-XSRF-TOKEN"],
   })
 );
 app.use(express.json());
