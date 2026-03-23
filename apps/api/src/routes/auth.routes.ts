@@ -59,28 +59,32 @@ const closeAccountSchema = z.object({
 
 // ── Cookie helpers ────────────────────────────────────────────
 
+const isProd = process.env.NODE_ENV === "production";
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: isProd,
+  sameSite: (isProd ? "none" : "lax") as "none" | "lax",
+} as const;
+
 function setAuthCookies(res: Response, payload: { id: number; email: string }): void {
   const accessToken = generateAccessToken(payload);
   const refreshToken = generateRefreshToken(payload);
 
   res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    ...COOKIE_OPTIONS,
     maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    ...COOKIE_OPTIONS,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 }
 
 function clearAuthCookies(res: Response): void {
-  res.clearCookie("accessToken", { secure: true, sameSite: "none" });
-  res.clearCookie("refreshToken", { secure: true, sameSite: "none" });
+  res.clearCookie("accessToken", { secure: COOKIE_OPTIONS.secure, sameSite: COOKIE_OPTIONS.sameSite });
+  res.clearCookie("refreshToken", { secure: COOKIE_OPTIONS.secure, sameSite: COOKIE_OPTIONS.sameSite });
 }
 
 // ── Routes ────────────────────────────────────────────────────

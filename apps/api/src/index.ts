@@ -27,6 +27,18 @@ const PORT = process.env.PORT || 3000;
 
 // ── Global middleware ─────────────────────────────────────────
 app.set("trust proxy", 1); // Trust first proxy (Railway, etc.)
+
+// Redirect HTTP → HTTPS in production
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) => {
+    if (req.headers["x-forwarded-proto"] !== "https") {
+      res.redirect(301, `https://${req.hostname}${req.originalUrl}`);
+      return;
+    }
+    next();
+  });
+}
+
 app.use(
   helmet({
     contentSecurityPolicy: {
