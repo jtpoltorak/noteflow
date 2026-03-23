@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { initDatabase, runMigrations } from "./db/database.js";
@@ -25,6 +26,29 @@ const PORT = process.env.PORT || 3000;
 
 // ── Global middleware ─────────────────────────────────────────
 app.set("trust proxy", 1); // Trust first proxy (Railway, etc.)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'"],
+        imgSrc: ["'self'", "data:"],
+        mediaSrc: ["'self'", "blob:"],
+        frameSrc: ["'none'"],
+        frameAncestors: ["'none'"],
+        formAction: ["'self'"],
+        baseUri: ["'self'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    // HSTS: tell browsers to always use HTTPS (1 year, include subdomains)
+    strictTransportSecurity: {
+      maxAge: 31_536_000,
+      includeSubDomains: true,
+    },
+  })
+);
 app.use(
   cors({
     origin: [
