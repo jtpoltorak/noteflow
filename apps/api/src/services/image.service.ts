@@ -3,16 +3,11 @@ import fs from "fs";
 import crypto from "node:crypto";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
+import { validateImageMagicBytes, sanitizeOriginalName } from "../utils/file-validation.js";
 import type { ImageDto } from "@noteflow/shared-types";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./data/uploads";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
-const ALLOWED_MIME_TYPES = new Set([
-  "image/png",
-  "image/jpeg",
-  "image/gif",
-  "image/webp",
-]);
 
 /** Ensure the uploads directory exists. Call once at startup. */
 export function ensureUploadDir(): void {
@@ -43,16 +38,22 @@ export function uploadImage(
 ): ImageDto {
   verifyNoteOwnership(noteId, userId);
 
-  if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-    throw new AppError(400, "Invalid file type. Allowed: png, jpeg, gif, webp", "INVALID_FILE_TYPE");
-  }
   if (file.size > MAX_FILE_SIZE) {
     throw new AppError(400, "File too large. Maximum size is 5 MB", "FILE_TOO_LARGE");
   }
 
-  const ext = path.extname(file.originalname) || mimeToExt(file.mimetype);
-  const filename = `${crypto.randomUUID()}${ext}`;
+  // Validate by magic bytes — not the client-reported MIME type
+  let verified: { mime: string; ext: string };
+  try {
+    verified = validateImageMagicBytes(file.buffer);
+  } catch {
+    throw new AppError(400, "Invalid file type. Allowed: png, jpeg, gif, webp", "INVALID_FILE_TYPE");
+  }
+
+  // Use verified extension, never the user-supplied one
+  const filename = `${crypto.randomUUID()}${verified.ext}`;
   const filePath = path.join(UPLOAD_DIR, filename);
+  const safeName = sanitizeOriginalName(file.originalname);
 
   fs.writeFileSync(filePath, file.buffer);
 
@@ -60,7 +61,7 @@ export function uploadImage(
   const now = new Date().toISOString();
   db.run(
     "INSERT INTO Image (noteId, filename, originalName, mimeType, size, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
-    [noteId, filename, file.originalname, file.mimetype, file.size, now]
+    [noteId, filename, safeName, verified.mime, file.size, now]
   );
   saveDb();
 
@@ -71,8 +72,8 @@ export function uploadImage(
     id,
     noteId,
     filename,
-    originalName: file.originalname,
-    mimeType: file.mimetype,
+    originalName: safeName,
+    mimeType: verified.mime,
     size: file.size,
     url: `/api/v1/images/${filename}`,
     createdAt: now,
@@ -81,14 +82,4 @@ export function uploadImage(
 
 export function getUploadDir(): string {
   return UPLOAD_DIR;
-}
-
-function mimeToExt(mime: string): string {
-  switch (mime) {
-    case "image/png": return ".png";
-    case "image/jpeg": return ".jpg";
-    case "image/gif": return ".gif";
-    case "image/webp": return ".webp";
-    default: return ".bin";
-  }
 }

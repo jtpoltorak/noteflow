@@ -72,10 +72,31 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", shareRoutes);
 
-// Serve uploaded images without auth (referenced by <img> tags in note content)
+// Serve uploaded files without auth (referenced by <img>/<audio> tags in note content).
+// Only allow UUID-named files to prevent directory traversal.
 ensureUploadDir();
-app.use("/api/v1/images", express.static(getUploadDir()));
-app.use("/api/v1/audio", express.static(getUploadDir()));
+const UUID_FILE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.\w+$/;
+const safeStaticOptions = {
+  setHeaders: (res: import("express").Response) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Content-Disposition", "inline");
+    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+  },
+};
+app.use("/api/v1/images", (req, res, next) => {
+  if (!UUID_FILE_PATTERN.test(req.path.slice(1))) {
+    res.status(400).json({ error: { message: "Invalid filename" } });
+    return;
+  }
+  next();
+}, express.static(getUploadDir(), safeStaticOptions));
+app.use("/api/v1/audio", (req, res, next) => {
+  if (!UUID_FILE_PATTERN.test(req.path.slice(1))) {
+    res.status(400).json({ error: { message: "Invalid filename" } });
+    return;
+  }
+  next();
+}, express.static(getUploadDir(), safeStaticOptions));
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);
