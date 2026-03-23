@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt, { SignOptions } from "jsonwebtoken";
+import crypto from "node:crypto";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import type { AuthPayload } from "../middleware/auth.middleware.js";
@@ -12,6 +13,7 @@ function mapTheme(value: string): ColorTheme {
 }
 
 const BCRYPT_ROUNDS = 12;
+const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET;
@@ -25,15 +27,134 @@ function getRefreshSecret(): string {
   return secret;
 }
 
+/** Hash a refresh token for secure storage (SHA-256). */
+function hashToken(token: string): string {
+  return crypto.createHash("sha256").update(token).digest("hex");
+}
+
+// ── Access tokens ────────────────────────────────────────────
+
 export function generateAccessToken(payload: AuthPayload): string {
   const expiresIn = (process.env.JWT_EXPIRES_IN || "15m") as SignOptions['expiresIn'];
   return jwt.sign(payload, getJwtSecret(), { expiresIn });
 }
 
-export function generateRefreshToken(payload: AuthPayload): string {
+// ── Refresh tokens (with rotation) ──────────────────────────
+
+/**
+ * Create a new refresh token, store its hash in the DB, and return the raw token.
+ * Each token belongs to a "family" — a chain of rotated tokens from one login session.
+ */
+export function createRefreshToken(payload: AuthPayload, family?: string): string {
   const expiresIn = (process.env.REFRESH_TOKEN_EXPIRES_IN || "7d") as SignOptions['expiresIn'];
-  return jwt.sign(payload, getRefreshSecret(), { expiresIn });
+  const token = jwt.sign(payload, getRefreshSecret(), { expiresIn });
+
+  const tokenFamily = family || crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date().toISOString();
+
+  const db = getDb();
+  db.run(
+    "INSERT INTO RefreshToken (userId, tokenHash, family, expiresAt, createdAt) VALUES (?, ?, ?, ?, ?)",
+    [payload.id, hashToken(token), tokenFamily, expiresAt, now]
+  );
+  saveDb();
+
+  return token;
 }
+
+/**
+ * Rotate a refresh token: validate the old one, revoke it, and issue a new one
+ * in the same family. If the old token was already revoked (reuse detected),
+ * revoke the entire family as a security measure.
+ */
+export function rotateRefreshToken(oldToken: string): { token: string; payload: AuthPayload } {
+  // Verify the JWT signature and expiry
+  let decoded: AuthPayload;
+  try {
+    const raw = jwt.verify(oldToken, getRefreshSecret()) as AuthPayload & { iat?: number; exp?: number };
+    decoded = { id: raw.id, email: raw.email };
+  } catch {
+    throw new AppError(401, "Invalid or expired refresh token", "REFRESH_INVALID");
+  }
+
+  const db = getDb();
+  const oldHash = hashToken(oldToken);
+
+  // Look up the stored token
+  const result = db.exec(
+    "SELECT id, family, revokedAt FROM RefreshToken WHERE tokenHash = ?",
+    [oldHash]
+  );
+
+  if (result.length === 0 || result[0].values.length === 0) {
+    // Token not in DB — could be from before migration or already cleaned up
+    throw new AppError(401, "Refresh token not recognized", "REFRESH_INVALID");
+  }
+
+  const row = result[0].values[0];
+  const tokenId = row[0] as number;
+  const family = row[1] as string;
+  const revokedAt = row[2] as string | null;
+
+  // Reuse detection: if this token was already revoked, someone may have stolen it.
+  // Revoke the entire family to protect the user.
+  if (revokedAt) {
+    db.run(
+      "UPDATE RefreshToken SET revokedAt = ? WHERE family = ? AND revokedAt IS NULL",
+      [new Date().toISOString(), family]
+    );
+    saveDb();
+    throw new AppError(401, "Refresh token reuse detected — all sessions revoked", "REFRESH_REUSE");
+  }
+
+  // Revoke the old token
+  const now = new Date().toISOString();
+  db.run("UPDATE RefreshToken SET revokedAt = ? WHERE id = ?", [now, tokenId]);
+  saveDb();
+
+  // Issue a new token in the same family
+  const newToken = createRefreshToken(decoded, family);
+  return { token: newToken, payload: decoded };
+}
+
+/**
+ * Revoke all refresh tokens for a user (logout everywhere, password change).
+ */
+export function revokeAllUserTokens(userId: number): void {
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run(
+    "UPDATE RefreshToken SET revokedAt = ? WHERE userId = ? AND revokedAt IS NULL",
+    [now, userId]
+  );
+  saveDb();
+}
+
+/**
+ * Revoke a single refresh token (normal logout).
+ */
+export function revokeSingleToken(token: string): void {
+  const db = getDb();
+  const now = new Date().toISOString();
+  db.run(
+    "UPDATE RefreshToken SET revokedAt = ? WHERE tokenHash = ? AND revokedAt IS NULL",
+    [now, hashToken(token)]
+  );
+  saveDb();
+}
+
+/**
+ * Clean up expired refresh tokens older than 30 days.
+ */
+export function cleanupExpiredTokens(): void {
+  const db = getDb();
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  db.run("DELETE FROM RefreshToken WHERE expiresAt < ?", [cutoff]);
+  saveDb();
+}
+
+// ── Legacy verify (kept for auth middleware compatibility) ────
 
 export function verifyRefreshToken(token: string): AuthPayload {
   try {
@@ -43,6 +164,8 @@ export function verifyRefreshToken(token: string): AuthPayload {
     throw new AppError(401, "Invalid or expired refresh token", "REFRESH_INVALID");
   }
 }
+
+// ── User CRUD ────────────────────────────────────────────────
 
 export function register(email: string, password: string): UserDto {
   const db = getDb();
@@ -153,4 +276,7 @@ export function changePassword(userId: number, currentPassword: string, newPassw
   const newHash = bcrypt.hashSync(newPassword, BCRYPT_ROUNDS);
   db.run("UPDATE User SET passwordHash = ? WHERE id = ?", [newHash, userId]);
   saveDb();
+
+  // Revoke all refresh tokens — forces re-login on all devices
+  revokeAllUserTokens(userId);
 }

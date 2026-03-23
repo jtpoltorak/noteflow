@@ -8,17 +8,23 @@ const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 // Routes that don't require CSRF validation (unauthenticated or safe).
 // Paths are relative to the mount point (/api/v1), so use req.path which
 // strips the mount prefix.
-const CSRF_SKIP_PATHS = [
+// Exact paths that skip CSRF (unauthenticated routes only)
+const CSRF_SKIP_EXACT = new Set([
   "/auth/login",
   "/auth/register",
   "/auth/logout",
   "/auth/refresh",
-  "/shared/",
   "/health",
+]);
+
+// Prefix paths that skip CSRF
+const CSRF_SKIP_PREFIXES = [
+  "/shared/",
 ];
 
 function shouldSkipCsrf(req: Request): boolean {
-  return CSRF_SKIP_PATHS.some((path) => req.path.startsWith(path));
+  return CSRF_SKIP_EXACT.has(req.path) ||
+    CSRF_SKIP_PREFIXES.some((prefix) => req.path.startsWith(prefix));
 }
 
 function generateToken(): string {

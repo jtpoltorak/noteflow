@@ -15,8 +15,10 @@ import {
   updatePreferences,
   changePassword,
   generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
+  createRefreshToken,
+  rotateRefreshToken,
+  revokeSingleToken,
+  revokeAllUserTokens,
 } from "../services/auth.service.js";
 import { exportAsJson, exportAsMarkdownZip } from "../services/export.service.js";
 import { requestAccountClosure, reactivateAccount } from "../services/account-closure.service.js";
@@ -67,9 +69,9 @@ const COOKIE_OPTIONS = {
   sameSite: (isProd ? "none" : "lax") as "none" | "lax",
 } as const;
 
-function setAuthCookies(res: Response, payload: { id: number; email: string }): void {
+function setAuthCookies(res: Response, payload: { id: number; email: string }, existingFamily?: string): void {
   const accessToken = generateAccessToken(payload);
-  const refreshToken = generateRefreshToken(payload);
+  const refreshToken = createRefreshToken(payload, existingFamily);
 
   res.cookie("accessToken", accessToken, {
     ...COOKIE_OPTIONS,
@@ -105,9 +107,19 @@ router.post("/login", loginLimiter, validate(loginSchema), (req: Request, res: R
   res.json({ data: user, message: "Login successful" });
 });
 
-router.post("/logout", (_req: Request, res: Response) => {
+router.post("/logout", (req: Request, res: Response) => {
+  const token = req.cookies?.refreshToken as string | undefined;
+  if (token) {
+    revokeSingleToken(token);
+  }
   clearAuthCookies(res);
   res.json({ data: null, message: "Logged out successfully" });
+});
+
+router.post("/logout-all", requireAuth, (req: Request, res: Response) => {
+  revokeAllUserTokens(req.user!.id);
+  clearAuthCookies(res);
+  res.json({ data: null, message: "All sessions logged out" });
 });
 
 router.post("/refresh", (req: Request, res: Response) => {
@@ -119,7 +131,7 @@ router.post("/refresh", (req: Request, res: Response) => {
   }
 
   try {
-    const payload = verifyRefreshToken(token);
+    const { payload } = rotateRefreshToken(token);
     setAuthCookies(res, payload);
     res.json({ data: null, message: "Tokens refreshed" });
   } catch {
