@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { getSectionById } from "./section.service.js";
+import { sanitizeNoteContent } from "../utils/sanitize-html.js";
 import crypto from "node:crypto";
 import type { NoteDto, ArchivedNoteDto, FavoriteNoteDto, SharedNoteDto, SharedNoteListDto, NoteLinkContextDto } from "@noteflow/shared-types";
 
@@ -71,6 +72,7 @@ export function createNote(
 ): NoteDto {
   getSectionById(sectionId, userId); // verifies ownership
 
+  const sanitizedContent = sanitizeNoteContent(content);
   const db = getDb();
   const now = new Date().toISOString();
 
@@ -82,14 +84,14 @@ export function createNote(
 
   db.run(
     'INSERT INTO Note (sectionId, title, content, "order", createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?)',
-    [sectionId, title, content, nextOrder, now, now]
+    [sectionId, title, sanitizedContent, nextOrder, now, now]
   );
 
   const idResult = db.exec("SELECT last_insert_rowid() as id");
   const id = idResult[0].values[0][0] as number;
   saveDb();
 
-  return { id, sectionId, title, content, order: nextOrder, archivedAt: null, favoritedAt: null, shareToken: null, isLocked: false, createdAt: now, updatedAt: now };
+  return { id, sectionId, title, content: sanitizedContent, order: nextOrder, archivedAt: null, favoritedAt: null, shareToken: null, isLocked: false, createdAt: now, updatedAt: now };
 }
 
 export function updateNote(
@@ -102,7 +104,9 @@ export function updateNote(
   const db = getDb();
   const now = new Date().toISOString();
   const title = updates.title ?? existing.title;
-  const content = updates.content ?? existing.content;
+  const content = updates.content !== undefined
+    ? sanitizeNoteContent(updates.content)
+    : existing.content;
   let order = updates.order ?? existing.order;
   let sectionId = existing.sectionId;
 
