@@ -6,6 +6,15 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.17.2',
+    date: '2026-07-14',
+    items: [
+      'Hardening: the server now validates its secrets on startup and refuses to boot with missing, weak, or placeholder JWT secrets',
+      'Hardening: database writes are now atomic, preventing file corruption if the server crashes mid-save',
+      'Hardening: automatic database backups before every migration and once daily, with configurable retention',
+    ],
+  },
+  {
     version: '0.17.1',
     date: '2026-03-20',
     items: [

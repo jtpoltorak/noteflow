@@ -3,7 +3,8 @@ import express from "express";
 import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { initDatabase, runMigrations } from "./db/database.js";
+import { validateEnv } from "./config/env.js";
+import { initDatabase, runMigrations, backupDatabase } from "./db/database.js";
 import { errorHandler } from "./middleware/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import notebookRoutes from "./routes/notebook.routes.js";
@@ -126,7 +127,17 @@ app.use(errorHandler);
 
 // ── Start server ─────────────────────────────────────────────
 async function start(): Promise<void> {
+  validateEnv();
+
   await initDatabase();
+
+  // Snapshot the DB before applying migrations so a bad migration is recoverable.
+  try {
+    backupDatabase();
+  } catch (err) {
+    console.error("Pre-migration backup failed (continuing):", err);
+  }
+
   runMigrations();
   startAccountPurgeCron();
 

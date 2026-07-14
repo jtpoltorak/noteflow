@@ -2,6 +2,7 @@ import cron from "node-cron";
 import { purgeExpiredAccounts } from "../services/account-closure.service.js";
 import { purgeExpiredItems } from "../services/recycle-bin.service.js";
 import { cleanupExpiredTokens } from "../services/auth.service.js";
+import { backupDatabase } from "../db/database.js";
 
 export function startAccountPurgeCron(): void {
   // Run daily at 3:00 AM UTC
@@ -25,6 +26,13 @@ export function startAccountPurgeCron(): void {
       cleanupExpiredTokens();
     } catch (err) {
       console.error("[cron] Token cleanup failed:", err);
+    }
+
+    console.log("[cron] Running database backup...");
+    try {
+      backupDatabase();
+    } catch (err) {
+      console.error("[cron] Database backup failed:", err);
     }
   });
   console.log("[cron] Daily maintenance scheduled (03:00 UTC)");

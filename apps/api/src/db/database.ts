@@ -36,11 +36,49 @@ export function getDb(): Database {
   return db;
 }
 
-/** Persist the in-memory database to disk. Call after any write operation. */
+/**
+ * Persist the in-memory database to disk. Call after any write operation.
+ *
+ * Writes to a temp file then renames over the target. rename() is atomic on the
+ * same filesystem, so a crash mid-write can never leave a half-written (corrupt)
+ * database file — readers see either the old file or the complete new one.
+ */
 export function saveDb(): void {
   const data = db.export();
   const buffer = Buffer.from(data);
-  fs.writeFileSync(DB_PATH, buffer);
+  const tmpPath = `${DB_PATH}.tmp`;
+  fs.writeFileSync(tmpPath, buffer);
+  fs.renameSync(tmpPath, DB_PATH);
+}
+
+/**
+ * Copy the current database file into a timestamped backup, keeping only the
+ * most recent DB_BACKUP_KEEP copies (default 7). No-op if the DB file does not
+ * yet exist. Backups only survive restarts when DB_PATH lives on a persistent
+ * volume — see apps/api/DEPLOYMENT.md.
+ */
+export function backupDatabase(): void {
+  if (!fs.existsSync(DB_PATH)) return;
+
+  const keep = Number(process.env.DB_BACKUP_KEEP) || 7;
+  const dir = path.dirname(DB_PATH);
+  const backupsDir = path.join(dir, "backups");
+  if (!fs.existsSync(backupsDir)) {
+    fs.mkdirSync(backupsDir, { recursive: true });
+  }
+
+  const base = path.basename(DB_PATH, path.extname(DB_PATH));
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  fs.copyFileSync(DB_PATH, path.join(backupsDir, `${base}-${stamp}.db`));
+
+  // ISO timestamps sort lexically, so oldest-first — prune all but the newest `keep`.
+  const backups = fs
+    .readdirSync(backupsDir)
+    .filter((f) => f.startsWith(`${base}-`) && f.endsWith(".db"))
+    .sort();
+  for (let i = 0; i < backups.length - keep; i++) {
+    fs.unlinkSync(path.join(backupsDir, backups[i]));
+  }
 }
 
 /** Run migrations from the migrations directory. */
