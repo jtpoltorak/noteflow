@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import { getDb, saveDb } from "../db/database.js";
 import { AppError } from "../middleware/error.middleware.js";
 import { validateAudioMagicBytes, sanitizeOriginalName } from "../utils/file-validation.js";
+import { canAccessNoteMedia } from "./note.service.js";
 import type { AudioDto } from "@noteflow/shared-types";
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./data/uploads";
@@ -71,4 +72,25 @@ export function uploadAudio(
     url: `/api/v1/audio/${filename}`,
     createdAt: now,
   };
+}
+
+/**
+ * Resolve the absolute path of an audio file the caller is authorized to read.
+ * Throws 404 if no such audio, 403 if the caller may not access its note.
+ * `userId` is undefined for anonymous (shared-note) requests.
+ */
+export function resolveAudioPath(filename: string, userId?: number): string {
+  const db = getDb();
+  const result = db.exec("SELECT noteId FROM Audio WHERE filename = ?", [filename]);
+
+  if (result.length === 0 || result[0].values.length === 0) {
+    throw new AppError(404, "Audio not found", "NOT_FOUND");
+  }
+
+  const noteId = result[0].values[0][0] as number;
+  if (!canAccessNoteMedia(noteId, userId)) {
+    throw new AppError(403, "Not authorized to access this file", "FORBIDDEN");
+  }
+
+  return path.resolve(UPLOAD_DIR, filename);
 }

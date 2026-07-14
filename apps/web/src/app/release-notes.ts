@@ -6,6 +6,13 @@ export interface ReleaseGroup {
 
 export const RELEASE_NOTES: ReleaseGroup[] = [
   {
+    version: '0.17.3',
+    date: '2026-07-14',
+    items: [
+      'Security: uploaded images and audio are now access-controlled — only the note owner (or anyone with an active share link to that note) can load them, instead of anyone with the file URL',
+    ],
+  },
+  {
     version: '0.17.2',
     date: '2026-07-14',
     items: [

@@ -17,10 +17,11 @@ import shareRoutes from "./routes/share.routes.js";
 import imageRoutes from "./routes/image.routes.js";
 import audioRoutes from "./routes/audio.routes.js";
 import recycleBinRoutes from "./routes/recycle-bin.routes.js";
+import mediaRoutes from "./routes/media.routes.js";
 import { requireAuth } from "./middleware/auth.middleware.js";
 import { globalLimiter } from "./middleware/rate-limit.middleware.js";
 import { csrfProtection } from "./middleware/csrf.middleware.js";
-import { ensureUploadDir, getUploadDir } from "./services/image.service.js";
+import { ensureUploadDir } from "./services/image.service.js";
 import { startAccountPurgeCron } from "./cron/account-purge.cron.js";
 
 const app = express();
@@ -86,31 +87,12 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1", shareRoutes);
 
-// Serve uploaded files without auth (referenced by <img>/<audio> tags in note content).
-// Only allow UUID-named files to prevent directory traversal.
+// Serve uploaded image/audio files (referenced by <img>/<audio> tags in note
+// content). The media routes authorize each file by ownership OR active share
+// link, so anonymous shared-note viewers still load media while private files
+// stay private.
 ensureUploadDir();
-const UUID_FILE_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.\w+$/;
-const safeStaticOptions = {
-  setHeaders: (res: import("express").Response) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("Content-Disposition", "inline");
-    res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
-  },
-};
-app.use("/api/v1/images", (req, res, next) => {
-  if (!UUID_FILE_PATTERN.test(req.path.slice(1))) {
-    res.status(400).json({ error: { message: "Invalid filename" } });
-    return;
-  }
-  next();
-}, express.static(getUploadDir(), safeStaticOptions));
-app.use("/api/v1/audio", (req, res, next) => {
-  if (!UUID_FILE_PATTERN.test(req.path.slice(1))) {
-    res.status(400).json({ error: { message: "Invalid filename" } });
-    return;
-  }
-  next();
-}, express.static(getUploadDir(), safeStaticOptions));
+app.use("/api/v1", mediaRoutes);
 
 app.use("/api/v1/notebooks", requireAuth, notebookRoutes);
 app.use("/api/v1", requireAuth, sectionRoutes);

@@ -305,6 +305,34 @@ export function getNoteByShareToken(token: string): SharedNoteDto {
   };
 }
 
+/**
+ * Whether a request may access media (images/audio) attached to a note.
+ * Allowed if the user owns the note, or the note is actively shared
+ * (public share link, not archived, not deleted). Used to authorize the
+ * otherwise-public media file endpoints.
+ */
+export function canAccessNoteMedia(noteId: number, userId?: number): boolean {
+  const db = getDb();
+
+  if (userId !== undefined) {
+    const owned = db.exec(
+      `SELECT 1 FROM Note n
+       JOIN Section s ON n.sectionId = s.id
+       JOIN Notebook nb ON s.notebookId = nb.id
+       WHERE n.id = ? AND nb.userId = ?`,
+      [noteId, userId]
+    );
+    if (owned.length > 0 && owned[0].values.length > 0) return true;
+  }
+
+  const shared = db.exec(
+    `SELECT 1 FROM Note
+     WHERE id = ? AND shareToken IS NOT NULL AND archivedAt IS NULL AND deletedAt IS NULL`,
+    [noteId]
+  );
+  return shared.length > 0 && shared[0].values.length > 0;
+}
+
 export function getSharedNotes(userId: number): SharedNoteListDto[] {
   const db = getDb();
   const result = db.exec(
